@@ -1,0 +1,255 @@
+/* ── ANIMATED STARS AND CLOUDS CONTAINER ── */
+.clouds-and-stars-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 165px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 4;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 65%, rgba(0, 0, 0, 0) 100%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 65%, rgba(0, 0, 0, 0) 100%);
+}
+
+/* ── STARS ── */
+.stars {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.star {
+  position: absolute;
+  width: 2.5px;
+  height: 2.5px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 3px #ffffff, 0 0 6px rgba(255, 255, 255, 0.85);
+  animation: starTwinkle 2.8s ease-in-out infinite alternate;
+}
+
+@keyframes starTwinkle {
+  0% {
+    opacity: 0.15;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.25);
+  }
+  100% {
+    opacity: 0.25;
+    transform: scale(0.75);
+  }
+}
+
+/* Star positions by ID */
+#star1  { top: 18px; left: 7%;   animation-delay: 0.1s; }
+#star2  { top: 38px; left: 16%;  animation-delay: 0.9s; width: 3px; height: 3px; }
+#star3  { top: 22px; left: 26%;  animation-delay: 0.4s; }
+#star4  { top: 56px; left: 36%;  animation-delay: 1.4s; }
+#star5  { top: 16px; left: 46%;  animation-delay: 0.7s; width: 3.5px; height: 3.5px; }
+#star6  { top: 48px; left: 56%;  animation-delay: 1.8s; }
+#star7  { top: 24px; left: 66%;  animation-delay: 0.3s; }
+#star8  { top: 62px; left: 76%;  animation-delay: 1.1s; width: 3px; height: 3px; }
+#star9  { top: 32px; left: 85%;  animation-delay: 0.6s; }
+#star10 { top: 14px; left: 92%;  animation-delay: 1.6s; }
+#star11 { top: 50px; left: 97%;  animation-delay: 0.8s; }
+
+/* Non-ID stars (interspersed) */
+.stars .star:nth-child(2)  { top: 28px; left: 11%; animation-delay: 1.2s; }
+.stars .star:nth-child(4)  { top: 64px; left: 21%; animation-delay: 0.5s; width: 3px; height: 3px; }
+.stars .star:nth-child(6)  { top: 12px; left: 31%; animation-delay: 1.9s; }
+.stars .star:nth-child(8)  { top: 42px; left: 41%; animation-delay: 0.2s; }
+.stars .star:nth-child(10) { top: 72px; left: 51%; animation-delay: 1.5s; }
+.stars .star:nth-child(12) { top: 15px; left: 61%; animation-delay: 0.6s; width: 3px; height: 3px; }
+.stars .star:nth-child(14) { top: 52px; left: 71%; animation-delay: 1.3s; }
+.stars .star:nth-child(16) { top: 20px; left: 81%; animation-delay: 0.4s; }
+.stars .star:nth-child(18) { top: 68px; left: 88%; animation-delay: 1.7s; }
+.stars .star:nth-child(20) { top: 40px; left: 94%; animation-delay: 1.0s; width: 3px; height: 3px; }
+.stars .star:nth-child(22) { top: 58px; left: 99%; animation-delay: 0.2s; }
+
+/* ── CLOUDS ── */
+.bigCloud {
+  position: absolute;
+  width: 210px;
+  height: 90px;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.45));
+  animation: moveCloudHorizontal linear infinite;
+  will-change: left, transform;
+}
+
+@keyframes moveCloudHorizontal {
+  0% {
+    left: -240px;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Circles */
+.largeCircle {
+  position: absolute;
+  border-radius: 50%;
+  background-color: #ffffff;
+}
+
+#circ1 {
+  width: 96px;
+  height: 96px;
+  top: 0px;
+  left: 56px;
+  overflow: hidden;
+}
+
+#circ1shadow {
+  width: 96px;
+  height: 96px;
+  top: 14px;
+  left: 6px;
+  background-color: #d2dbe6;
+}
+
+.middleCircle {
+  position: absolute;
+  border-radius: 50%;
+  background-color: #ffffff;
+}
+
+#circ2 {
+  width: 72px;
+  height: 72px;
+  top: 18px;
+  left: 20px;
+  overflow: hidden;
+}
+
+#circ2shadow {
+  width: 72px;
+  height: 72px;
+  top: 11px;
+  left: 5px;
+  background-color: #d2dbe6;
+}
+
+#circ3 {
+  width: 72px;
+  height: 72px;
+  top: 18px;
+  left: 116px;
+  overflow: hidden;
+}
+
+#circ3shadow {
+  width: 72px;
+  height: 72px;
+  top: 11px;
+  left: 5px;
+  background-color: #d2dbe6;
+}
+
+.smallCircle {
+  position: absolute;
+  border-radius: 50%;
+  background-color: #ffffff;
+}
+
+#circ4 {
+  width: 48px;
+  height: 48px;
+  top: 40px;
+  left: 0px;
+}
+
+#circ5 {
+  width: 48px;
+  height: 48px;
+  top: 40px;
+  left: 160px;
+  overflow: hidden;
+}
+
+#circ5shadow {
+  width: 48px;
+  height: 48px;
+  top: 8px;
+  left: 4px;
+  background-color: #d2dbe6;
+}
+
+#circ6 {
+  width: 58px;
+  height: 50px;
+  top: 40px;
+  left: 76px;
+  overflow: hidden;
+}
+
+#circ6shadow {
+  width: 58px;
+  height: 50px;
+  top: 9px;
+  left: 3px;
+  background-color: #d2dbe6;
+}
+
+/* Individual Cloud Variants & Staggered Animations */
+#cloud1 {
+  top: 10px;
+  transform: scale(0.85);
+  opacity: 0.72;
+  animation-duration: 46s;
+  animation-delay: -6s;
+}
+
+#cloud2 {
+  top: 46px;
+  transform: scale(0.60);
+  opacity: 0.48;
+  animation-duration: 68s;
+  animation-delay: -28s;
+}
+
+#cloud3 {
+  top: 16px;
+  transform: scale(1.00);
+  opacity: 0.82;
+  animation-duration: 38s;
+  animation-delay: -16s;
+}
+
+#cloud4 {
+  top: 60px;
+  transform: scale(0.72);
+  opacity: 0.52;
+  animation-duration: 56s;
+  animation-delay: -44s;
+}
+
+#cloud5 {
+  top: 6px;
+  transform: scale(0.90);
+  opacity: 0.76;
+  animation-duration: 48s;
+  animation-delay: -34s;
+}
+
+#cloud6 {
+  top: 36px;
+  transform: scale(0.55);
+  opacity: 0.42;
+  animation-duration: 76s;
+  animation-delay: -54s;
+}
+
+#cloud7 {
+  top: 52px;
+  transform: scale(0.78);
+  opacity: 0.62;
+  animation-duration: 52s;
+  animation-delay: -12s;
+}

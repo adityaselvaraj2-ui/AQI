@@ -1,0 +1,342 @@
+/* ==========================================================================
+   Industry Intelligence & Interactive Map Glassmorphic Cyber Design System
+   ========================================================================== */
+
+:root {
+  --bg-void: #080e18;
+  --bg-card: rgba(14, 25, 45, 0.72);
+  --bg-card-hover: rgba(20, 36, 65, 0.85);
+  --border-glass: rgba(56, 180, 255, 0.2);
+  --border-glass-bright: rgba(56, 180, 255, 0.45);
+  --accent-cyan: #38b4ff;
+  --accent-teal: #00e5c8;
+  --accent-amber: #f59e0b;
+  --color-red: #ff3b5c;
+  --color-orange: #ff9f1c;
+  --color-green: #00e676;
+  --color-white-tier: #94a3b8;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', 'JetBrains Mono', monospace;
+  --font-sans: 'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Glassmorphism Containers */
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-panel:hover {
+  border-color: var(--border-glass-bright);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 15px rgba(56, 180, 255, 0.12);
+}
+
+/* Glass Card Inner */
+.glass-panel-sub {
+  background: rgba(8, 16, 30, 0.6);
+  border: 1px solid rgba(56, 180, 255, 0.12);
+  border-radius: 8px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Severity Marker Badges */
+.badge-red {
+  background: rgba(255, 59, 92, 0.15);
+  color: var(--color-red);
+  border: 1px solid rgba(255, 59, 92, 0.4);
+  box-shadow: 0 0 10px rgba(255, 59, 92, 0.2);
+}
+
+.badge-orange {
+  background: rgba(255, 159, 28, 0.15);
+  color: var(--color-orange);
+  border: 1px solid rgba(255, 159, 28, 0.4);
+  box-shadow: 0 0 10px rgba(255, 159, 28, 0.2);
+}
+
+.badge-green {
+  background: rgba(0, 230, 118, 0.15);
+  color: var(--color-green);
+  border: 1px solid rgba(0, 230, 118, 0.4);
+  box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+}
+
+.badge-white {
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--color-white-tier);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* ============================================================
+   CLUSTER UNBUNDLING & RADIAL SEPARATION STYLES
+   ============================================================ */
+
+/* Outer Glowing Cluster Badge */
+.custom-cluster-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+
+.cluster-pulse-ring {
+  border-radius: 50%;
+  background: var(--cluster-color, #ff3b5c);
+  box-shadow: 0 0 18px var(--cluster-glow, rgba(255, 59, 92, 0.5)), 0 4px 14px rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+}
+
+.cluster-pulse-ring:hover {
+  transform: scale(1.18);
+}
+
+/* Radar Pulse Animation around the cluster circle */
+.cluster-pulse-ring::after {
+  content: '';
+  position: absolute;
+  top: -6px; left: -6px; right: -6px; bottom: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--cluster-color, #ff3b5c);
+  opacity: 0.8;
+  animation: clusterRadarPulse 2.4s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+  pointer-events: none;
+}
+
+@keyframes clusterRadarPulse {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  60% { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* Inner Badge & Count Typography */
+.cluster-inner-badge {
+  width: calc(100% - 4px);
+  height: calc(100% - 4px);
+  border-radius: 50%;
+  background: rgba(12, 20, 36, 0.92);
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.cluster-count {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* ------------------------------------------------------------
+   INDIVIDUAL PIN STYLES (When Unbundled / Zoomed-in)
+   ------------------------------------------------------------ */
+@keyframes pinZoomIn {
+  0% {
+    transform: scale(0.1) translateY(8px);
+    opacity: 0;
+    filter: blur(4px);
+  }
+  65% {
+    transform: scale(1.3) translateY(-2px);
+    opacity: 0.95;
+    filter: blur(0px);
+  }
+  85% {
+    transform: scale(0.92) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.industry-pin {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  position: relative;
+  display: block;
+  cursor: pointer;
+  animation: pinZoomIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+  will-change: transform, opacity;
+}
+
+.industry-pin:hover {
+  transform: scale(1.45) !important;
+  z-index: 1000;
+}
+
+.industry-pin::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  animation: pinPulse 2.2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+  pointer-events: none;
+}
+
+.industry-pin.pin-selected::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: -9px;
+  right: -9px;
+  bottom: -9px;
+  border-radius: 50%;
+  border: 2px dashed #38b4ff;
+  animation: rotateDashed 4s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes pinPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 0;
+  }
+}
+
+@keyframes rotateDashed {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ------------------------------------------------------------
+   SPIDERFY LEGS (Connecting lines during max-zoom separation)
+   ------------------------------------------------------------ */
+.leaflet-cluster-spider-leg {
+  stroke: rgba(56, 180, 255, 0.75) !important;
+  stroke-dasharray: 4, 3;
+  stroke-width: 1.8px !important;
+}
+
+/* Leaflet Cluster Animated Transition */
+.leaflet-cluster-anim .leaflet-marker-icon,
+.leaflet-cluster-anim .leaflet-marker-shadow {
+  transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* Map Popup Styling */
+.industry-leaflet-popup .leaflet-popup-content-wrapper {
+  background: rgba(10, 20, 38, 0.94) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid var(--border-glass-bright) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 24px rgba(56, 180, 255, 0.2) !important;
+  color: #e2e8f0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.industry-leaflet-popup .leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.4 !important;
+}
+
+.industry-leaflet-popup .leaflet-popup-tip {
+  background: rgba(10, 20, 38, 0.94) !important;
+  border: 1px solid var(--border-glass-bright) !important;
+}
+
+.industry-leaflet-popup .leaflet-popup-close-button {
+  color: #94a3b8 !important;
+  padding: 8px !important;
+  top: 4px !important;
+  right: 4px !important;
+  font-size: 18px !important;
+}
+
+.industry-leaflet-popup .leaflet-popup-close-button:hover {
+  color: #38b4ff !important;
+}
+
+/* Interactive Sliders */
+.glass-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: rgba(56, 180, 255, 0.15);
+  border-radius: 3px;
+  outline: none;
+  border: 1px solid rgba(56, 180, 255, 0.3);
+}
+
+.glass-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #38b4ff;
+  cursor: pointer;
+  box-shadow: 0 0 12px #38b4ff;
+  border: 2px solid #ffffff;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.glass-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 18px #00e5c8;
+}
+
+/* Cyber Button */
+.cyber-btn {
+  background: linear-gradient(135deg, rgba(56, 180, 255, 0.2) 0%, rgba(0, 229, 200, 0.2) 100%);
+  border: 1px solid var(--border-glass-bright);
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cyber-btn:hover {
+  background: linear-gradient(135deg, rgba(56, 180, 255, 0.35) 0%, rgba(0, 229, 200, 0.35) 100%);
+  border-color: #38b4ff;
+  box-shadow: 0 0 20px rgba(56, 180, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.cyber-btn-red {
+  background: linear-gradient(135deg, rgba(255, 59, 92, 0.2) 0%, rgba(245, 158, 11, 0.2) 100%);
+  border-color: rgba(255, 59, 92, 0.45);
+}
+
+.cyber-btn-red:hover {
+  background: linear-gradient(135deg, rgba(255, 59, 92, 0.35) 0%, rgba(245, 158, 11, 0.35) 100%);
+  border-color: #ff3b5c;
+  box-shadow: 0 0 20px rgba(255, 59, 92, 0.4);
+}

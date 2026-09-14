@@ -1,0 +1,192 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   NCR·72 — stylesheet entry
+   Order matters: Tailwind first, then the ported design system, then the
+   @theme bridge that exposes the design tokens as Tailwind utilities.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@import "tailwindcss";
+
+/* Leaflet's own CSS, bundled (never from a CDN) so the online map needs no
+   extra style host in the console CSP. */
+@import "leaflet/dist/leaflet.css";
+
+@import "./styles/tokens.css";
+@import "./styles/console.css";
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Bridge the ported CSS variables into Tailwind's theme.
+   `inline` means utilities emit `var(--abyss)` etc. rather than copying the
+   literal value — so anything bound at runtime (notably --live, which tracks
+   the scrubbed hour's AQI category) keeps propagating through utilities too.
+   The base variables themselves live in tokens.css, not here.
+   ────────────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --color-abyss:      var(--abyss);
+  --color-deep:       var(--deep);
+  --color-slab:       var(--slab);
+  --color-slab-hi:    var(--slab-hi);
+  --color-hairline:   var(--hairline);
+  --color-hairline-2: var(--hairline-2);
+
+  --color-bone:       var(--bone);
+  --color-mist:       var(--mist);
+  --color-mist-dim:   var(--mist-dim);
+  --color-mist-faint: var(--mist-faint);
+
+  --color-aqi-1: var(--aqi-1);
+  --color-aqi-2: var(--aqi-2);
+  --color-aqi-3: var(--aqi-3);
+  --color-aqi-4: var(--aqi-4);
+  --color-aqi-5: var(--aqi-5);
+  --color-aqi-6: var(--aqi-6);
+  --color-live:  var(--live);
+
+  --font-mono: var(--mono);
+  --font-sans: var(--sans);
+  --font-cond: var(--cond);
+
+  --ease-instrument: var(--ease);
+  --ease-instrument-out: var(--ease-out);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Cinematic Liquid Glass & Train-Bob Ambient Motion Layer
+   ────────────────────────────────────────────────────────────────────────── */
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.01);
+  background-blend-mode: luminosity;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.4px;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.15) 20%,
+    rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%,
+    rgba(255,255,255,0.15) 80%, rgba(255,255,255,0.45) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+@keyframes trainBob {
+  0%, 100% {
+    transform: translate3d(0, 0px, 0);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0);
+  }
+}
+
+.animate-train-bob {
+  animation: trainBob 4.5s ease-in-out infinite;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  contain: layout paint;
+  pointer-events: none;
+}
+
+.font-instrument {
+  font-family: 'Instrument Serif', Georgia, serif;
+}
+
+/* Leaflet Tooltip Text Overflow Fix & Premium Glassmorphism */
+.leaflet-tooltip.map__industryTooltip,
+.leaflet-tooltip {
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  max-width: 300px !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+  border: none !important;
+}
+
+/* Premium Zoom Scatter & Bloom Transition for Industry Points */
+.leaflet-pane.leaflet-ncrIndustries-pane svg path {
+  transition: r 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              fill-opacity 0.3s ease,
+              stroke-width 0.3s ease;
+  transform-origin: center;
+}
+
+/* Subtle gentle pulse for critical alert badge (non-annoying) */
+@keyframes alertPulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0);
+  }
+}
+
+.alert-bell-pulse {
+  animation: alertPulseGlow 2.4s ease-in-out infinite;
+}
+
+
+
+/* ── NCR·72 source influence layer ───────────────────────────────────────── */
+.source-influence-panel { position: relative; }
+.source-target-select { display:flex; align-items:center; gap:.5rem; padding:.55rem .7rem; border:1px solid rgba(255,255,255,.12); border-radius:10px; background:rgba(255,255,255,.035); }
+.source-target-select select { background:transparent; color:inherit; border:0; outline:0; font:inherit; max-width:220px; }
+.source-target-select option { background:#111827; color:#fff; }
+.source-influence-grid { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:1rem; }
+.source-target-strip { display:grid; grid-template-columns:1.5fr repeat(3,1fr); gap:1px; margin-bottom:.8rem; overflow:hidden; border:1px solid rgba(255,255,255,.08); border-radius:12px; background:rgba(255,255,255,.06); }
+.source-target-strip > div { padding:.8rem .9rem; background:rgba(10,12,20,.65); }
+.source-target-strip span { display:block; font-size:9px; text-transform:uppercase; letter-spacing:.12em; opacity:.52; margin-bottom:.25rem; }
+.source-target-strip strong { font-size:.82rem; font-weight:650; }
+.source-cards { display:grid; gap:.65rem; }
+.source-card { display:flex; gap:.75rem; padding:.85rem; border:1px solid rgba(255,255,255,.09); border-radius:12px; background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(255,255,255,.018)); }
+.source-icon { width:34px; height:34px; display:grid; place-items:center; flex:none; border-radius:9px; background:rgba(255,255,255,.07); }
+.source-icon--biomass { color:#ffb15c; }
+.source-icon--industry { color:#b78cff; }
+.source-card__body { min-width:0; flex:1; }
+.source-card__top { display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+.source-card__top strong { font-size:.88rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.source-card__detail { display:block; font-size:.72rem; opacity:.55; margin-top:.15rem; }
+.source-level { font-size:8px; letter-spacing:.12em; font-weight:800; padding:.25rem .38rem; border-radius:5px; }
+.source-level--high { background:rgba(255,84,84,.13); color:#ff8d8d; }
+.source-level--medium { background:rgba(255,184,76,.13); color:#ffc875; }
+.source-level--low { background:rgba(120,180,255,.11); color:#9fc9ff; }
+.source-card__meta { display:flex; flex-wrap:wrap; gap:.6rem; margin-top:.55rem; font-size:9px; opacity:.58; }
+.source-bar { height:3px; margin-top:.6rem; border-radius:10px; background:rgba(255,255,255,.07); overflow:hidden; }
+.source-bar span { display:block; height:100%; border-radius:inherit; background:var(--live, currentColor); opacity:.8; }
+.source-atmosphere-card { padding:1rem; border:1px solid rgba(255,255,255,.1); border-radius:14px; background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018)); }
+.source-atmosphere-card__head { display:flex; align-items:center; gap:.45rem; font-size:10px; text-transform:uppercase; letter-spacing:.12em; opacity:.65; }
+.source-compass { display:grid; place-items:center; padding:1rem 0 .8rem; }
+.source-compass__ring { width:118px; height:118px; border:1px solid rgba(255,255,255,.12); border-radius:50%; display:grid; place-items:center; position:relative; background:radial-gradient(circle,rgba(255,255,255,.05),transparent 65%); }
+.source-compass__ring svg { transition:transform .5s ease; color:var(--live,currentColor); }
+.source-compass__ring span { position:absolute; bottom:13px; font-size:10px; opacity:.55; }
+.source-metric { display:flex; align-items:center; gap:.5rem; padding:.65rem 0; border-top:1px solid rgba(255,255,255,.07); font-size:.72rem; opacity:.72; }
+.source-metric strong { margin-left:auto; color:inherit; opacity:1; }
+.source-top-callout { margin-top:.8rem; padding:.75rem; border-radius:10px; background:rgba(255,255,255,.045); }
+.source-top-callout small { display:block; font-size:8px; letter-spacing:.12em; opacity:.45; }
+.source-top-callout strong { display:block; font-size:.78rem; margin:.25rem 0; }
+.source-top-callout span { font-size:9px; opacity:.55; }
+.source-disclaimer { margin-top:.75rem; font-size:9px; line-height:1.5; opacity:.42; }
+.source-influence-empty { padding:1.2rem; border:1px dashed rgba(255,255,255,.1); border-radius:10px; font-size:.78rem; opacity:.55; }
+@media (max-width: 900px) { .source-influence-grid { grid-template-columns:1fr; } .source-target-strip { grid-template-columns:1fr 1fr; } }
+@media (max-width: 560px) { .source-target-select { width:100%; } .source-target-select select { max-width:none; width:100%; } .source-target-strip { grid-template-columns:1fr; } .source-card__meta { gap:.35rem; } }

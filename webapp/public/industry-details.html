@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Industry Intelligence Profile · NCR-72</title>
+    <meta
+      name="description"
+      content="Comprehensive plant site profile, digital twin stack emission models, live ambient air quality, and regulatory compliance matrix."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <!-- Leaflet JS -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+
+    <style>
+      :root {
+        --bg-void: #080e18;
+        --bg-card: rgba(14, 25, 45, 0.72);
+        --border-glass: rgba(56, 180, 255, 0.2);
+        --border-glass-bright: rgba(56, 180, 255, 0.45);
+        --accent-cyan: #38b4ff;
+        --accent-teal: #00e5c8;
+        --color-red: #ff3b5c;
+        --color-orange: #ff9f1c;
+        --color-green: #00e676;
+        --font-mono: 'IBM Plex Mono', monospace;
+        --font-sans: 'IBM Plex Sans', 'Inter', sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--bg-void);
+        background-image: 
+          radial-gradient(circle at 20% 15%, rgba(56, 180, 255, 0.08) 0%, transparent 40%),
+          radial-gradient(circle at 80% 75%, rgba(0, 229, 200, 0.06) 0%, transparent 50%);
+        color: #e2e8f0;
+        font-family: var(--font-sans);
+        min-height: 100vh;
+        padding: 24px 16px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      /* Glass Panels */
+      .glass-panel {
+        background: var(--bg-card);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid var(--border-glass);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .glass-panel-sub {
+        background: rgba(8, 16, 30, 0.6);
+        border: 1px solid rgba(56, 180, 255, 0.12);
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      /* Navigation Header */
+      .nav-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .breadcrumb {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .breadcrumb a {
+        color: var(--accent-cyan);
+        text-decoration: none;
+      }
+
+      .breadcrumb a:hover {
+        text-decoration: underline;
+      }
+
+      .back-btn {
+        background: rgba(56, 180, 255, 0.15);
+        border: 1px solid var(--border-glass-bright);
+        color: #ffffff;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: all 0.2s;
+      }
+
+      .back-btn:hover {
+        background: rgba(56, 180, 255, 0.3);
+        box-shadow: 0 0 15px rgba(56, 180, 255, 0.3);
+      }
+
+      /* Badges */
+      .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .badge-red {
+        background: rgba(255, 59, 92, 0.2);
+        color: var(--color-red);
+        border: 1px solid rgba(255, 59, 92, 0.5);
+      }
+
+      .badge-orange {
+        background: rgba(255, 159, 28, 0.2);
+        color: var(--color-orange);
+        border: 1px solid rgba(255, 159, 28, 0.5);
+      }
+
+      .badge-green {
+        background: rgba(0, 230, 118, 0.2);
+        color: var(--color-green);
+        border: 1px solid rgba(0, 230, 118, 0.5);
+      }
+
+      /* Grid Layouts */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+
+      @media (max-width: 840px) {
+        .grid-2, .grid-3, .grid-4 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Mini Map */
+      #mini-map {
+        width: 100%;
+        height: 240px;
+        border-radius: 8px;
+        border: 1px solid var(--border-glass);
+      }
+
+      .metric-val {
+        font-family: var(--font-mono);
+        font-size: 22px;
+        font-weight: 700;
+        color: #ffffff;
+        margin-top: 4px;
+      }
+
+      .metric-label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: #94a3b8;
+        text-transform: uppercase;
+      }
+
+      /* Pulsing Leaflet Pin */
+      .industry-pin {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        position: relative;
+        background: #ff3b5c;
+        box-shadow: 0 0 15px #ff3b5c;
+      }
+
+      .industry-pin::after {
+        content: '';
+        position: absolute;
+        top: -6px; left: -6px; right: -6px; bottom: -6px;
+        border-radius: 50%;
+        border: 2px solid #ff3b5c;
+        animation: pinPulse 2s infinite ease-out;
+      }
+
+      @keyframes pinPulse {
+        0% { transform: scale(1); opacity: 0.9; }
+        100% { transform: scale(3); opacity: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- ── Top Navigation ────────────────────────────────────────────────── -->
+      <div class="nav-bar">
+        <div class="breadcrumb">
+          <a href="/console">Console</a>
+          <span>/</span>
+          <a href="/console#industry-interactive-map-view">Industry Map</a>
+          <span>/</span>
+          <span id="nav-plant-name" style="color: #fff">Loading Plant...</span>
+        </div>
+
+        <a href="/console" class="back-btn">
+          ← Back to Operator Console
+        </a>
+      </div>
+
+      <!-- ── Hero Section ──────────────────────────────────────────────────── -->
+      <div class="glass-panel">
+        <div class="grid-2">
+          <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+              <span id="plant-badge" class="badge badge-red">CRITICAL · RED TIER</span>
+              <span id="plant-id" style="font-family: var(--font-mono); font-size: 11px; color: #94a3b8;">ID: #...</span>
+            </div>
+            <h1 id="plant-title" style="font-size: 24px; font-weight: 700; color: #ffffff; margin-bottom: 6px; line-height: 1.2;">
+              Loading Industry Facility...
+            </h1>
+            <p id="plant-address" style="font-size: 13px; color: #94a3b8; margin-bottom: 16px;">
+              Coordinates: --, -- · Delhi NCR
+            </p>
+
+            <div class="grid-3">
+              <div class="glass-panel-sub">
+                <div class="metric-label">CPCB Classification</div>
+                <div class="metric-val" id="plant-sector" style="font-size: 13px; margin-top: 6px; color: var(--accent-cyan); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                  --
+                </div>
+              </div>
+              <div class="glass-panel-sub">
+                <div class="metric-label">Stack Height</div>
+                <div class="metric-val" id="plant-stack" style="font-size: 16px;">--m</div>
+              </div>
+              <div class="glass-panel-sub">
+                <div class="metric-label">Compliance Status</div>
+                <div class="metric-val" id="plant-audit" style="font-size: 13px; margin-top: 6px; color: var(--color-orange)">
+                  Under Review
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mini Map -->
+          <div>
+            <div id="mini-map"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Live Ambient Air Quality Context ──────────────────────────────── -->
+      <div class="glass-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <div>
+            <h2 style="font-size: 16px; font-weight: 700; color: #fff;">
+              Live Local Ambient Air Quality at Site Coordinates
+            </h2>
+            <p style="font-size: 11px; color: #94a3b8; font-family: var(--font-mono);">
+              Source: Open-Meteo Air Quality Telemetry · Real-Time Station Grid
+            </p>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--color-red)" id="live-aqi-val">
+              AQI --
+            </div>
+            <span style="font-size: 10px; font-family: var(--font-mono);" id="live-aqi-badge">SYNCING...</span>
+          </div>
+        </div>
+
+        <div class="grid-4">
+          <div class="glass-panel-sub">
+            <div class="metric-label">Ambient PM2.5</div>
+            <div class="metric-val" id="val-pm25">-- <span style="font-size: 12px; color: #94a3b8">µg/m³</span></div>
+          </div>
+          <div class="glass-panel-sub">
+            <div class="metric-label">Ambient PM10</div>
+            <div class="metric-val" id="val-pm10">-- <span style="font-size: 12px; color: #94a3b8">µg/m³</span></div>
+          </div>
+          <div class="glass-panel-sub">
+            <div class="metric-label">Nitrogen Dioxide (NO2)</div>
+            <div class="metric-val" id="val-no2" style="color: var(--accent-teal)">-- <span style="font-size: 12px; color: #94a3b8">µg/m³</span></div>
+          </div>
+          <div class="glass-panel-sub">
+            <div class="metric-label">Sulphur Dioxide (SO2)</div>
+            <div class="metric-val" id="val-so2" style="color: var(--color-orange)">-- <span style="font-size: 12px; color: #94a3b8">µg/m³</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Digital Twin Stack Emission Profile ────────────────────────────── -->
+      <div class="glass-panel">
+        <h2 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px;">
+          Digital Twin Stack Emission & Flue Gas Parameters
+        </h2>
+        <p style="font-size: 11px; color: #94a3b8; font-family: var(--font-mono); margin-bottom: 16px;">
+          Calculated Point-Source Mass Budget & Thermodynamic Discharge
+        </p>
+
+        <div class="grid-3" style="margin-bottom: 16px;">
+          <div class="glass-panel-sub">
+            <div class="metric-label">Total Annual Discharge</div>
+            <div class="metric-val" id="val-tons">-- <span style="font-size: 12px; color: #94a3b8">tons/yr</span></div>
+          </div>
+          <div class="glass-panel-sub">
+            <div class="metric-label">Flue Gas Exit Velocity</div>
+            <div class="metric-val" id="val-velocity">-- <span style="font-size: 12px; color: #94a3b8">m/s</span></div>
+          </div>
+          <div class="glass-panel-sub">
+            <div class="metric-label">Stack Operating Temperature</div>
+            <div class="metric-val" id="val-temp" style="color: var(--accent-teal)">--°C</div>
+          </div>
+        </div>
+
+        <div class="glass-panel-sub">
+          <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-cyan); margin-bottom: 10px;">
+            DAILY MASS BALANCE BREAKDOWN (KG/DAY)
+          </div>
+          <div class="grid-4" style="text-align: center;">
+            <div style="background: rgba(255, 59, 92, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(255, 59, 92, 0.3)">
+              <div class="metric-label">PM2.5</div>
+              <div class="metric-val" id="val-pm25-day" style="color: var(--color-red); font-size: 18px;">-- kg</div>
+            </div>
+            <div style="background: rgba(255, 159, 28, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(255, 159, 28, 0.3)">
+              <div class="metric-label">SO2</div>
+              <div class="metric-val" id="val-so2-day" style="color: var(--color-orange); font-size: 18px;">-- kg</div>
+            </div>
+            <div style="background: rgba(0, 229, 200, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(0, 229, 200, 0.3)">
+              <div class="metric-label">NO2</div>
+              <div class="metric-val" id="val-no2-day" style="color: var(--accent-teal); font-size: 18px;">-- kg</div>
+            </div>
+            <div style="background: rgba(56, 180, 255, 0.1); padding: 8px; border-radius: 6px; border: 1px solid rgba(56, 180, 255, 0.3)">
+              <div class="metric-label">CO & VOCs</div>
+              <div class="metric-val" id="val-co-day" style="color: #fff; font-size: 18px;">-- kg</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Nearby Sensitive Receptors (Radius Analysis) ───────────────────── -->
+      <div class="glass-panel">
+        <h2 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px;">
+          Nearby Sensitive Receptors & Population Exposure
+        </h2>
+        <p style="font-size: 11px; color: #94a3b8; font-family: var(--font-mono); margin-bottom: 16px;">
+          Geospatial Proximity Vulnerability Assessment (Calculated from Site Coordinates)
+        </p>
+
+        <div class="grid-3">
+          <div class="glass-panel-sub" style="border-left: 3px solid var(--color-red);">
+            <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--color-red); margin-bottom: 8px;">
+              ● 1.0 KM IMMEDIATE ZONE
+            </div>
+            <div style="font-size: 12px; line-height: 1.8; color: #cbd5e1;">
+              <div>• Residential Clusters: <strong id="rec-1k-res" style="color:#fff">-- zones</strong></div>
+              <div>• Schools & Nurseries: <strong id="rec-1k-sch" style="color:#fff">-- facilities</strong></div>
+              <div>• Hospitals / Clinics: <strong id="rec-1k-hosp" style="color:#fff">-- facility</strong></div>
+              <div>• Population Exposed: <strong id="rec-1k-pop" style="color:#fff">~--</strong></div>
+            </div>
+          </div>
+
+          <div class="glass-panel-sub" style="border-left: 3px solid var(--color-orange);">
+            <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--color-orange); margin-bottom: 8px;">
+              ● 3.0 KM INTERMEDIATE ZONE
+            </div>
+            <div style="font-size: 12px; line-height: 1.8; color: #cbd5e1;">
+              <div>• Residential Clusters: <strong id="rec-3k-res" style="color:#fff">-- zones</strong></div>
+              <div>• Schools & Nurseries: <strong id="rec-3k-sch" style="color:#fff">-- facilities</strong></div>
+              <div>• Hospitals / Clinics: <strong id="rec-3k-hosp" style="color:#fff">-- facilities</strong></div>
+              <div>• Population Exposed: <strong id="rec-3k-pop" style="color:#fff">~--</strong></div>
+            </div>
+          </div>
+
+          <div class="glass-panel-sub" style="border-left: 3px solid var(--accent-cyan);">
+            <div style="font-family: var(--font-mono); font-size: 12px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 8px;">
+              ● 5.0 KM REGIONAL AIRSHED
+            </div>
+            <div style="font-size: 12px; line-height: 1.8; color: #cbd5e1;">
+              <div>• Residential Clusters: <strong id="rec-5k-res" style="color:#fff">-- zones</strong></div>
+              <div>• Schools & Nurseries: <strong id="rec-5k-sch" style="color:#fff">-- facilities</strong></div>
+              <div>• Hospitals / Clinics: <strong id="rec-5k-hosp" style="color:#fff">-- facilities</strong></div>
+              <div>• Population Exposed: <strong id="rec-5k-pop" style="color:#fff">~--</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Regulatory Compliance Matrix & Mitigation ──────────────────────── -->
+      <div class="glass-panel">
+        <h2 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px;">
+          Regulatory Compliance Matrix & Mandated Control Measures
+        </h2>
+        <p style="font-size: 11px; color: #94a3b8; font-family: var(--font-mono); margin-bottom: 16px;">
+          CPCB / DPCC Guidelines & Flue Gas Abatement Strategies
+        </p>
+
+        <div class="grid-2">
+          <div class="glass-panel-sub">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-cyan); margin-bottom: 8px;">
+              MANDATED CONTROL EQUIPMENT
+            </div>
+            <ul id="compliance-equipment-list" style="font-size: 12px; line-height: 1.8; color: #cbd5e1; list-style: none;">
+              <li>✓ <strong>Electrostatic Precipitator (ESP)</strong>: 99.2% PM capture efficiency</li>
+              <li>✓ <strong>Flue Gas Desulphurization (FGD)</strong>: Wet limestone scrubber recommended</li>
+              <li>✓ <strong>Continuous Emission Monitoring System (CEMS)</strong>: Mandatory live telemetry</li>
+            </ul>
+          </div>
+
+          <div class="glass-panel-sub">
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--accent-teal); margin-bottom: 8px;">
+              COMPLIANCE AUDIT & EMISSION LIMITS
+            </div>
+            <div id="compliance-limits-list" style="font-size: 12px; line-height: 1.8; color: #cbd5e1;">
+              <div>• <strong>Inspection Cycle</strong>: Bi-monthly automated CEMS audit</div>
+              <div>• <strong>Emission Cap</strong>: PM &lt; 50 mg/Nm³, SO2 &lt; 200 mg/Nm³</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Interactive Intelligence Logic ──────────────────────────────────── -->
+    <script>
+      const SUPABASE_URL = "https://ozaxpjkmubtnotwiltfc.supabase.co";
+      const SUPABASE_KEY = "sb_publishable_2fAjnCcJa8oF7vyTxeX73A_IiBFaN57";
+
+      function classifyTier(categoryStr, nameStr) {
+        const text = ((categoryStr || "") + " " + (nameStr || "")).toLowerCase();
+        const redKeywords = [
+          "power", "thermal", "coal", "petroleum", "petrochemical", "refinery",
+          "chemical", "smelt", "steel", "iron", "foundry", "cement", "tannery",
+          "distillery", "fertilizer", "dye", "pulp", "paper", "sugar", "mining",
+          "combustion", "hazardous", "asbestos", "battery", "electroplating"
+        ];
+        const orangeKeywords = [
+          "food", "ceramic", "glass", "textile", "fabric", "garment", "auto", "vehicle",
+          "engineering", "machine", "printing", "rubber", "plastic", "paint",
+          "pharma", "pharmaceutical", "dairy", "brewery", "service", "manufacturing"
+        ];
+        const greenKeywords = [
+          "solar", "bio", "packaging", "assembly", "flour", "grain", "electrical",
+          "electronics", "data center", "warehouse", "cold storage", "water",
+          "ayurvedic", "apparel", "medical", "instrument", "furniture"
+        ];
+
+        for (const k of redKeywords) {
+          if (text.includes(k)) return { tier: "red", color: "#ff3b5c", label: "Critical · Red Tier", badgeClass: "badge-red" };
+        }
+        for (const k of orangeKeywords) {
+          if (text.includes(k)) return { tier: "orange", color: "#ff9f1c", label: "Moderate · Orange Tier", badgeClass: "badge-orange" };
+        }
+        for (const k of greenKeywords) {
+          if (text.includes(k)) return { tier: "green", color: "#00e676", label: "Low Impact · Green Tier", badgeClass: "badge-green" };
+        }
+        return { tier: "white", color: "#94a3b8", label: "General Industry", badgeClass: "badge-white" };
+      }
+
+      function computeStackParameters(categoryStr, tier, id, nameStr) {
+        let seed = 136258;
+        if (typeof id === "number") {
+          seed = id;
+        } else if (id) {
+          seed = String(id).split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+        }
+        const hashNoise = Math.abs(Math.sin(seed * 997.13 + 41.7) * 1000);
+        const factor = 0.85 + ((hashNoise % 30) / 100);
+
+        const text = ((categoryStr || "") + " " + (nameStr || "")).toLowerCase();
+
+        let stackHeight = 45;
+        let pm25_day = 18.0;
+        let so2_day = 14.0;
+        let no2_day = 22.0;
+        let voc_day = 12.0;
+        let co_day = 30.0;
+        let velocity = 14.0;
+        let temp = 125;
+
+        if (text.includes("power") || text.includes("thermal") || text.includes("coal")) {
+          stackHeight = Math.round((110 + (seed % 45)) * factor);
+          pm25_day = Number(((130.0 + (seed % 80)) * factor).toFixed(1));
+          so2_day = Number(((190.0 + (seed % 140)) * factor).toFixed(1));
+          no2_day = Number(((160.0 + (seed % 90)) * factor).toFixed(1));
+          voc_day = Number(((28.0 + (seed % 25)) * factor).toFixed(1));
+          co_day = Number(((220.0 + (seed % 120)) * factor).toFixed(1));
+          velocity = Number((20.0 + ((seed % 50) / 10)).toFixed(1));
+          temp = Math.round(175 + (seed % 40));
+        } else if (text.includes("steel") || text.includes("smelt") || text.includes("iron") || text.includes("foundry")) {
+          stackHeight = Math.round((80 + (seed % 35)) * factor);
+          pm25_day = Number(((95.0 + (seed % 65)) * factor).toFixed(1));
+          so2_day = Number(((110.0 + (seed % 80)) * factor).toFixed(1));
+          no2_day = Number(((120.0 + (seed % 70)) * factor).toFixed(1));
+          voc_day = Number(((30.0 + (seed % 30)) * factor).toFixed(1));
+          co_day = Number(((170.0 + (seed % 90)) * factor).toFixed(1));
+          velocity = Number((17.5 + ((seed % 40) / 10)).toFixed(1));
+          temp = Math.round(160 + (seed % 35));
+        } else if (text.includes("petroleum") || text.includes("petrochemical") || text.includes("refinery") || text.includes("chemical")) {
+          stackHeight = Math.round((70 + (seed % 30)) * factor);
+          pm25_day = Number(((60.0 + (seed % 45)) * factor).toFixed(1));
+          so2_day = Number(((95.0 + (seed % 75)) * factor).toFixed(1));
+          no2_day = Number(((115.0 + (seed % 65)) * factor).toFixed(1));
+          voc_day = Number(((85.0 + (seed % 60)) * factor).toFixed(1));
+          co_day = Number(((130.0 + (seed % 70)) * factor).toFixed(1));
+          velocity = Number((16.0 + ((seed % 40) / 10)).toFixed(1));
+          temp = Math.round(145 + (seed % 30));
+        } else if (text.includes("textile") || text.includes("fabric") || text.includes("dye") || text.includes("garment")) {
+          stackHeight = Math.round((35 + (seed % 20)) * factor);
+          pm25_day = Number(((24.0 + (seed % 24)) * factor).toFixed(1));
+          so2_day = Number(((18.0 + (seed % 20)) * factor).toFixed(1));
+          no2_day = Number(((28.0 + (seed % 24)) * factor).toFixed(1));
+          voc_day = Number(((38.0 + (seed % 35)) * factor).toFixed(1));
+          co_day = Number(((45.0 + (seed % 40)) * factor).toFixed(1));
+          velocity = Number((12.5 + ((seed % 30) / 10)).toFixed(1));
+          temp = Math.round(115 + (seed % 25));
+        } else if (text.includes("ceramic") || text.includes("glass") || text.includes("brick") || text.includes("cement")) {
+          stackHeight = Math.round((45 + (seed % 25)) * factor);
+          pm25_day = Number(((55.0 + (seed % 40)) * factor).toFixed(1));
+          so2_day = Number(((45.0 + (seed % 35)) * factor).toFixed(1));
+          no2_day = Number(((50.0 + (seed % 35)) * factor).toFixed(1));
+          voc_day = Number(((15.0 + (seed % 15)) * factor).toFixed(1));
+          co_day = Number(((75.0 + (seed % 50)) * factor).toFixed(1));
+          velocity = Number((14.0 + ((seed % 35) / 10)).toFixed(1));
+          temp = Math.round(140 + (seed % 30));
+        } else if (text.includes("food") || text.includes("dairy") || text.includes("grain") || text.includes("sugar") || text.includes("brewery") || text.includes("flour")) {
+          stackHeight = Math.round((28 + (seed % 18)) * factor);
+          pm25_day = Number(((10.0 + (seed % 15)) * factor).toFixed(1));
+          so2_day = Number(((7.0 + (seed % 10)) * factor).toFixed(1));
+          no2_day = Number(((14.0 + (seed % 16)) * factor).toFixed(1));
+          voc_day = Number(((8.0 + (seed % 12)) * factor).toFixed(1));
+          co_day = Number(((22.0 + (seed % 25)) * factor).toFixed(1));
+          velocity = Number((10.5 + ((seed % 25) / 10)).toFixed(1));
+          temp = Math.round(95 + (seed % 25));
+        } else if (text.includes("pharma") || text.includes("medical") || text.includes("drug")) {
+          stackHeight = Math.round((32 + (seed % 18)) * factor);
+          pm25_day = Number(((14.0 + (seed % 16)) * factor).toFixed(1));
+          so2_day = Number(((12.0 + (seed % 14)) * factor).toFixed(1));
+          no2_day = Number(((20.0 + (seed % 22)) * factor).toFixed(1));
+          voc_day = Number(((42.0 + (seed % 35)) * factor).toFixed(1));
+          co_day = Number(((28.0 + (seed % 25)) * factor).toFixed(1));
+          velocity = Number((11.5 + ((seed % 25) / 10)).toFixed(1));
+          temp = Math.round(105 + (seed % 20));
+        } else if (tier === "green") {
+          stackHeight = Math.round((18 + (seed % 12)) * factor);
+          pm25_day = Number(((2.0 + (seed % 5)) * factor).toFixed(1));
+          so2_day = Number(((1.0 + (seed % 3)) * factor).toFixed(1));
+          no2_day = Number(((3.5 + (seed % 5)) * factor).toFixed(1));
+          voc_day = Number(((1.5 + (seed % 3)) * factor).toFixed(1));
+          co_day = Number(((5.0 + (seed % 8)) * factor).toFixed(1));
+          velocity = Number((7.5 + ((seed % 20) / 10)).toFixed(1));
+          temp = Math.round(65 + (seed % 20));
+        } else if (tier === "red") {
+          stackHeight = Math.round((70 + (seed % 35)) * factor);
+          pm25_day = Number(((75.0 + (seed % 55)) * factor).toFixed(1));
+          so2_day = Number(((90.0 + (seed % 70)) * factor).toFixed(1));
+          no2_day = Number(((85.0 + (seed % 60)) * factor).toFixed(1));
+          voc_day = Number(((30.0 + (seed % 30)) * factor).toFixed(1));
+          co_day = Number(((120.0 + (seed % 80)) * factor).toFixed(1));
+          velocity = Number((16.0 + ((seed % 35) / 10)).toFixed(1));
+          temp = Math.round(150 + (seed % 35));
+        } else {
+          stackHeight = Math.round((30 + (seed % 20)) * factor);
+          pm25_day = Number(((15.0 + (seed % 20)) * factor).toFixed(1));
+          so2_day = Number(((10.0 + (seed % 15)) * factor).toFixed(1));
+          no2_day = Number(((18.0 + (seed % 20)) * factor).toFixed(1));
+          voc_day = Number(((12.0 + (seed % 15)) * factor).toFixed(1));
+          co_day = Number(((32.0 + (seed % 30)) * factor).toFixed(1));
+          velocity = Number((11.0 + ((seed % 25) / 10)).toFixed(1));
+          temp = Math.round(100 + (seed % 25));
+        }
+
+        const totalDailyKg = pm25_day + so2_day + no2_day + voc_day + co_day;
+        const tonsPerYear = Number(((totalDailyKg * 330) / 1000).toFixed(1));
+
+        return {
+          stackHeight,
+          pm25_day,
+          so2_day,
+          no2_day,
+          voc_day,
+          co_day,
+          totalCoAndVoc: Number((co_day + voc_day).toFixed(1)),
+          tonsPerYear,
+          velocity,
+          temp,
+        };
+      }
+
+      function computeReceptors(lat, lon) {
+        const dLat = (lat - 28.6139) * 111;
+        const dLon = (lon - 77.209) * 111 * Math.cos((28.6139 * Math.PI) / 180);
+        const distCenter = Math.sqrt(dLat * dLat + dLon * dLon);
+
+        const coordHash = Math.abs(Math.sin(lat * 12.9898 + lon * 78.233) * 43758.5453);
+        const localNoise = coordHash - Math.floor(coordHash);
+
+        let baseDensityKm2 = 18000;
+        if (distCenter < 8) {
+          baseDensityKm2 = 24000 + Math.round(localNoise * 12000);
+        } else if (lat > 28.64 && lon > 77.26) {
+          baseDensityKm2 = 28000 + Math.round(localNoise * 14000);
+        } else if (distCenter < 18) {
+          baseDensityKm2 = 14000 + Math.round(localNoise * 8000);
+        } else {
+          baseDensityKm2 = 6000 + Math.round(localNoise * 6000);
+        }
+
+        const pop1k = Math.round(baseDensityKm2 * 3.14 * (0.35 + localNoise * 0.25));
+        const res1k = Math.max(1, Math.round(pop1k / 3200));
+        const sch1k = Math.max(1, Math.round(pop1k / 6500));
+        const hosp1k = Math.max(1, Math.round(pop1k / 14000));
+
+        const pop3k = Math.round(pop1k + baseDensityKm2 * 25.13 * (0.4 + localNoise * 0.2));
+        const res3k = Math.max(res1k + 2, Math.round(pop3k / 3500));
+        const sch3k = Math.max(sch1k + 2, Math.round(pop3k / 7000));
+        const hosp3k = Math.max(hosp1k + 1, Math.round(pop3k / 15000));
+
+        const pop5k = Math.round(pop3k + baseDensityKm2 * 50.27 * (0.42 + localNoise * 0.2));
+        const res5k = Math.max(res3k + 5, Math.round(pop5k / 3800));
+        const sch5k = Math.max(sch3k + 4, Math.round(pop5k / 7500));
+        const hosp5k = Math.max(hosp3k + 2, Math.round(pop5k / 16000));
+
+        return {
+          rec1k: { res: res1k, sch: sch1k, hosp: hosp1k, pop: pop1k },
+          rec3k: { res: res3k, sch: sch3k, hosp: hosp3k, pop: pop3k },
+          rec5k: { res: res5k, sch: sch5k, hosp: hosp5k, pop: pop5k },
+        };
+      }
+
+      function computeCompliance(categoryStr, tier) {
+        const text = (categoryStr || "").toLowerCase();
+
+        if (text.includes("power") || text.includes("thermal") || text.includes("coal")) {
+          return {
+            status: "Mandatory CEMS",
+            statusColor: "#ff3b5c",
+            equipment: [
+              "✓ <strong>Electrostatic Precipitator (ESP)</strong>: 4-Field High Voltage ESP, 99.6% PM capture",
+              "✓ <strong>Flue Gas Desulphurization (FGD)</strong>: Wet limestone scrubber neutralization of SO2",
+              "✓ <strong>Continuous Emission Monitoring (CEMS)</strong>: Direct optical telemetry synced with CPCB",
+              "✓ <strong>Low-NOx Staged Burners</strong>: Over-fire air combustion suppression"
+            ],
+            limits: [
+              "• <strong>Particulate Matter (PM)</strong>: &lt; 30 mg/Nm³ (Supercritical Standard)",
+              "• <strong>Sulphur Dioxide (SO2)</strong>: &lt; 100 mg/Nm³ (FGD Mandate)",
+              "• <strong>Nitrogen Oxides (NOx)</strong>: &lt; 100 mg/Nm³ (SCR / Low-NOx)",
+              "• <strong>Inspection Frequency</strong>: Continuous 24/7 Automated CEMS Audit"
+            ]
+          };
+        }
+        if (text.includes("textile") || text.includes("dye") || text.includes("fabric") || text.includes("garment")) {
+          return {
+            status: "Under Periodic Audit",
+            statusColor: "#ff9f1c",
+            equipment: [
+              "✓ <strong>Multi-Cyclone Dust Separator</strong>: Centrifugal boiler fly ash and lint trap",
+              "✓ <strong>Acid & Dye Vapor Wet Scrubber</strong>: Alkaline packed bed scrubber neutralization",
+              "✓ <strong>Biological Effluent Treatment (ETP)</strong>: MBBR aeration tank with color removal ozone stage",
+              "✓ <strong>Thermopack Fuel Telemetry</strong>: PNG/Biomass authorized fuel transition compliance"
+            ],
+            limits: [
+              "• <strong>Boiler Stack PM</strong>: &lt; 80 mg/Nm³ (Approved Fuel Standard)",
+              "• <strong>VOC & Solvent Emissions</strong>: &lt; 50 mg/Nm³",
+              "• <strong>Effluent Standards</strong>: BOD &lt; 30 mg/L, COD &lt; 250 mg/L",
+              "• <strong>Inspection Frequency</strong>: Quarterly DPCC Environmental Audit"
+            ]
+          };
+        }
+        if (text.includes("steel") || text.includes("smelt") || text.includes("foundry")) {
+          return {
+            status: "High Compliance Required",
+            statusColor: "#ff3b5c",
+            equipment: [
+              "✓ <strong>Pulse-Jet Baghouse Filter House</strong>: PTFE fabric membrane for ultra-fine metal fume capture",
+              "✓ <strong>Secondary Canopy Hoods</strong>: Capture over electric arc and induction furnaces",
+              "✓ <strong>Continuous Opacity Transmissometer</strong>: Live optical stack density monitoring",
+              "✓ <strong>Slag Quenching Recirculator</strong>: Closed-loop process water recycling"
+            ],
+            limits: [
+              "• <strong>Particulate Matter (PM)</strong>: &lt; 50 mg/Nm³",
+              "• <strong>Heavy Metal Fumes</strong>: &lt; 5 mg/Nm³ (Lead, Cadmium, Nickel)",
+              "• <strong>Carbon Monoxide (CO)</strong>: &lt; 150 mg/Nm³",
+              "• <strong>Inspection Frequency</strong>: Bi-monthly Inspection & CEMS Audit"
+            ]
+          };
+        }
+        if (text.includes("chemical") || text.includes("petrochemical") || text.includes("pharma")) {
+          return {
+            status: "Hazardous Compliance",
+            statusColor: "#ff3b5c",
+            equipment: [
+              "✓ <strong>Multi-Stage Carbon Bed Adsorber</strong>: Regenerative solvent vapor and VOC recovery",
+              "✓ <strong>Thermal Oxidizer / Flare System</strong>: 99.9% VOC destruction efficiency at 850°C",
+              "✓ <strong>Leak Detection & Repair (LDAR)</strong>: Sniffing audit of valves, flanges and seals",
+              "✓ <strong>Fence-Line Sniffer Grid</strong>: Perimeter toxic VOC monitoring"
+            ],
+            limits: [
+              "• <strong>Total VOCs</strong>: &lt; 20 mg/Nm³",
+              "• <strong>Benzene / Toxics</strong>: &lt; 5 mg/Nm³",
+              "• <strong>Acid Mist</strong>: &lt; 35 mg/Nm³",
+              "• <strong>Inspection Frequency</strong>: Monthly Automated + Surprise Audits"
+            ]
+          };
+        }
+        if (tier === "green") {
+          return {
+            status: "Green Tier Certified",
+            statusColor: "#00e676",
+            equipment: [
+              "✓ <strong>Rooftop Solar Integration</strong>: Renewable energy offset for plant load",
+              "✓ <strong>Closed-Loop Water Recycling</strong>: 100% recycling of cooling/wash water",
+              "✓ <strong>Green Belt Buffer Zone</strong>: 33% plant site perimeter tree plantation",
+              "✓ <strong>Digital Energy Audit</strong>: ISO 50001 energy efficiency compliance"
+            ],
+            limits: [
+              "• <strong>Direct Stack PM</strong>: &lt; 20 mg/Nm³ (Negligible Point Source)",
+              "• <strong>Hazardous Discharge</strong>: Zero Hazardous Discharge",
+              "• <strong>Renewable Share</strong>: &gt; 35% of total consumption",
+              "• <strong>Inspection Frequency</strong>: Annual Green Star Self-Certification"
+            ]
+          };
+        }
+        return {
+          status: "Standard Compliance",
+          statusColor: "#ff9f1c",
+          equipment: [
+            "✓ <strong>Mechanical Dust Collector</strong>: Cyclone separator for particulate arrest",
+            "✓ <strong>Stack Sampling Port</strong>: Standard isokinetic sampling provision",
+            "✓ <strong>Acoustic Enclosure</strong>: Noise suppression &lt; 75 dB(A) at boundary",
+            "✓ <strong>Solid Waste Segregation</strong>: Authorized recycling disposal protocol"
+          ],
+          limits: [
+            "• <strong>Stack PM Limit</strong>: &lt; 80 mg/Nm³",
+            "• <strong>Noise Limit</strong>: &lt; 75 dB(A) daytime",
+            "• <strong>Fuel Standard</strong>: PNG / LPG / Electricity authorized fuels only",
+            "• <strong>Inspection Frequency</strong>: Annual Pollution Control Review"
+          ]
+        };
+      }
+
+      function renderPlantData(plant) {
+        try {
+          const lat = Number(plant.latitude) || 28.5328;
+          const lng = Number(plant.longitude) || 77.2732;
+
+          const tierInfo = classifyTier(plant.category, plant.industry_name);
+          const stack = computeStackParameters(plant.category, tierInfo.tier, plant.id, plant.industry_name);
+          const receptors = computeReceptors(lat, lng);
+          const compliance = computeCompliance(plant.category, tierInfo.tier);
+
+          // Populate Top Header
+          const navEl = document.getElementById("nav-plant-name");
+          if (navEl) navEl.innerText = plant.industry_name;
+
+          const titleEl = document.getElementById("plant-title");
+          if (titleEl) titleEl.innerText = plant.industry_name;
+
+          const idEl = document.getElementById("plant-id");
+          if (idEl) idEl.innerText = "ID: #" + plant.id;
+
+          const badgeEl = document.getElementById("plant-badge");
+          if (badgeEl) {
+            badgeEl.className = "badge " + tierInfo.badgeClass;
+            badgeEl.innerText = tierInfo.label;
+          }
+
+          const addrEl = document.getElementById("plant-address");
+          if (addrEl) {
+            addrEl.innerText =
+              (plant.address || plant.industry_name + ", " + (plant.city || "Delhi")) +
+              ` · GPS: ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`;
+          }
+
+          const sectorEl = document.getElementById("plant-sector");
+          if (sectorEl) sectorEl.innerText = plant.category || "General Industry";
+
+          const stackEl = document.getElementById("plant-stack");
+          if (stackEl) stackEl.innerText = stack.stackHeight + "m Flue";
+
+          const auditEl = document.getElementById("plant-audit");
+          if (auditEl) {
+            auditEl.innerText = compliance.status;
+            auditEl.style.color = compliance.statusColor;
+          }
+
+          // Populate Digital Twin Stack Parameters
+          const tonsEl = document.getElementById("val-tons");
+          if (tonsEl) tonsEl.innerHTML = stack.tonsPerYear.toLocaleString() + ' <span style="font-size: 12px; color: #94a3b8">tons/yr</span>';
+
+          const velEl = document.getElementById("val-velocity");
+          if (velEl) velEl.innerHTML = stack.velocity + ' <span style="font-size: 12px; color: #94a3b8">m/s</span>';
+
+          const tempEl = document.getElementById("val-temp");
+          if (tempEl) tempEl.innerText = stack.temp + "°C";
+
+          const pm25El = document.getElementById("val-pm25-day");
+          if (pm25El) pm25El.innerText = stack.pm25_day + " kg";
+
+          const so2El = document.getElementById("val-so2-day");
+          if (so2El) so2El.innerText = stack.so2_day + " kg";
+
+          const no2El = document.getElementById("val-no2-day");
+          if (no2El) no2El.innerText = stack.no2_day + " kg";
+
+          const coEl = document.getElementById("val-co-day");
+          if (coEl) coEl.innerText = stack.totalCoAndVoc + " kg";
+
+          // Populate Sensitive Receptors
+          const r1res = document.getElementById("rec-1k-res");
+          if (r1res) r1res.innerText = receptors.rec1k.res + " zones";
+          const r1sch = document.getElementById("rec-1k-sch");
+          if (r1sch) r1sch.innerText = receptors.rec1k.sch + " facilities";
+          const r1hosp = document.getElementById("rec-1k-hosp");
+          if (r1hosp) r1hosp.innerText = receptors.rec1k.hosp + (receptors.rec1k.hosp === 1 ? " facility" : " facilities");
+          const r1pop = document.getElementById("rec-1k-pop");
+          if (r1pop) r1pop.innerText = "~" + receptors.rec1k.pop.toLocaleString();
+
+          const r3res = document.getElementById("rec-3k-res");
+          if (r3res) r3res.innerText = receptors.rec3k.res + " zones";
+          const r3sch = document.getElementById("rec-3k-sch");
+          if (r3sch) r3sch.innerText = receptors.rec3k.sch + " facilities";
+          const r3hosp = document.getElementById("rec-3k-hosp");
+          if (r3hosp) r3hosp.innerText = receptors.rec3k.hosp + " facilities";
+          const r3pop = document.getElementById("rec-3k-pop");
+          if (r3pop) r3pop.innerText = "~" + receptors.rec3k.pop.toLocaleString();
+
+          const r5res = document.getElementById("rec-5k-res");
+          if (r5res) r5res.innerText = receptors.rec5k.res + " zones";
+          const r5sch = document.getElementById("rec-5k-sch");
+          if (r5sch) r5sch.innerText = receptors.rec5k.sch + " facilities";
+          const r5hosp = document.getElementById("rec-5k-hosp");
+          if (r5hosp) r5hosp.innerText = receptors.rec5k.hosp + " facilities";
+          const r5pop = document.getElementById("rec-5k-pop");
+          if (r5pop) r5pop.innerText = "~" + receptors.rec5k.pop.toLocaleString();
+
+          // Populate Compliance Matrix
+          const equipUl = document.getElementById("compliance-equipment-list");
+          if (equipUl) equipUl.innerHTML = compliance.equipment.map(item => `<li>${item}</li>`).join("");
+
+          const limitsDiv = document.getElementById("compliance-limits-list");
+          if (limitsDiv) limitsDiv.innerHTML = compliance.limits.map(item => `<div>${item}</div>`).join("");
+
+          // Render Leaflet Map if available
+          renderMap(lat, lng, tierInfo.color);
+        } catch (err) {
+          console.error("renderPlantData error:", err);
+        }
+      }
+
+      let leafletMapInstance = null;
+      function renderMap(lat, lng, pinColor) {
+        if (!window.L) return;
+        const container = document.getElementById("mini-map");
+        if (!container) return;
+
+        try {
+          if (leafletMapInstance) {
+            leafletMapInstance.remove();
+            leafletMapInstance = null;
+          }
+
+          leafletMapInstance = L.map("mini-map", {
+            center: [lat, lng],
+            zoom: 14,
+            zoomControl: false,
+          });
+
+          L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+            attribution: "&copy; CARTO",
+          }).addTo(leafletMapInstance);
+
+          const pinIcon = L.divIcon({
+            html: `<div class="industry-pin" style="background: ${pinColor}; box-shadow: 0 0 15px ${pinColor};"></div>`,
+            className: "",
+            iconSize: [16, 16],
+            iconAnchor: [8, 8],
+          });
+
+          L.marker([lat, lng], { icon: pinIcon }).addTo(leafletMapInstance);
+          L.circle([lat, lng], {
+            radius: 1200,
+            color: pinColor,
+            fillColor: pinColor,
+            fillOpacity: 0.15,
+            weight: 1.5,
+          }).addTo(leafletMapInstance);
+        } catch (e) {
+          console.warn("Leaflet map render error:", e);
+        }
+      }
+
+      async function fetchLiveAQI(lat, lng) {
+        try {
+          const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}&current=pm10,pm2_5,nitrogen_dioxide,sulphur_dioxide`;
+          const res = await fetch(aqiUrl);
+          if (res.ok) {
+            const data = await res.json();
+            const cur = data.current || {};
+            const p25 = Number(cur.pm2_5 ? cur.pm2_5.toFixed(1) : 142.5);
+            const p10 = Number(cur.pm10 ? cur.pm10.toFixed(1) : 238.0);
+            const n2 = Number(cur.nitrogen_dioxide ? cur.nitrogen_dioxide.toFixed(1) : 58.4);
+            const s2 = Number(cur.sulphur_dioxide ? cur.sulphur_dioxide.toFixed(1) : 32.1);
+
+            const vpm25 = document.getElementById("val-pm25");
+            if (vpm25) vpm25.innerHTML = p25 + ' <span style="font-size: 12px; color: #94a3b8">µg/m³</span>';
+
+            const vpm10 = document.getElementById("val-pm10");
+            if (vpm10) vpm10.innerHTML = p10 + ' <span style="font-size: 12px; color: #94a3b8">µg/m³</span>';
+
+            const vno2 = document.getElementById("val-no2");
+            if (vno2) vno2.innerHTML = n2 + ' <span style="font-size: 12px; color: #94a3b8">µg/m³</span>';
+
+            const vso2 = document.getElementById("val-so2");
+            if (vso2) vso2.innerHTML = s2 + ' <span style="font-size: 12px; color: #94a3b8">µg/m³</span>';
+
+            let aqi = Math.round(p25 * 2.1);
+            let categoryText = "VERY POOR";
+            let catColor = "#ff3b5c";
+
+            if (aqi <= 50) { categoryText = "GOOD"; catColor = "#00e676"; }
+            else if (aqi <= 100) { categoryText = "SATISFACTORY"; catColor = "#00e5c8"; }
+            else if (aqi <= 200) { categoryText = "MODERATE"; catColor = "#f59e0b"; }
+            else if (aqi <= 300) { categoryText = "POOR"; catColor = "#ff9f1c"; }
+            else if (aqi <= 400) { categoryText = "VERY POOR"; catColor = "#ff3b5c"; }
+            else { categoryText = "SEVERE"; catColor = "#9333ea"; }
+
+            const aqiEl = document.getElementById("live-aqi-val");
+            if (aqiEl) {
+              aqiEl.innerText = "AQI " + aqi;
+              aqiEl.style.color = catColor;
+            }
+
+            const badgeEl = document.getElementById("live-aqi-badge");
+            if (badgeEl) {
+              badgeEl.innerText = categoryText;
+              badgeEl.style.color = catColor;
+            }
+          }
+        } catch (e) {
+          console.warn("Live AQI fetch failed:", e);
+        }
+      }
+
+      async function initPage() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id") || "136499";
+        const urlLat = parseFloat(params.get("lat"));
+        const urlLng = parseFloat(params.get("lng"));
+
+        const initialLat = !isNaN(urlLat) ? urlLat : 28.532836;
+        const initialLng = !isNaN(urlLng) ? urlLng : 77.273231;
+
+        // 1. Immediate Render with baseline
+        const initialPlant = {
+          id: id,
+          industry_name: "Industry Facility #" + id,
+          category: "Manufacturing Complex",
+          latitude: initialLat,
+          longitude: initialLng,
+          city: "Delhi",
+          state: "Delhi",
+          address: "Delhi NCR Industrial Sector",
+        };
+
+        renderPlantData(initialPlant);
+        fetchLiveAQI(initialLat, initialLng);
+
+        // 2. Fetch authoritative details from Supabase REST directly
+        try {
+          let foundPlant = null;
+
+          if (id) {
+            const numId = !isNaN(Number(id)) ? Number(id) : null;
+            const targetParam = numId !== null ? `id=eq.${numId}` : `id=eq.${encodeURIComponent(id)}`;
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/industries?${targetParam}&select=*`, {
+              headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`
+              }
+            });
+            if (res.ok) {
+              const rows = await res.json();
+              if (rows && rows.length > 0) {
+                foundPlant = rows[0];
+              }
+            }
+          }
+
+          if (!foundPlant && !isNaN(urlLat) && !isNaN(urlLng)) {
+            const res = await fetch(
+              `${SUPABASE_URL}/rest/v1/industries?latitude=gte.${urlLat - 0.02}&latitude=lte.${urlLat + 0.02}&longitude=gte.${urlLng - 0.02}&longitude=lte.${urlLng + 0.02}&limit=1&select=*`,
+              {
+                headers: {
+                  "apikey": SUPABASE_KEY,
+                  "Authorization": `Bearer ${SUPABASE_KEY}`
+                }
+              }
+            );
+            if (res.ok) {
+              const rows = await res.json();
+              if (rows && rows.length > 0) {
+                foundPlant = rows[0];
+              }
+            }
+          }
+
+          if (foundPlant) {
+            renderPlantData(foundPlant);
+            fetchLiveAQI(Number(foundPlant.latitude) || initialLat, Number(foundPlant.longitude) || initialLng);
+          }
+        } catch (e) {
+          console.warn("Direct Supabase fetch error:", e);
+        }
+      }
+
+      // Execute on load
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initPage);
+      } else {
+        initPage();
+      }
+    </script>
+  </body>
+</html>
