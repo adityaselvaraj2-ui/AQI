@@ -4,7 +4,6 @@ import salesmanAnimation from "@/assets/pollution_explainer_animation.json";
 import industryAnimation from "@/assets/industry_explainer_animation.json";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  AlertTriangle,
   Car,
   CheckCircle2,
   Clock,
@@ -617,18 +616,18 @@ export function CitizenPollutionExplainer({
                   <Wind size={22} />
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-bold block">
-                    EVERYDAY EXPLAINER
+                  <span className="text-xs font-sans uppercase tracking-wider text-cyan-400 font-semibold block">
+                    EVERYDAY AIR EXPLAINER
                   </span>
-                  <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                  <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight font-sans">
                     Why Is {targetCoords.name} Polluted Right Now?
                   </h3>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 self-start sm:self-auto">
-                <span className="text-xs text-slate-400 font-medium">Current PM2.5 in {targetCoords.name}:</span>
-                <span className="text-xs font-mono font-bold text-cyan-300 px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/25">
+                <span className="text-xs sm:text-sm text-slate-300 font-medium">Current PM2.5 in {targetCoords.name}:</span>
+                <span className="text-xs sm:text-sm font-semibold text-cyan-300 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/25">
                   {Math.round(areaPm25)} µg/m³
                 </span>
               </div>
@@ -656,31 +655,43 @@ export function CitizenPollutionExplainer({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                        className="flex flex-col justify-between h-full space-y-3.5"
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        className="flex flex-col justify-between h-full space-y-4"
                       >
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-cyan-400 font-bold bg-cyan-500/10 px-2.5 py-1 rounded-md border border-cyan-500/25">
-                              <Wind size={13} /> 1. Why The Air Isn't Clearing
-                            </span>
-                            <span className="text-[11px] font-mono text-slate-400">Step 1 of 3</span>
-                          </div>
-
-                          <h4 className="text-base sm:text-lg font-bold text-white mb-2 leading-snug">
-                            Atmospheric Trapping Lid & Stagnant Air Over {targetCoords.name}
-                          </h4>
-
-                          <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal">
-                            {weatherTrappingReason}
-                          </p>
+                        {/* Prominent Lead Statement in clean font matching Image 2 */}
+                        <div className="citizen-statement-font text-base sm:text-lg lg:text-[20px] font-medium text-slate-100 leading-relaxed">
+                          The current air quality at {targetCoords.name} is{" "}
+                          <span className={`font-semibold ${aqiMeta.color}`}>
+                            {Math.round(areaPm25)} µg/m³ PM2.5 ({aqiMeta.label})
+                          </span>
+                          , trapped near the ground because{" "}
+                          <span className="text-cyan-300 font-semibold">
+                            {windSpeedMs < 2.0 ? "calm stagnant breezes" : "a cool air lid"}
+                          </span>{" "}
+                          prevent emissions from escaping upward.
                         </div>
 
-                        <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 flex items-start gap-3">
-                          <Info size={18} className="text-cyan-400 shrink-0 mt-0.5" />
-                          <p>
-                            <strong className="text-white">Microscopic PM2.5:</strong> Specks 30x thinner than a strand of hair that bypass nasal filters and enter deep into your lungs and blood.
-                          </p>
+                        {/* Structured 2-card breakdown */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
+                            <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
+                              <Wind size={16} className="shrink-0" />
+                              <span>Atmospheric Inversion Lid</span>
+                            </div>
+                            <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
+                              {weatherTrappingReason}
+                            </p>
+                          </div>
+
+                          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
+                            <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
+                              <Info size={16} className="shrink-0" />
+                              <span>Microscopic PM2.5 Hazard</span>
+                            </div>
+                            <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
+                              Toxic soot specks 30× thinner than human hair bypass nasal filters and penetrate deep into lungs and blood vessels.
+                            </p>
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -691,45 +702,39 @@ export function CitizenPollutionExplainer({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                        className="flex flex-col justify-between h-full space-y-3.5"
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        className="flex flex-col justify-between h-full space-y-4"
                       >
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/25">
-                              <AlertTriangle size={13} /> 2. Important Points For Your Family
-                            </span>
-                            <span className="text-[11px] font-mono text-slate-400">Step 2 of 3</span>
-                          </div>
-
-                          <h4 className="text-base sm:text-lg font-bold text-white mb-2 leading-snug">
-                            Peak Danger Hours & Protecting Vulnerable Loved Ones
-                          </h4>
+                        {/* Prominent Lead Statement in clean font matching Image 2 */}
+                        <div className="citizen-statement-font text-base sm:text-lg lg:text-[20px] font-medium text-slate-100 leading-relaxed">
+                          Air pollution in {targetCoords.name} peaks between{" "}
+                          <span className="text-amber-400 font-semibold">8:00 PM and 8:00 AM</span>,
+                          making{" "}
+                          <span className="text-emerald-400 font-semibold">1:00 PM to 4:00 PM</span>{" "}
+                          the safest window for your family's outdoor activities.
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 flex flex-col gap-1.5">
-                            <span className="font-semibold text-amber-300 flex items-center gap-1.5">
-                              <Clock size={14} /> Peak Dirty Hours Today
-                            </span>
-                            <p className="text-[11.5px] text-slate-300 leading-relaxed">
-                              Air is dirtiest during <strong className="text-amber-200">8:00 PM to 8:00 AM</strong> as cold night ground air traps smoke. Best outdoor ventilation window is between <strong className="text-emerald-300">1:00 PM and 4:00 PM</strong>.
+                        {/* Structured 2-card breakdown */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          <div className="p-4 rounded-2xl bg-emerald-500/[0.08] border border-emerald-500/25 flex flex-col gap-1.5 shadow-sm">
+                            <div className="flex items-center gap-2 text-emerald-300 font-semibold text-sm">
+                              <Clock size={16} className="shrink-0" />
+                              <span>Safe Ventilation (1 PM – 4 PM)</span>
+                            </div>
+                            <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
+                              Afternoon sunshine thins out the cold ground smog layer. Air out your home and run outdoor errands during this clean-air window.
                             </p>
                           </div>
 
-                          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-200/90 flex flex-col gap-1.5">
-                            <span className="font-semibold text-rose-300 flex items-center gap-1.5">
-                              <ShieldAlert size={14} /> Who Is At High Risk
-                            </span>
-                            <p className="text-[11.5px] text-slate-300 leading-relaxed">
-                              Children, senior citizens, and people with asthma or allergies will feel coughing, dry throat, and fatigue first. Keep doctor prescribed inhalers handy.
+                          <div className="p-4 rounded-2xl bg-rose-500/[0.08] border border-rose-500/25 flex flex-col gap-1.5 shadow-sm">
+                            <div className="flex items-center gap-2 text-rose-300 font-semibold text-sm">
+                              <ShieldAlert size={16} className="shrink-0" />
+                              <span>Children & Seniors Protection</span>
+                            </div>
+                            <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
+                              Children and senior citizens experience throat cough and irritation first. Keep doctor prescribed inhalers handy and avoid indoor incense.
                             </p>
                           </div>
-                        </div>
-
-                        <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-[11px] text-slate-300 flex items-center justify-between">
-                          <span>💡 Avoid lighting mosquito coils or incense sticks indoors on high-smog nights.</span>
-                          <span className="text-amber-400 font-mono text-[10px] font-bold shrink-0 ml-2">Family Care</span>
                         </div>
                       </motion.div>
                     )}
@@ -740,42 +745,49 @@ export function CitizenPollutionExplainer({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                        className="flex flex-col justify-between h-full space-y-3.5"
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        className="flex flex-col justify-between h-full space-y-4"
                       >
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/25">
-                              <CheckCircle2 size={13} /> 3. What You Should Do Right Now:
-                            </span>
-                            <span className="text-[11px] font-mono text-slate-400">Step 3 of 3</span>
+                        {/* Prominent Lead Statement in clean font matching Image 2 */}
+                        <div className="citizen-statement-font text-base sm:text-lg lg:text-[20px] font-medium text-slate-100 leading-relaxed">
+                          To protect your lungs today, wear a{" "}
+                          <span className="text-emerald-400 font-semibold">certified N95 mask outside</span>{" "}
+                          and keep{" "}
+                          <span className="text-cyan-300 font-semibold">street-facing windows sealed</span>{" "}
+                          during morning smog.
+                        </div>
+
+                        {/* Structured 3-card checklist */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                          <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1 shadow-sm">
+                            <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
+                              <CheckCircle2 size={16} className="shrink-0" />
+                              <span>1. Use N95 Mask</span>
+                            </div>
+                            <p className="text-xs text-slate-300 leading-relaxed mt-0.5">
+                              Cloth masks do not stop PM2.5. A snug N95 or N99 filters over 95% of toxic airborne soot when commuting.
+                            </p>
                           </div>
 
-                          <h4 className="text-base sm:text-lg font-bold text-white mb-2 leading-snug">
-                            Actionable Checklist to Protect Your Health
-                          </h4>
-                        </div>
+                          <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1 shadow-sm">
+                            <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
+                              <CheckCircle2 size={16} className="shrink-0" />
+                              <span>2. Shut Road Windows</span>
+                            </div>
+                            <p className="text-xs text-slate-300 leading-relaxed mt-0.5">
+                              Keep street windows closed during night and morning smog peaks; ventilate only after midday sun warms the air.
+                            </p>
+                          </div>
 
-                        <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
-                          <ul className="text-xs text-slate-300 space-y-2.5">
-                            <li className="flex items-start gap-2.5">
-                              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">1</span>
-                              <span>Wear a snug <strong>N95 mask</strong> if stepping outside for commuting or walking. Cloth masks do not block microscopic PM2.5.</span>
-                            </li>
-                            <li className="flex items-start gap-2.5">
-                              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">2</span>
-                              <span>Keep doors and street-facing windows shut during morning smog; ventilate only during afternoon hours.</span>
-                            </li>
-                            <li className="flex items-start gap-2.5">
-                              <span className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">3</span>
-                              <span>Avoid intense outdoor jogging or workouts; shift physical exercise indoors to protect lung tissues.</span>
-                            </li>
-                          </ul>
-                        </div>
-
-                        <div className="pt-1 text-[10.5px] text-slate-400 flex items-center justify-between">
-                          <span>Health guideline aligned with CPCB advisories</span>
-                          <span className="text-emerald-400 font-mono text-[10px] font-bold">Actionable Guidance</span>
+                          <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1 shadow-sm">
+                            <div className="flex items-center gap-2 text-indigo-400 font-semibold text-sm">
+                              <CheckCircle2 size={16} className="shrink-0" />
+                              <span>3. Exercise Indoors</span>
+                            </div>
+                            <p className="text-xs text-slate-300 leading-relaxed mt-0.5">
+                              Outdoor jogging forces toxic soot 5× deeper into lung alveoli. Switch physical workouts to indoor spaces.
+                            </p>
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -783,21 +795,21 @@ export function CitizenPollutionExplainer({
                 </div>
 
                 {/* Looping Controls & Indicator Navigation */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-2 border-t border-white/[0.08]">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-1 border-t border-white/[0.08]">
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     {[
-                      { label: "Why Air Isn't Clearing", index: 0, color: "bg-cyan-400" },
-                      { label: "Family Points", index: 1, color: "bg-amber-400" },
-                      { label: "What To Do", index: 2, color: "bg-emerald-400" },
+                      { label: "Air Status & Weather", index: 0, color: "bg-cyan-400" },
+                      { label: "Family Health Hours", index: 1, color: "bg-amber-400" },
+                      { label: "Immediate Checklist", index: 2, color: "bg-emerald-400" },
                     ].map((slide) => (
                       <button
                         key={slide.index}
                         type="button"
                         onClick={() => setActiveSlideIndex(slide.index)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                           activeSlideIndex === slide.index
-                            ? "bg-white/10 text-white font-semibold shadow-sm"
-                            : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                            ? "bg-white/10 text-white font-semibold shadow-sm border border-white/10"
+                            : "text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent"
                         }`}
                       >
                         <span
@@ -815,17 +827,17 @@ export function CitizenPollutionExplainer({
                   <button
                     type="button"
                     onClick={() => setIsSlidePaused((prev) => !prev)}
-                    className="flex items-center gap-1 text-[10.5px] text-slate-400 hover:text-slate-200 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-white/10"
                     title={isSlidePaused ? "Resume auto-advance" : "Pause auto-advance"}
                   >
                     {isSlidePaused ? (
                       <>
-                        <Play size={11} className="text-emerald-400" />
+                        <Play size={12} className="text-emerald-400" />
                         <span>Resume</span>
                       </>
                     ) : (
                       <>
-                        <Pause size={11} className="text-amber-400" />
+                        <Pause size={12} className="text-amber-400" />
                         <span>Pause</span>
                       </>
                     )}
@@ -847,18 +859,18 @@ export function CitizenPollutionExplainer({
                   <Factory size={22} />
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold block">
+                  <span className="text-xs font-sans uppercase tracking-wider text-amber-400 font-semibold block">
                     FACTORIES & INDUSTRIAL PLANTS
                   </span>
-                  <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                  <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight font-sans">
                     How Industries Affect {targetCoords.name}
                   </h3>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 self-start sm:self-auto">
-                <span className="text-xs text-amber-200/90 font-medium">Estimated Factory Share:</span>
-                <span className="text-xs sm:text-sm font-bold font-mono text-amber-400 px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30">
+                <span className="text-xs sm:text-sm text-slate-300 font-medium">Estimated Factory Share:</span>
+                <span className="text-xs sm:text-sm font-semibold text-amber-400 px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30">
                   ~24% of PM2.5 in {targetCoords.name}
                 </span>
               </div>
@@ -881,31 +893,42 @@ export function CitizenPollutionExplainer({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                        className="flex flex-col justify-between h-full space-y-3.5"
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        className="flex flex-col justify-between h-full space-y-4"
                       >
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/25">
-                              <Factory size={13} /> 1. How Smoke Travels
-                            </span>
-                            <span className="text-[11px] font-mono text-slate-400">Step 1 of 3</span>
-                          </div>
-
-                          <h4 className="text-base sm:text-lg font-bold text-white mb-2 leading-snug">
-                            Wind Transport & Ground Settling Across {targetCoords.name}
-                          </h4>
-
-                          <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal">
-                            Industrial zones burn coal, gas, and heavy oils for furnaces and boilers. When the wind blows from these clusters toward {targetCoords.name}, smoke, sulfur fumes, and fine metal soot travel kilometers through the air and settle over residential neighborhoods.
-                          </p>
+                        {/* Prominent Lead Statement in clean font matching Image 2 */}
+                        <div className="citizen-statement-font text-base sm:text-lg lg:text-[20px] font-medium text-slate-100 leading-relaxed">
+                          Industrial plants account for{" "}
+                          <span className="text-amber-400 font-semibold">
+                            ~24% of PM2.5 in {targetCoords.name}
+                          </span>
+                          , with smokestack emissions cooling and{" "}
+                          <span className="text-slate-200 font-semibold">
+                            sinking directly into neighborhood streets
+                          </span>.
                         </div>
 
-                        <div className="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 flex items-start gap-3">
-                          <Info size={18} className="text-amber-400 shrink-0 mt-0.5" />
-                          <p>
-                            <strong className="text-white">Why It Reaches Ground Level:</strong> Hot exhaust leaves high factory chimneys, but under calm or trapped air conditions, dense particulate matter cools down and sinks right into streets and homes.
-                          </p>
+                        {/* Structured 2-card breakdown */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
+                            <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
+                              <Factory size={16} className="shrink-0" />
+                              <span>Why Chimneys Reach Ground Level</span>
+                            </div>
+                            <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
+                              Hot exhaust starts high in chimneys, but under calm winds and trapped air, the dense particulate smoke cools down and sinks right into street-level air.
+                            </p>
+                          </div>
+
+                          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
+                            <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
+                              <Wind size={16} className="shrink-0" />
+                              <span>Kilometers of Wind Transport</span>
+                            </div>
+                            <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
+                              Winds blowing from industrial belts push continuous plumes of furnace soot, sulfur, and chemical vapors into residential neighborhoods.
+                            </p>
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -916,20 +939,19 @@ export function CitizenPollutionExplainer({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                        className="flex flex-col justify-between h-full space-y-3.5"
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        className="flex flex-col justify-between h-full space-y-4"
                       >
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/25">
-                              <Factory size={13} /> 2. Top Upwind Emitters Right Now
-                            </span>
-                            <span className="text-[11px] font-mono text-slate-400">Step 2 of 3</span>
-                          </div>
-
-                          <h4 className="text-base sm:text-lg font-bold text-white mb-2 leading-snug">
-                            Active Factories Aligned with Wind Towards {targetCoords.name}
-                          </h4>
+                        {/* Prominent Lead Statement in clean font matching Image 2 */}
+                        <div className="citizen-statement-font text-base sm:text-lg lg:text-[20px] font-medium text-slate-100 leading-relaxed">
+                          Currently,{" "}
+                          <span className="text-amber-400 font-semibold">
+                            {top3Industries[0]?.name || "upwind industrial clusters"}
+                          </span>{" "}
+                          are actively blowing emissions along the{" "}
+                          <span className="text-cyan-300 font-semibold">
+                            direct wind path into {targetCoords.name}
+                          </span>.
                         </div>
 
                         {loadingIndustries ? (
@@ -937,19 +959,19 @@ export function CitizenPollutionExplainer({
                             Calculating nearest upwind industrial plumes...
                           </div>
                         ) : top3Industries.length > 0 ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                             {top3Industries.map((item, idx) => (
                               <div
                                 key={item.source_id || idx}
-                                className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between"
+                                className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col justify-between shadow-sm"
                               >
                                 <div>
                                   <div className="flex items-center justify-between gap-1 mb-1.5">
-                                    <span className="text-[10px] font-bold font-mono text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30">
+                                    <span className="text-[10px] font-bold font-sans text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-md border border-amber-500/30">
                                       #{idx + 1} UPWIND
                                     </span>
                                     <span
-                                      className={`text-[9px] font-bold uppercase px-1 py-0.5 rounded border ${
+                                      className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border ${
                                         item.influence_level === "HIGH"
                                           ? "bg-red-500/15 text-red-300 border-red-500/30"
                                           : item.influence_level === "MEDIUM"
@@ -961,30 +983,25 @@ export function CitizenPollutionExplainer({
                                     </span>
                                   </div>
                                   <h5 className="text-xs font-bold text-white mb-1 line-clamp-1">{item.name}</h5>
-                                  <span className="text-[10.5px] text-slate-400 block mb-1">
+                                  <span className="text-[11px] text-slate-400 block mb-1">
                                     {item.distance_km} km away ({getCompassDirection(item.bearing_deg)})
                                   </span>
-                                  <p className="text-[10px] text-slate-300 line-clamp-1">
-                                    <span className="text-amber-300/80 font-medium">Emits: </span>
+                                  <p className="text-[10.5px] text-slate-300 line-clamp-1">
+                                    <span className="text-amber-300/90 font-medium">Emits: </span>
                                     {getPlainEmissionDesc(item.category)}
                                   </p>
                                 </div>
-                                <div className="mt-2 pt-1.5 border-t border-slate-800 text-[10.5px] text-amber-300 font-mono">
-                                  {Math.round(item.wind_alignment_pct)}% direct wind path
+                                <div className="mt-2 pt-1.5 border-t border-slate-800 text-[11px] text-amber-300 font-sans font-semibold">
+                                  {Math.round(item.wind_alignment_pct)}% direct wind alignment
                                 </div>
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800 text-xs text-slate-400">
+                          <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800 text-xs text-slate-400">
                             No major industrial emitters directly upwind under current wind path.
                           </div>
                         )}
-
-                        <div className="pt-1 text-[10.5px] text-slate-400 flex items-center justify-between">
-                          <span>Evaluated in real-time from Delhi NCR's geospatial registry</span>
-                          <span className="text-amber-400 font-mono text-[10px] font-bold">Real-time Dispersion</span>
-                        </div>
                       </motion.div>
                     )}
 
@@ -994,45 +1011,39 @@ export function CitizenPollutionExplainer({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                        className="flex flex-col justify-between h-full space-y-3.5"
+                        transition={{ duration: 0.4, ease: "easeInOut" }}
+                        className="flex flex-col justify-between h-full space-y-4"
                       >
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-wider text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/25">
-                              <Factory size={13} /> 3. What Factories Emit
-                            </span>
-                            <span className="text-[11px] font-mono text-slate-400">Step 3 of 3</span>
-                          </div>
-
-                          <h4 className="text-base sm:text-lg font-bold text-white mb-2 leading-snug">
-                            Chemical Vapors, Metallic Particles & Boiler Exhaust
-                          </h4>
+                        {/* Prominent Lead Statement in clean font matching Image 2 */}
+                        <div className="citizen-statement-font text-base sm:text-lg lg:text-[20px] font-medium text-slate-100 leading-relaxed">
+                          Factories surrounding the area emit{" "}
+                          <span className="text-amber-400 font-semibold">
+                            dense furnace soot, sulfur fumes, and solvent vapors
+                          </span>{" "}
+                          that irritate eyes, throat, and lung tissues.
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 flex flex-col gap-1.5">
-                            <span className="font-semibold text-amber-300 flex items-center gap-1.5">
-                              🏭 Metal & Foundry Soot
-                            </span>
-                            <p className="text-[11.5px] text-slate-300 leading-relaxed">
+                        {/* Structured 2-card breakdown */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
+                            <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
+                              <Factory size={16} className="shrink-0" />
+                              <span>Metal & Foundry Soot</span>
+                            </div>
+                            <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Metal casting and coal boilers emit dense dark smoke with metallic dust specks that cause throat burning and eye stinging.
                             </p>
                           </div>
 
-                          <div className="p-3.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-xs text-cyan-200/90 flex flex-col gap-1.5">
-                            <span className="font-semibold text-cyan-300 flex items-center gap-1.5">
-                              ⚗️ Chemical & Solvent Fumes
-                            </span>
-                            <p className="text-[11.5px] text-slate-300 leading-relaxed">
-                              Volatile vapors and sulfur gases interact with sunlight in the air, creating secondary PM2.5 that stays trapped for days.
+                          <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
+                            <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
+                              <Wind size={16} className="shrink-0" />
+                              <span>Chemical & Solvent Fumes</span>
+                            </div>
+                            <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
+                              Volatile vapors and sulfur gases interact with sunlight in the air, creating secondary PM2.5 that lingers for days.
                             </p>
                           </div>
-                        </div>
-
-                        <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-[11px] text-slate-300 flex items-center justify-between">
-                          <span>💡 Industrial PM2.5 is chemical-heavy; use HEPA air purifiers indoors when factory smoke drifts in.</span>
-                          <span className="text-amber-400 font-mono text-[10px] font-bold shrink-0 ml-2">Air Health</span>
                         </div>
                       </motion.div>
                     )}
@@ -1040,7 +1051,7 @@ export function CitizenPollutionExplainer({
                 </div>
 
                 {/* Looping Controls & Indicator Navigation */}
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-2 border-t border-white/[0.08]">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-3 mt-1 border-t border-white/[0.08]">
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     {[
                       { label: "How Smoke Travels", index: 0, color: "bg-amber-400" },
@@ -1051,10 +1062,10 @@ export function CitizenPollutionExplainer({
                         key={slide.index}
                         type="button"
                         onClick={() => setActiveIndustrySlide(slide.index)}
-                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                           activeIndustrySlide === slide.index
-                            ? "bg-white/10 text-white font-semibold shadow-sm"
-                            : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                            ? "bg-white/10 text-white font-semibold shadow-sm border border-white/10"
+                            : "text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent"
                         }`}
                       >
                         <span
@@ -1072,17 +1083,17 @@ export function CitizenPollutionExplainer({
                   <button
                     type="button"
                     onClick={() => setIsIndustrySlidePaused((prev) => !prev)}
-                    className="flex items-center gap-1 text-[10.5px] text-slate-400 hover:text-slate-200 px-2 py-0.5 rounded transition-colors cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-white/10"
                     title={isIndustrySlidePaused ? "Resume auto-advance" : "Pause auto-advance"}
                   >
                     {isIndustrySlidePaused ? (
                       <>
-                        <Play size={11} className="text-emerald-400" />
+                        <Play size={12} className="text-emerald-400" />
                         <span>Resume</span>
                       </>
                     ) : (
                       <>
-                        <Pause size={11} className="text-amber-400" />
+                        <Pause size={12} className="text-amber-400" />
                         <span>Pause</span>
                       </>
                     )}
