@@ -30,47 +30,91 @@ function generateCardCanvas(data: LanyardCardData, isBack = false): HTMLCanvasEl
   const ctx = canvas.getContext('2d');
   if (!ctx) return canvas;
 
-  // Background gradient (Deep Obsidian Glass)
-  const bgGrad = ctx.createRadialGradient(W * 0.8, H * 0.2, 80, W * 0.5, H * 0.5, W * 0.9);
-  bgGrad.addColorStop(0, '#1c2738');
-  bgGrad.addColorStop(0.5, '#0e1520');
-  bgGrad.addColorStop(1, '#05090e');
+  // Pure Pitch-Black Obsidian Background (No blue tint)
+  ctx.fillStyle = '#050505';
+  ctx.fillRect(0, 0, W, H);
+
+  const bgGrad = ctx.createRadialGradient(W * 0.5, H * 0.45, 100, W * 0.5, H * 0.5, W * 0.85);
+  bgGrad.addColorStop(0, '#0a0a0c');
+  bgGrad.addColorStop(0.6, '#040405');
+  bgGrad.addColorStop(1, '#000000');
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, W, H);
 
-  // Carbon grid texture
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
-  ctx.lineWidth = 2;
-  const gridStep = 64;
-  for (let x = 0; x < W; x += gridStep) {
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, H);
-    ctx.stroke();
-  }
-  for (let y = 0; y < H; y += gridStep) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(W, y);
-    ctx.stroke();
-  }
+  // Card Glow Color based on AQI level
+  const cardColor = data.color || '#f59e0b';
 
-  // Outer Metallic Bevel Border
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-  ctx.lineWidth = 8;
-  ctx.strokeRect(36, 36, W - 72, H - 72);
-
-  // Colored Corner Accent Brackets
-  ctx.strokeStyle = data.color || '#3fff75';
-  ctx.lineWidth = 12;
+  // ── Vibrant Glowing Outer Border ──────────────────────────────────────────
+  // 1. Soft wide ambient neon glow around perimeter
+  ctx.save();
+  ctx.shadowColor = cardColor;
+  ctx.shadowBlur = 56;
+  ctx.strokeStyle = cardColor;
+  ctx.lineWidth = 14;
   ctx.beginPath();
-  ctx.moveTo(36, 200);
-  ctx.lineTo(36, 36);
-  ctx.lineTo(200, 36);
-  ctx.moveTo(W - 200, H - 36);
-  ctx.lineTo(W - 36, H - 36);
-  ctx.lineTo(W - 36, H - 200);
+  ctx.roundRect(40, 40, W - 80, H - 80, 44);
   ctx.stroke();
+  ctx.restore();
+
+  // 2. Focused vibrant glow layer
+  ctx.save();
+  ctx.shadowColor = cardColor;
+  ctx.shadowBlur = 24;
+  ctx.strokeStyle = cardColor;
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.roundRect(40, 40, W - 80, H - 80, 44);
+  ctx.stroke();
+  ctx.restore();
+
+  // 3. Crisp luminous inner border
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.roundRect(40, 40, W - 80, H - 80, 44);
+  ctx.stroke();
+
+  // 4. Vibrant Neon Corner Accent Brackets with high bloom
+  ctx.save();
+  ctx.shadowColor = cardColor;
+  ctx.shadowBlur = 36;
+  ctx.strokeStyle = cardColor;
+  ctx.lineWidth = 20;
+  ctx.lineCap = 'round';
+
+  // Top-Left Bracket
+  ctx.beginPath();
+  ctx.moveTo(40, 240);
+  ctx.lineTo(40, 84);
+  ctx.arcTo(40, 40, 84, 40, 44);
+  ctx.lineTo(240, 40);
+  ctx.stroke();
+
+  // Top-Right Bracket
+  ctx.beginPath();
+  ctx.moveTo(W - 240, 40);
+  ctx.lineTo(W - 84, 40);
+  ctx.arcTo(W - 40, 40, W - 40, 84, 44);
+  ctx.lineTo(W - 40, 240);
+  ctx.stroke();
+
+  // Bottom-Right Bracket
+  ctx.beginPath();
+  ctx.moveTo(W - 40, H - 240);
+  ctx.lineTo(W - 40, H - 84);
+  ctx.arcTo(W - 40, H - 40, W - 84, H - 40, 44);
+  ctx.lineTo(W - 240, H - 40);
+  ctx.stroke();
+
+  // Bottom-Left Bracket
+  ctx.beginPath();
+  ctx.moveTo(240, H - 40);
+  ctx.lineTo(84, H - 40);
+  ctx.arcTo(40, H - 40, 40, H - 84, 44);
+  ctx.lineTo(40, H - 240);
+  ctx.stroke();
+
+  ctx.restore();
 
   if (!isBack) {
     // ── FRONT FACE ───────────────────────────────────────────────────────────
@@ -107,15 +151,12 @@ function generateCardCanvas(data: LanyardCardData, isBack = false): HTMLCanvasEl
     // Main Glowing AQI Box
     const aqiBoxY = 520;
     const aqiBoxH = 620;
-    const boxGrad = ctx.createLinearGradient(100, aqiBoxY, W - 100, aqiBoxY + aqiBoxH);
-    boxGrad.addColorStop(0, 'rgba(255, 255, 255, 0.12)');
-    boxGrad.addColorStop(1, 'rgba(255, 255, 255, 0.03)');
-    ctx.fillStyle = boxGrad;
+    ctx.fillStyle = 'rgba(12, 12, 14, 0.92)';
     ctx.beginPath();
     ctx.roundRect(100, aqiBoxY, W - 200, aqiBoxH, 36);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 3.5;
     ctx.stroke();
 
     // Glow aura behind AQI
@@ -149,16 +190,16 @@ function generateCardCanvas(data: LanyardCardData, isBack = false): HTMLCanvasEl
       const posY = gridY + row * 260;
 
       // Capsule Background for each telemetry item
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.fillStyle = 'rgba(16, 16, 18, 0.85)';
       ctx.beginPath();
       ctx.roundRect(posX, posY, cardW, cardH, 24);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.09)';
       ctx.lineWidth = 2.5;
       ctx.stroke();
 
-      // Label (High Contrast Cyan-Blue, Large & Crisp)
-      ctx.fillStyle = '#93c5fd';
+      // Label (High Contrast Silver-Grey)
+      ctx.fillStyle = '#a1a1aa';
       ctx.font = '700 44px "IBM Plex Mono", monospace';
       ctx.fillText(item.label.toUpperCase(), posX + 40, posY + 75);
 
@@ -196,12 +237,12 @@ function generateCardCanvas(data: LanyardCardData, isBack = false): HTMLCanvasEl
       const px = 100 + col * 968;
       const py = polY + 160 + row * 170;
 
-      // Pollutant Capsule Pill
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+      // Pollutant Capsule Pill (Neutral Deep Black)
+      ctx.fillStyle = 'rgba(16, 16, 18, 0.88)';
       ctx.beginPath();
       ctx.roundRect(px, py, 880, 130, 20);
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.09)';
       ctx.lineWidth = 2.5;
       ctx.stroke();
 
@@ -303,10 +344,10 @@ export function Lanyard({ data, onClear }: LanyardProps) {
   const physicsRef = useRef({
     points: [
       { x: 0, y: 7.2, z: 0, oldX: 0, oldY: 7.2, oldZ: 0, pinned: true },
-      { x: 0.03, y: 6.0, z: 0, oldX: 0.03, oldY: 6.0, oldZ: 0, pinned: false },
-      { x: 0.05, y: 4.8, z: 0, oldX: 0.05, oldY: 4.8, oldZ: 0, pinned: false },
-      { x: 0.03, y: 3.6, z: 0, oldX: 0.03, oldY: 3.6, oldZ: 0, pinned: false },
-      { x: 0, y: 2.4, z: 0, oldX: 0, oldY: 2.4, oldZ: 0, pinned: false },
+      { x: 0.03, y: 6.4, z: 0, oldX: 0.03, oldY: 6.4, oldZ: 0, pinned: false },
+      { x: 0.05, y: 5.6, z: 0, oldX: 0.05, oldY: 5.6, oldZ: 0, pinned: false },
+      { x: 0.03, y: 4.8, z: 0, oldX: 0.03, oldY: 4.8, oldZ: 0, pinned: false },
+      { x: 0, y: 4.0, z: 0, oldX: 0, oldY: 4.0, oldZ: 0, pinned: false },
     ],
     cardRot: { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0 },
     isDragging: false,
@@ -353,7 +394,7 @@ export function Lanyard({ data, onClear }: LanyardProps) {
     // Three.js Scene Setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(32, width / height, 0.1, 100);
-    camera.position.set(0, 0.35, 21.0);
+    camera.position.set(0, 0.35, 18.0);
 
     const renderer = new THREE.WebGLRenderer({
       canvas,
@@ -421,6 +462,17 @@ export function Lanyard({ data, onClear }: LanyardProps) {
     backMesh.position.set(0, -cardH / 2, -cardDepth / 2);
     backMesh.rotation.y = Math.PI;
     cardGroup.add(backMesh);
+
+    // ── Glowing 3D Perimeter Rim ──
+    const edgeGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(cardW + 0.03, cardH + 0.03, cardDepth * 2));
+    const edgeMat = new THREE.LineBasicMaterial({
+      color: new THREE.Color(data.color || 0xf59e0b),
+      transparent: true,
+      opacity: 0.85,
+    });
+    const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
+    edgeLines.position.set(0, -cardH / 2, 0);
+    cardGroup.add(edgeLines);
 
     // Metal Clip & Clamp
     const clampMesh = new THREE.Mesh(
@@ -505,7 +557,7 @@ export function Lanyard({ data, onClear }: LanyardProps) {
     // ── Verlet Physics Animation Loop ──
     let animId: number;
     const gravity = -0.016;
-    const segmentLength = 1.22;
+    const segmentLength = 0.8;
     const iterations = 12;
 
     const animate = () => {

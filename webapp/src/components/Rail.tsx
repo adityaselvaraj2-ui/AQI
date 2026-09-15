@@ -32,6 +32,7 @@ export type PageType =
   | "exposure-tracker"
   | "transports"
   | "industry-map"
+  | "citizen-industry"
   | "health-assistant"
   | "alerts"
   | "report";
@@ -73,6 +74,7 @@ export function Rail({
 
   const isCitizenPage =
     currentPage === "exposure-tracker" ||
+    currentPage === "citizen-industry" ||
     currentPage === "health-assistant";
 
   // Role gating: citizens see only the Citizen tab; authorities see both.
@@ -136,6 +138,7 @@ export function Rail({
   const citizenItems = [
     { id: "exposure-tracker", label: t("navigation.exposure"), icon: HeartPulse },
     { id: "health-assistant", label: t("navigation.healthAdvisory") || t("navigation.healthAssistant") || "Health Advisory", icon: Bot },
+    { id: "citizen-industry", label: "Local Industry & Sources", icon: Factory },
   ];
 
   return (

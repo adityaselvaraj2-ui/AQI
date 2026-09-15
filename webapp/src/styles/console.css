@@ -922,8 +922,8 @@ kbd {
 .map__controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.6rem 2.2rem;
-  margin-top: clamp(1.5rem, 3vw, 2.2rem);
+  gap: 0.8rem 1.2rem;
+  margin-top: clamp(1rem, 2vw, 1.5rem);
 }
 .map__ctrlGroup { display: flex; flex-direction: column; gap: 0.6rem; }
 .map__ctrlLabel {
@@ -1311,30 +1311,21 @@ kbd {
 /* ══ Station Map Section Outer Container Box ══════════════════════════════ */
 .station-map-outer {
   position: relative;
-  background: radial-gradient(circle 900px at 50% -10%, rgba(20, 28, 40, 0.8), rgba(7, 11, 16, 0.96));
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 24px;
-  padding: clamp(1.4rem, 2.5vw, 2.4rem);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.12);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
   margin-top: 2.5rem;
   margin-bottom: clamp(3.5rem, 6vw, 5.5rem);
-  overflow: hidden;
 }
 
 .station-map-outer::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 15%;
-  width: 250px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
-  pointer-events: none;
+  display: none;
 }
 
 .station-map-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(380px, 460px);
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 380px);
   gap: clamp(1.4rem, 2.2vw, 2.5rem);
   align-items: stretch;
 }
@@ -1840,4 +1831,22 @@ kbd {
   --c1: rgba(148, 163, 184, 0.50);
   --c2: rgba(30, 41, 59, 0.50);
   --line: #94a3b8;
+}
+@keyframes moveDot {
+  0%, 100% {
+    top: 5%;
+    right: 5%;
+  }
+  25% {
+    top: 5%;
+    right: calc(100% - 25px);
+  }
+  50% {
+    top: calc(100% - 25px);
+    right: calc(100% - 25px);
+  }
+  75% {
+    top: calc(100% - 25px);
+    right: 5%;
+  }
 }

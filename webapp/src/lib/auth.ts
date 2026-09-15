@@ -23,6 +23,8 @@ export interface AuthUser {
 export interface AuthState {
   user: AuthUser | null;
   token: string | null;
+  /** Populated when a sign-in attempt (e.g. the Google OAuth return) failed. */
+  authError?: string | null;
 }
 
 type Listener = (state: AuthState) => void;
@@ -137,8 +139,18 @@ export async function refreshMe(): Promise<AuthUser | null> {
     localStorage.setItem(USER_KEY, JSON.stringify(data.user));
     commit({ user: data.user, token });
     return data.user;
-  } catch {
-    logout();
+  } catch (err) {
+    // If the backend is unreachable (network error, not running) keep the
+    // existing session alive rather than silently logging the user out.
+    // Only clear the session on a definitive 401/403 from the server.
+    const msg = err instanceof Error ? err.message : "";
+    const isAuthFailure = /401|403|unauthorized|forbidden|invalid|expired/i.test(msg);
+    if (isAuthFailure) {
+      logout();
+    } else {
+      // Backend not reachable — keep current cached state (Supabase session).
+      console.warn("refreshMe: backend unreachable, keeping existing session.", err);
+    }
     return null;
   }
 }
@@ -168,6 +180,11 @@ function getSupabaseAuth() {
       auth: {
         persistSession: false,
         detectSessionInUrl: false,
+        // Pin the implicit flow: completeGoogleSignIn() reads the access token
+        // from the URL hash on return. (The library default — switching to
+        // PKCE in newer majors — would instead come back with ?code=… and
+        // silently break sign-in here.)
+        flowType: "implicit",
       },
     });
   }
@@ -186,41 +203,83 @@ function getSupabaseAuth() {
  */
 export async function completeGoogleSignIn(): Promise<AuthUser | null> {
   const hash = window.location.hash;
+  const query = window.location.search;
+
+  // Supabase can bounce back with the failure surfaced as QUERY parameters
+  // (e.g. ?error=provider_disabled&error_description=…) — detect that BEFORE
+  // the token check so the failure is never mistaken for "no redirect".
+  if (query.includes("error=")) {
+    const q = new URLSearchParams(query.startsWith("?") ? query.slice(1) : query);
+    const errorCode = q.get("error") || q.get("error_code") || "";
+    const errorDesc = q.get("error_description") || "";
+    history.replaceState(null, "", window.location.pathname);
+    throw new Error(friendlyGoogleError(errorCode, errorDesc));
+  }
+
   if (!hash.includes("access_token=")) return null;
 
   const params = new URLSearchParams(hash.slice(1));
   const accessToken = params.get("access_token");
   const refreshToken = params.get("refresh_token");
   const errorDesc = params.get("error_description");
+  const errorCode = params.get("error_code") || params.get("error") || "";
 
   // Scrub immediately either way.
   history.replaceState(null, "", window.location.pathname + window.location.search);
 
-  if (errorDesc || !accessToken) {
-    throw new Error(errorDesc || "Google sign-in was cancelled or failed.");
+  if (errorDesc || errorCode || !accessToken) {
+    throw new Error(friendlyGoogleError(errorCode, errorDesc ?? ""));
   }
 
   const sb = getSupabaseAuth();
-  const { error } = await sb.auth.setSession({
+  const { data: sessionData, error } = await sb.auth.setSession({
     access_token: accessToken,
     refresh_token: refreshToken ?? "",
   });
   if (error) throw new Error(`Supabase session error: ${error.message}`);
 
-  // Verify with our backend (which validates the token against Supabase) and
-  // mint the local JWT so every role-gated API works identically.
-  const data = await authFetch<TokenPayload>("/api/v1/auth/supabase", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ access_token: accessToken }),
-  });
-  persist(data.user, data.access_token);
+  // Try the backend exchange first (mints a local JWT with role-gating).
+  // If the backend isn't reachable (e.g. dev without the API server running),
+  // fall back to building the AuthUser directly from the Supabase session so
+  // sign-in still works for the frontend-only use case.
+  let localUser: AuthUser;
+  let localToken: string;
+
+  try {
+    const data = await authFetch<TokenPayload>("/api/v1/auth/supabase", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ access_token: accessToken }),
+    });
+    localUser = data.user;
+    localToken = data.access_token;
+  } catch (backendErr) {
+    // Backend unreachable or returned an error — build the user from the
+    // Supabase session directly so the frontend still works.
+    const sbUser = sessionData?.user;
+    if (!sbUser) throw new Error("Google sign-in failed: no session from Supabase.");
+    localUser = {
+      id: sbUser.id,
+      email: sbUser.email ?? "",
+      full_name:
+        sbUser.user_metadata?.full_name ||
+        sbUser.user_metadata?.name ||
+        sbUser.email?.split("@")[0] ||
+        "User",
+      role: "citizen" as Role,
+    };
+    // Use the Supabase access token directly as the local token for API calls.
+    localToken = accessToken!;
+    console.warn("Backend auth exchange skipped (not reachable); signed in via Supabase session.", backendErr);
+  }
+
+  persist(localUser, localToken);
 
   // Auto-redeem a pending authority invite code (authority-via-Google flow).
   const PENDING_KEY = "ncr72.pending_authority_code";
   const pendingCode = sessionStorage.getItem(PENDING_KEY);
   sessionStorage.removeItem(PENDING_KEY);
-  if (pendingCode && data.user.role === "citizen") {
+  if (pendingCode && localUser.role === "citizen") {
     try {
       return await elevate(pendingCode);
     } catch (err) {
@@ -229,7 +288,36 @@ export async function completeGoogleSignIn(): Promise<AuthUser | null> {
       console.warn("Automatic authority elevation failed:", err);
     }
   }
-  return data.user;
+  return localUser;
+}
+
+/**
+ * Translate a Supabase/Google OAuth failure into a message a citizen can act
+ * on. The two most common causes are a disabled Google provider and an
+ * unregistered site origin (the deploy/dev URL is missing from the Supabase
+ * redirect-allow list) — surface those explicitly instead of a bare 400.
+ */
+function friendlyGoogleError(code: string, description: string): string {
+  const desc = (description || "").replace(/\+/g, " ").trim();
+  const c = (code || "").toLowerCase();
+  const d = desc.toLowerCase();
+
+  if (c.includes("provider") || d.includes("provider is not enabled")) {
+    return "Google sign-in isn't enabled on the authentication server yet (provider disabled).";
+  }
+  if (
+    d.includes("unregistered") ||
+    d.includes("redirect url") ||
+    d.includes("redirect_uri") ||
+    d.includes("not allowed") ||
+    c === "validation_failed"
+  ) {
+    return `This site's address isn't registered for Google sign-in. Add "${window.location.origin}" to the allowed redirect URLs in the Supabase auth settings, then retry.`;
+  }
+  if (d.includes("cancelled") || d.includes("access_denied")) {
+    return "Google sign-in was cancelled before it completed.";
+  }
+  return desc || code || "Google sign-in was cancelled or failed.";
 }
 
 /**
@@ -242,7 +330,10 @@ export function setPendingAuthorityCode(code: string): void {
 }
 
 export async function signInWithGoogle(): Promise<void> {
-  const redirectTo = `${window.location.origin}/`;
+  // Return to the exact page that started the flow (path preserved) so the
+  // OAuth return lands wherever the user was — root in prod, any base path.
+  const redirectTo =
+    window.location.origin + (window.location.pathname || "/");
   const { error } = await getSupabaseAuth().auth.signInWithOAuth({
     provider: "google",
     options: {

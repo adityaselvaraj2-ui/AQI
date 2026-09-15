@@ -3,6 +3,8 @@ import { useTranslation } from "@/i18n";
 
 interface LandingProps {
   onSignIn: () => void;
+  /** Reason the last sign-in attempt (e.g. Google OAuth return) failed. */
+  signInError?: string | null;
 }
 
 /**
@@ -10,7 +12,7 @@ interface LandingProps {
  * console is role-gated, so the signed-out page only explains the platform
  * and invites the visitor to sign in.
  */
-export function Landing({ onSignIn }: LandingProps) {
+export function Landing({ onSignIn, signInError }: LandingProps) {
   const { t } = useTranslation();
   return (
     <main
@@ -116,6 +118,28 @@ export function Landing({ onSignIn }: LandingProps) {
         <span>{t("landing.signInCta")}</span>
         <ArrowRight size={16} />
       </button>
+
+      {/* Sign-in failure feedback — otherwise a failed Google return just
+          silently reloads the landing page with no explanation. */}
+      {signInError ? (
+        <div
+          role="alert"
+          style={{
+            maxWidth: "560px",
+            padding: "0.8rem 1.1rem",
+            borderRadius: "12px",
+            background: "rgba(244, 63, 94, 0.12)",
+            border: "1px solid rgba(244, 63, 94, 0.4)",
+            fontFamily: "var(--mono)",
+            fontSize: "12px",
+            lineHeight: 1.6,
+            color: "#fda4af",
+            textAlign: "center",
+          }}
+        >
+          {signInError}
+        </div>
+      ) : null}
 
       {/* What each role gets — informative cards, NOT live content */}
       <div

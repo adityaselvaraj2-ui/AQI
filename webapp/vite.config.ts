@@ -21,8 +21,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // 127.0.0.1, not localhost: Node ≥17 resolves localhost to ::1 first on
+      // Windows, and the dev backend binds IPv4 only — use the IPv4 loopback
+      // literal so API proxying never depends on DNS result order.
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
     },

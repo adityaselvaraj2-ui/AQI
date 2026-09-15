@@ -22,7 +22,7 @@ import { Landing } from "@/components/Landing";
 import { useAuth } from "@/hooks/useAuth";
 import { IndustryMapView } from "@/components/IndustryMapView";
 import { PollutantCardStackSection } from "@/components/PollutantCardStackSection";
-import { SourceInfluencePanel } from "@/components/SourceInfluencePanel";
+import { CitizenIndustryPage } from "@/components/CitizenIndustryPage";
 import { CitizenPollutionExplainer } from "@/components/CitizenPollutionExplainer";
 import GradualBlur from "@/components/ui/GradualBlur";
 import { useCityAggregate } from "@/hooks/useCityAggregate";
@@ -114,6 +114,12 @@ export default function App() {
       ) {
         return "industry-map";
       }
+      if (
+        window.location.hash === "#citizen-industry" ||
+        window.location.hash === "#local-industry"
+      ) {
+        return "citizen-industry";
+      }
     }
     return "overview";
   });
@@ -151,6 +157,11 @@ export default function App() {
         window.location.hash === "#industries"
       ) {
         setCurrentPage("industry-map");
+      } else if (
+        window.location.hash === "#citizen-industry" ||
+        window.location.hash === "#local-industry"
+      ) {
+        setCurrentPage("citizen-industry");
       } else if (
         window.location.hash === "#health-assistant" ||
         window.location.hash === "#healthcare" ||
@@ -197,6 +208,8 @@ export default function App() {
         ? "transports"
         : page === "industry-map"
         ? "industry-map"
+        : page === "citizen-industry"
+        ? "citizen-industry"
         : page === "health-assistant"
         ? "health-assistant"
         : page === "alerts"
@@ -304,7 +317,7 @@ export default function App() {
 
       {/* Auth gate: signed-out users see ONLY the landing page — no data, no tabs. */}
       {!auth.user ? (
-        <Landing onSignIn={() => setAuthOpen(true)} />
+        <Landing onSignIn={() => setAuthOpen(true)} signInError={auth.authError} />
       ) : effectivePage === "forecast-datas" ? (
         <ForecastDataPage
           forecast={data.forecast}
@@ -387,6 +400,16 @@ export default function App() {
           windSpeedKmh={realtime.weatherapi.data?.wind_kph ?? 12.0}
           windDirectionDeg={realtime.weatherapi.data?.wind_deg ?? 300}
         />
+      ) : effectivePage === "citizen-industry" ? (
+        <CitizenIndustryPage
+          stations={data.stations}
+          plume={data.plume}
+          inversion={data.inversion}
+          hour={hour}
+          windSpeedKmh={realtime.weatherapi.data?.wind_kph ?? 12.0}
+          windDirectionDeg={realtime.weatherapi.data?.wind_deg ?? 300}
+          onBack={() => handlePageChange("overview")}
+        />
       ) : (
         <main ref={mainRef}>
           {/* 1. Hero Section (AQI Value with Full Screen Video Background) */}
@@ -442,7 +465,7 @@ export default function App() {
           </div>
 
           {/* 3. Map View Stations */}
-          <div id="station-map-view">
+          <div id="station-map-view" className="w-full px-6 lg:px-12 xl:px-16 2xl:px-24 mx-auto">
             <StationMap
               stations={data.stations}
               plume={data.plume}
@@ -453,24 +476,7 @@ export default function App() {
             />
           </div>
 
-          {/* 4. Source-tagged location influence */}
-          <SourceInfluencePanel
-            stations={data.stations}
-            plume={data.plume}
-            inversion={data.inversion}
-            hour={hour}
-          />
 
-          {/* 4.4. Role-gated official advisories (authority publishes, everyone reads) */}
-          <AdvisoryBar user={auth.user} onAuthRequired={() => setAuthOpen(true)} />
-
-          {/* 4.5. Interactive Industry Map View & Digital Twin Section (136k+ Supabase DB) */}
-          <div id="industry-interactive-map-section" className="section my-12">
-            <IndustryMapView
-              windSpeedKmh={realtime.weatherapi.data?.wind_kph ?? 12.0}
-              windDirectionDeg={realtime.weatherapi.data?.wind_deg ?? 300}
-            />
-          </div>
 
           {/* 5. List All Live Stations */}
           <div id="stations-grid">

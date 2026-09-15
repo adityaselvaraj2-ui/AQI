@@ -135,16 +135,16 @@ export function StationMap({
       <div className="station-map-layout">
         {/* Left Column: Heading, Controls, Viewport */}
         <div className="station-map-main">
-          <div className="section__head">
+          <div className="pb-3 border-b border-[var(--border-glass)] mb-4">
             <div>
-              <p className="eyebrow">network</p>
-              <h2 className="section__h section__h--sm" id="map-h">
+              <div className="text-xs font-mono text-emerald-400/90 flex items-center gap-2 uppercase tracking-wider">
+                <span>NETWORK</span>
+              </div>
+              <h2 className="text-2xl font-bold text-white mt-1 mb-2 font-sans" id="map-h">
                 Station map
               </h2>
-              <p className="section__lede section__lede--sm">
-                The live OpenAQ network across Delhi-NCR, each station a plume marker sized and coloured
-                by its AQI, over the stubble-transport domain. Pick a basemap, toggle the layers, and
-                click any station for its exact reading.
+              <p className="text-base text-white/70 max-w-3xl">
+                Explore live OpenAQ stations across Delhi-NCR. Select a station for detailed readings.
               </p>
             </div>
           </div>

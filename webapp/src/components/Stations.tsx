@@ -37,28 +37,30 @@ export function Stations({ stations, overview }: StationsProps) {
     : "";
 
   return (
-    <section className="section section--stations" aria-labelledby="st-h">
-      <div className="section__head">
+    <section className="section section--stations w-full px-6 lg:px-12 xl:px-16 2xl:px-24 mx-auto" aria-labelledby="st-h">
+      <div className="pb-3 border-b border-[var(--border-glass)] mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">{t("stations.groundTruth")}</p>
-          <h2 className="section__h section__h--sm" id="st-h">
+          <div className="text-xs font-mono text-emerald-400/90 flex items-center gap-2 uppercase tracking-wider">
+            <span>{t("stations.groundTruth")}</span>
+          </div>
+          <h2 className="text-2xl font-bold text-white mt-1 mb-2 font-sans" id="st-h">
             {t("stations.title")}
           </h2>
-          <p className="section__lede section__lede--sm">
+          <p className="text-base text-white/70 max-w-3xl">
             {t("stations.subtitle")}
           </p>
         </div>
-        <p className="stations__city">{cityLine}</p>
+        <p className="text-xs font-mono text-white/40 uppercase tracking-wider whitespace-nowrap">{cityLine}</p>
       </div>
 
       {stations.status === "loading" ? (
-        <div className="stations">
-          {Array.from({ length: 8 }, (_, i) => (
-            <div className="st" key={i}>
-              <Skeleton style={{ width: "2.4rem", height: "1.3rem" }} />
-              <div className="st__body" style={{ flex: 1 }}>
-                <Skeleton style={{ width: "80%", height: "0.8rem" }} />
-                <Skeleton style={{ width: "40%", height: "0.6rem", marginTop: "0.4rem" }} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4">
+          {Array.from({ length: 10 }, (_, i) => (
+            <div className="bg-white/[0.02] border border-white/5 rounded-lg p-4 flex items-center gap-3" key={i}>
+              <Skeleton style={{ width: "2rem", height: "1.5rem" }} />
+              <div className="flex-1">
+                <Skeleton style={{ width: "80%", height: "0.8rem", marginBottom: "0.4rem" }} />
+                <Skeleton style={{ width: "40%", height: "0.6rem" }} />
               </div>
             </div>
           ))}
@@ -72,15 +74,23 @@ export function Stations({ stations, overview }: StationsProps) {
           <b>{t("stations.noStations")}</b>
         </PanelMessage>
       ) : (
-        <div className="stations">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4">
           {rows.map((s) => (
-            <div className="st" key={s.uid} title={s.dominant_pollutant ? `${t("hero.dominant")} ${s.dominant_pollutant}` : undefined}>
-              <span className="st__aqi" style={{ ["--c" as string]: aqiColor(s.aqi) }}>
-                {int(s.aqi)}
-              </span>
-              <span className="st__body">
-                <span className="st__name">{getTranslatedStationName(s.name, (language as StationLang) || "en")}</span>
-                <span className="st__cat">{getCategoryLabel(s.category)}</span>
+            <div 
+              className="bg-white/[0.03] hover:bg-white/[0.08] transition-colors border border-white/10 rounded-xl p-4 flex flex-col justify-center gap-1 cursor-default" 
+              key={s.uid} 
+              title={s.dominant_pollutant ? `${t("hero.dominant")} ${s.dominant_pollutant}` : undefined}
+            >
+              <div className="flex items-baseline gap-3">
+                <span className="text-xl font-bold font-sans tabular-nums min-w-[2.5rem]" style={{ color: aqiColor(s.aqi) }}>
+                  {int(s.aqi)}
+                </span>
+                <span className="text-[13px] font-medium text-white/90 truncate font-sans">
+                  {getTranslatedStationName(s.name, (language as StationLang) || "en")}
+                </span>
+              </div>
+              <span className="text-[10px] uppercase tracking-wider font-mono text-white/40 pl-[3.25rem]">
+                {getCategoryLabel(s.category)}
               </span>
             </div>
           ))}
