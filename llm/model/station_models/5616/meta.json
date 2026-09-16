@@ -1,0 +1,92 @@
+{
+  "station_id": 5616,
+  "name": "Noida Sector 62",
+  "trained_at": "2026-09-16T17:48:04",
+  "test_days": 120,
+  "split_time": "2026-05-19 22:00:00",
+  "stride": 2,
+  "init_model": "global",
+  "pollutants": {
+    "pm25": {
+      "overall": {
+        "n": 36097,
+        "mse": 364.833,
+        "rmse": 19.101,
+        "mae": 13.771,
+        "r2": 0.2052,
+        "bias": -4.796
+      },
+      "marks": {
+        "1": {
+          "rmse": 17.327,
+          "mae": 12.543,
+          "r2": 0.3633,
+          "bias": -5.429
+        }
+      },
+      "best_iteration": 334
+    },
+    "pm10": {
+      "overall": {
+        "n": 36159,
+        "mse": 3577.742,
+        "rmse": 59.814,
+        "mae": 33.399,
+        "r2": 0.4323,
+        "bias": 1.218
+      },
+      "marks": {
+        "1": {
+          "rmse": 52.641,
+          "mae": 27.721,
+          "r2": 0.6012,
+          "bias": -1.278
+        }
+      },
+      "best_iteration": 193
+    },
+    "no2": {
+      "overall": {
+        "n": 34372,
+        "mse": 144.92,
+        "rmse": 12.038,
+        "mae": 8.264,
+        "r2": 0.2212,
+        "bias": -2.034
+      },
+      "marks": {
+        "1": {
+          "rmse": 9.919,
+          "mae": 6.52,
+          "r2": 0.5072,
+          "bias": -2.423
+        }
+      },
+      "best_iteration": 337
+    },
+    "o3": {
+      "overall": {
+        "n": 36177,
+        "mse": 833.427,
+        "rmse": 28.869,
+        "mae": 15.055,
+        "r2": 0.3834,
+        "bias": 2.016
+      },
+      "marks": {
+        "1": {
+          "rmse": 24.773,
+          "mae": 13.35,
+          "r2": 0.551,
+          "bias": 1.772
+        }
+      },
+      "best_iteration": 1348
+    },
+    "so2": {
+      "status": "insufficient_data",
+      "n_train": 0,
+      "n_test": 0
+    }
+  }
+}

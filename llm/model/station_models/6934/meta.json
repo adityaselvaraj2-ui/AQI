@@ -1,0 +1,106 @@
+{
+  "station_id": 6934,
+  "name": "Dr. Karni Singh Shooting Range",
+  "trained_at": "2026-09-16T17:14:35",
+  "test_days": 120,
+  "split_time": "2026-05-19 22:00:00",
+  "stride": 2,
+  "init_model": "global",
+  "pollutants": {
+    "pm25": {
+      "overall": {
+        "n": 37731,
+        "mse": 368.54,
+        "rmse": 19.197,
+        "mae": 14.277,
+        "r2": 0.1312,
+        "bias": 1.931
+      },
+      "marks": {
+        "1": {
+          "rmse": 16.616,
+          "mae": 12.282,
+          "r2": 0.3415,
+          "bias": 0.161
+        }
+      },
+      "best_iteration": 307
+    },
+    "pm10": {
+      "overall": {
+        "n": 40787,
+        "mse": 6138.191,
+        "rmse": 78.347,
+        "mae": 46.822,
+        "r2": 0.3554,
+        "bias": 5.61
+      },
+      "marks": {
+        "1": {
+          "rmse": 61.906,
+          "mae": 35.323,
+          "r2": 0.5962,
+          "bias": 1.445
+        }
+      },
+      "best_iteration": 193
+    },
+    "no2": {
+      "overall": {
+        "n": 41374,
+        "mse": 129.049,
+        "rmse": 11.36,
+        "mae": 8.98,
+        "r2": 0.3238,
+        "bias": 5.287
+      },
+      "marks": {
+        "1": {
+          "rmse": 9.963,
+          "mae": 7.749,
+          "r2": 0.4705,
+          "bias": 4.581
+        }
+      },
+      "best_iteration": 715
+    },
+    "o3": {
+      "overall": {
+        "n": 41234,
+        "mse": 97.264,
+        "rmse": 9.862,
+        "mae": 7.016,
+        "r2": 0.712,
+        "bias": 2.24
+      },
+      "marks": {
+        "1": {
+          "rmse": 8.056,
+          "mae": 5.616,
+          "r2": 0.8145,
+          "bias": 0.919
+        }
+      },
+      "best_iteration": 1047
+    },
+    "so2": {
+      "overall": {
+        "n": 41374,
+        "mse": 12.309,
+        "rmse": 3.508,
+        "mae": 2.26,
+        "r2": 0.5191,
+        "bias": 0.68
+      },
+      "marks": {
+        "1": {
+          "rmse": 3.046,
+          "mae": 1.817,
+          "r2": 0.6476,
+          "bias": 0.377
+        }
+      },
+      "best_iteration": 273
+    }
+  }
+}

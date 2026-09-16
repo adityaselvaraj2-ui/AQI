@@ -17,7 +17,6 @@ import { AlertsPage } from "@/components/AlertsPage";
 import { AqiReportPage } from "@/components/AqiReportPage";
 import { AuthModal } from "@/components/AuthModal";
 import { OperatorConsole } from "@/components/OperatorConsole";
-import { AdvisoryBar } from "@/components/AdvisoryBar";
 import { Landing } from "@/components/Landing";
 import { useAuth } from "@/hooks/useAuth";
 import { IndustryMapView } from "@/components/IndustryMapView";

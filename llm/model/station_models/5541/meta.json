@@ -1,0 +1,92 @@
+{
+  "station_id": 5541,
+  "name": "Burari Crossing",
+  "trained_at": "2026-09-16T17:10:32",
+  "test_days": 120,
+  "split_time": "2026-05-19 22:00:00",
+  "stride": 2,
+  "init_model": "global",
+  "pollutants": {
+    "pm25": {
+      "overall": {
+        "n": 36892,
+        "mse": 462.332,
+        "rmse": 21.502,
+        "mae": 15.699,
+        "r2": 0.2191,
+        "bias": -1.504
+      },
+      "marks": {
+        "1": {
+          "rmse": 19.446,
+          "mae": 14.059,
+          "r2": 0.3364,
+          "bias": -2.491
+        }
+      },
+      "best_iteration": 286
+    },
+    "pm10": {
+      "overall": {
+        "n": 36182,
+        "mse": 4309.975,
+        "rmse": 65.65,
+        "mae": 39.615,
+        "r2": 0.4408,
+        "bias": -1.785
+      },
+      "marks": {
+        "1": {
+          "rmse": 55.763,
+          "mae": 33.822,
+          "r2": 0.5808,
+          "bias": -4.464
+        }
+      },
+      "best_iteration": 253
+    },
+    "no2": {
+      "overall": {
+        "n": 37949,
+        "mse": 171.831,
+        "rmse": 13.108,
+        "mae": 8.459,
+        "r2": 0.1235,
+        "bias": -0.158
+      },
+      "marks": {
+        "1": {
+          "rmse": 10.798,
+          "mae": 6.621,
+          "r2": 0.3805,
+          "bias": -0.579
+        }
+      },
+      "best_iteration": 501
+    },
+    "o3": {
+      "overall": {
+        "n": 37668,
+        "mse": 645.18,
+        "rmse": 25.4,
+        "mae": 18.173,
+        "r2": 0.4868,
+        "bias": 2.136
+      },
+      "marks": {
+        "1": {
+          "rmse": 21.307,
+          "mae": 14.812,
+          "r2": 0.6567,
+          "bias": 1.626
+        }
+      },
+      "best_iteration": 961
+    },
+    "so2": {
+      "status": "insufficient_data",
+      "n_train": 0,
+      "n_test": 0
+    }
+  }
+}

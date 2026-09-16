@@ -1,0 +1,106 @@
+{
+  "station_id": 6929,
+  "name": "Major Dhyan Chand National Stadium",
+  "trained_at": "2026-09-16T17:37:38",
+  "test_days": 120,
+  "split_time": "2026-05-19 22:00:00",
+  "stride": 2,
+  "init_model": "global",
+  "pollutants": {
+    "pm25": {
+      "overall": {
+        "n": 40758,
+        "mse": 327.584,
+        "rmse": 18.099,
+        "mae": 14.029,
+        "r2": 0.0935,
+        "bias": 6.487
+      },
+      "marks": {
+        "1": {
+          "rmse": 14.642,
+          "mae": 11.217,
+          "r2": 0.397,
+          "bias": 4.872
+        }
+      },
+      "best_iteration": 280
+    },
+    "pm10": {
+      "overall": {
+        "n": 42465,
+        "mse": 5159.985,
+        "rmse": 71.833,
+        "mae": 41.229,
+        "r2": 0.3656,
+        "bias": 8.967
+      },
+      "marks": {
+        "1": {
+          "rmse": 61.28,
+          "mae": 32.202,
+          "r2": 0.5351,
+          "bias": 4.919
+        }
+      },
+      "best_iteration": 196
+    },
+    "no2": {
+      "overall": {
+        "n": 43127,
+        "mse": 219.968,
+        "rmse": 14.831,
+        "mae": 10.422,
+        "r2": 0.5645,
+        "bias": 0.372
+      },
+      "marks": {
+        "1": {
+          "rmse": 12.736,
+          "mae": 8.626,
+          "r2": 0.6893,
+          "bias": 0.164
+        }
+      },
+      "best_iteration": 467
+    },
+    "o3": {
+      "overall": {
+        "n": 43401,
+        "mse": 76.971,
+        "rmse": 8.773,
+        "mae": 6.209,
+        "r2": 0.6052,
+        "bias": 0.212
+      },
+      "marks": {
+        "1": {
+          "rmse": 7.243,
+          "mae": 5.11,
+          "r2": 0.7299,
+          "bias": 0.222
+        }
+      },
+      "best_iteration": 1347
+    },
+    "so2": {
+      "overall": {
+        "n": 42401,
+        "mse": 22.133,
+        "rmse": 4.705,
+        "mae": 3.321,
+        "r2": 0.2681,
+        "bias": 0.334
+      },
+      "marks": {
+        "1": {
+          "rmse": 3.723,
+          "mae": 2.51,
+          "r2": 0.5485,
+          "bias": 0.025
+        }
+      },
+      "best_iteration": 516
+    }
+  }
+}

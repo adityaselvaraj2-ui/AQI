@@ -1,0 +1,106 @@
+{
+  "station_id": 6978,
+  "name": "Greater Noida (Knowledge Park III)",
+  "trained_at": "2026-09-16T17:28:07",
+  "test_days": 120,
+  "split_time": "2026-05-19 22:00:00",
+  "stride": 2,
+  "init_model": "global",
+  "pollutants": {
+    "pm25": {
+      "overall": {
+        "n": 34049,
+        "mse": 1131.042,
+        "rmse": 33.631,
+        "mae": 16.879,
+        "r2": 0.1773,
+        "bias": 1.226
+      },
+      "marks": {
+        "1": {
+          "rmse": 23.362,
+          "mae": 14.05,
+          "r2": 0.4662,
+          "bias": 1.78
+        }
+      },
+      "best_iteration": 452
+    },
+    "pm10": {
+      "overall": {
+        "n": 37649,
+        "mse": 8455.069,
+        "rmse": 91.951,
+        "mae": 60.404,
+        "r2": 0.4699,
+        "bias": -8.181
+      },
+      "marks": {
+        "1": {
+          "rmse": 77.914,
+          "mae": 50.758,
+          "r2": 0.6159,
+          "bias": -6.152
+        }
+      },
+      "best_iteration": 496
+    },
+    "no2": {
+      "overall": {
+        "n": 39193,
+        "mse": 185.612,
+        "rmse": 13.624,
+        "mae": 8.927,
+        "r2": 0.202,
+        "bias": 3.273
+      },
+      "marks": {
+        "1": {
+          "rmse": 10.448,
+          "mae": 7.355,
+          "r2": 0.4539,
+          "bias": 2.539
+        }
+      },
+      "best_iteration": 479
+    },
+    "o3": {
+      "overall": {
+        "n": 39189,
+        "mse": 341.785,
+        "rmse": 18.487,
+        "mae": 13.064,
+        "r2": 0.6568,
+        "bias": -2.016
+      },
+      "marks": {
+        "1": {
+          "rmse": 15.085,
+          "mae": 10.537,
+          "r2": 0.7708,
+          "bias": -1.801
+        }
+      },
+      "best_iteration": 1106
+    },
+    "so2": {
+      "overall": {
+        "n": 38478,
+        "mse": 270.471,
+        "rmse": 16.446,
+        "mae": 5.842,
+        "r2": -0.1264,
+        "bias": 4.181
+      },
+      "marks": {
+        "1": {
+          "rmse": 16.01,
+          "mae": 5.271,
+          "r2": -0.1109,
+          "bias": 3.67
+        }
+      },
+      "best_iteration": 98
+    }
+  }
+}

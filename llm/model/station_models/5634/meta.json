@@ -1,0 +1,92 @@
+{
+  "station_id": 5634,
+  "name": "Lodhi Road",
+  "trained_at": "2026-09-16T17:35:53",
+  "test_days": 120,
+  "split_time": "2026-05-19 23:00:00",
+  "stride": 2,
+  "init_model": "global",
+  "pollutants": {
+    "pm25": {
+      "overall": {
+        "n": 32328,
+        "mse": 336.029,
+        "rmse": 18.331,
+        "mae": 13.75,
+        "r2": 0.0165,
+        "bias": -0.276
+      },
+      "marks": {
+        "1": {
+          "rmse": 16.71,
+          "mae": 12.533,
+          "r2": 0.1916,
+          "bias": -0.277
+        }
+      },
+      "best_iteration": 499
+    },
+    "pm10": {
+      "overall": {
+        "n": 35806,
+        "mse": 4290.043,
+        "rmse": 65.498,
+        "mae": 40.326,
+        "r2": 0.2707,
+        "bias": -2.944
+      },
+      "marks": {
+        "1": {
+          "rmse": 52.38,
+          "mae": 33.776,
+          "r2": 0.533,
+          "bias": -5.27
+        }
+      },
+      "best_iteration": 214
+    },
+    "no2": {
+      "overall": {
+        "n": 36156,
+        "mse": 45.135,
+        "rmse": 6.718,
+        "mae": 5.313,
+        "r2": 0.1583,
+        "bias": 0.961
+      },
+      "marks": {
+        "1": {
+          "rmse": 5.377,
+          "mae": 4.039,
+          "r2": 0.4653,
+          "bias": -0.029
+        }
+      },
+      "best_iteration": 302
+    },
+    "o3": {
+      "overall": {
+        "n": 35631,
+        "mse": 475.37,
+        "rmse": 21.803,
+        "mae": 15.289,
+        "r2": 0.6461,
+        "bias": 4.712
+      },
+      "marks": {
+        "1": {
+          "rmse": 17.599,
+          "mae": 12.732,
+          "r2": 0.7839,
+          "bias": 4.363
+        }
+      },
+      "best_iteration": 994
+    },
+    "so2": {
+      "status": "insufficient_data",
+      "n_train": 0,
+      "n_test": 0
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "station_id": 5610,
+  "name": "Shadipur",
+  "trained_at": "2026-09-16T17:53:59",
+  "test_days": 120,
+  "split_time": "2026-05-19 22:00:00",
+  "stride": 2,
+  "init_model": "global",
+  "pollutants": {
+    "pm25": {
+      "overall": {
+        "n": 32515,
+        "mse": 820.399,
+        "rmse": 28.643,
+        "mae": 22.267,
+        "r2": -0.4061,
+        "bias": 9.779
+      },
+      "marks": {
+        "1": {
+          "rmse": 27.571,
+          "mae": 21.377,
+          "r2": -0.3338,
+          "bias": 10.354
+        }
+      },
+      "best_iteration": 729
+    },
+    "pm10": {
+      "overall": {
+        "n": 32510,
+        "mse": 10591.323,
+        "rmse": 102.914,
+        "mae": 74.863,
+        "r2": -0.0985,
+        "bias": 44.685
+      },
+      "marks": {
+        "1": {
+          "rmse": 99.504,
+          "mae": 73.989,
+          "r2": -0.0481,
+          "bias": 50.255
+        }
+      },
+      "best_iteration": 642
+    },
+    "no2": {
+      "overall": {
+        "n": 33460,
+        "mse": 1672.328,
+        "rmse": 40.894,
+        "mae": 28.676,
+        "r2": 0.2597,
+        "bias": -0.343
+      },
+      "marks": {
+        "1": {
+          "rmse": 34.819,
+          "mae": 24.444,
+          "r2": 0.4497,
+          "bias": 3.446
+        }
+      },
+      "best_iteration": 751
+    },
+    "o3": {
+      "overall": {
+        "n": 33217,
+        "mse": 663.417,
+        "rmse": 25.757,
+        "mae": 19.248,
+        "r2": 0.3975,
+        "bias": 10.788
+      },
+      "marks": {
+        "1": {
+          "rmse": 23.486,
+          "mae": 17.639,
+          "r2": 0.5116,
+          "bias": 10.192
+        }
+      },
+      "best_iteration": 1348
+    },
+    "so2": {
+      "status": "insufficient_data",
+      "n_train": 0,
+      "n_test": 0
+    }
+  }
+}

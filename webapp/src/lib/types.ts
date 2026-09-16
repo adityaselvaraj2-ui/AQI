@@ -319,6 +319,45 @@ export interface ExposureRequest {
   forecast_72h?: Array<Record<string, any>>;
 }
 
+// ── Per-station 72h forecast (llm/ trained module) ───────────────────────
+export interface StationForecastHour {
+  horizon: number;
+  timestamp: string;
+  aqi: number;
+  category: string;
+  dominant_pollutant: string;
+  sub_indices: Array<{
+    pollutant: string;
+    concentration: number;
+    sub_index: number;
+    category: string;
+  }>;
+}
+
+export interface StationForecastResponse {
+  station: { uid?: number; name: string; station_id: number; lat: number; lon: number };
+  generated_at: string;
+  t0: string;
+  anchor_used: boolean;
+  history_hours: number;
+  generation_ms: number;
+  forecast_hours: StationForecastHour[];
+}
+
+export interface StationRegistryEntry {
+  uid?: number;
+  name: string;
+  station_id: number;
+  lat: number;
+  lon: number;
+  trained: boolean;
+}
+
+export interface StationRegistryResponse {
+  stations: StationRegistryEntry[];
+  count: number;
+}
+
 export interface MlForecast72hrResponse {
   generated_at: string;
   location: { lat: number; lon: number };

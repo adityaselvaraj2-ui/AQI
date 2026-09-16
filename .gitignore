@@ -16,7 +16,9 @@ env/
 
 # Secrets — NEVER commit
 .env
+*.env
 *.env.local
+!.env.example
 aut.json
 cit.json
 
@@ -49,9 +51,13 @@ yarn-error.log*
 .coverage
 htmlcov/
 .mypy_cache/
+.ruff_cache/
 
 # Zip Archives
 *.zip
+
+# Temporary probe exports
+*.csv.gz
 
 # Data / model artefacts
 data/raw/

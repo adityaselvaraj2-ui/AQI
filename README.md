@@ -184,3 +184,5 @@ correct answer to "what is your MAE?" is "we haven't measured it."
 - [API.md](API.md) — REST endpoint reference with cURL examples
 - [SECURITY.md](SECURITY.md) — threat model and deployment hardening
 - [AUDIT.md](AUDIT.md) — the code audit that drove the current round of fixes, with a remediation log
+
+# AQI

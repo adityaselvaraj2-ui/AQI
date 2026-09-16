@@ -1,0 +1,92 @@
+{
+  "station_id": 5627,
+  "name": "CRRI Mathura Road",
+  "trained_at": "2026-09-16T17:11:48",
+  "test_days": 120,
+  "split_time": "2026-05-19 22:00:00",
+  "stride": 2,
+  "init_model": "global",
+  "pollutants": {
+    "pm25": {
+      "overall": {
+        "n": 39040,
+        "mse": 325.733,
+        "rmse": 18.048,
+        "mae": 13.143,
+        "r2": 0.2828,
+        "bias": -0.161
+      },
+      "marks": {
+        "1": {
+          "rmse": 16.453,
+          "mae": 11.988,
+          "r2": 0.4096,
+          "bias": -0.497
+        }
+      },
+      "best_iteration": 389
+    },
+    "pm10": {
+      "overall": {
+        "n": 37851,
+        "mse": 5520.282,
+        "rmse": 74.299,
+        "mae": 48.487,
+        "r2": 0.3612,
+        "bias": 6.204
+      },
+      "marks": {
+        "1": {
+          "rmse": 65.165,
+          "mae": 41.728,
+          "r2": 0.5207,
+          "bias": 2.011
+        }
+      },
+      "best_iteration": 243
+    },
+    "no2": {
+      "overall": {
+        "n": 34492,
+        "mse": 239.913,
+        "rmse": 15.489,
+        "mae": 9.904,
+        "r2": 0.2529,
+        "bias": 0.004
+      },
+      "marks": {
+        "1": {
+          "rmse": 12.695,
+          "mae": 7.515,
+          "r2": 0.5281,
+          "bias": -0.76
+        }
+      },
+      "best_iteration": 313
+    },
+    "o3": {
+      "overall": {
+        "n": 38660,
+        "mse": 322.131,
+        "rmse": 17.948,
+        "mae": 11.681,
+        "r2": 0.429,
+        "bias": 4.732
+      },
+      "marks": {
+        "1": {
+          "rmse": 16.777,
+          "mae": 10.521,
+          "r2": 0.5307,
+          "bias": 3.572
+        }
+      },
+      "best_iteration": 1109
+    },
+    "so2": {
+      "status": "insufficient_data",
+      "n_train": 0,
+      "n_test": 0
+    }
+  }
+}

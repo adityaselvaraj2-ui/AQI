@@ -32,6 +32,8 @@ import type {
   IqairRealtimeResponse,
   WeatherapiRealtimeResponse,
   Historical7dResponse,
+  StationForecastResponse,
+  StationRegistryResponse,
   AqiCategory,
 } from "./types";
 
@@ -86,6 +88,9 @@ export const TIMEOUTS = {
   plume: 30_000,
   realtime: 95_000,
   health: 8_000,
+  // Foundation-model inference runs on CPU and can take a while; the endpoint
+  // falls back to the v3/v4 ML response when the stack is unavailable.
+  chronos: 240_000,
 } as const;
 
 export class ApiError extends Error {
@@ -195,6 +200,20 @@ export function getStations(signal?: AbortSignal): Promise<StationReading[]> {
 
 export function getHealth(signal?: AbortSignal): Promise<HealthResponse> {
   return fetchJson<HealthResponse>(`${API}/health`, { timeoutMs: TIMEOUTS.health, signal });
+}
+
+export function getStationRegistry(signal?: AbortSignal): Promise<StationRegistryResponse> {
+  return fetchJson<StationRegistryResponse>(`${API}/forecast/stations`, {
+    timeoutMs: TIMEOUTS.realtime,
+    signal,
+  });
+}
+
+export function getStationForecast(stationId: number, signal?: AbortSignal): Promise<StationForecastResponse> {
+  return fetchJson<StationForecastResponse>(
+    `${API}/forecast/station-72hr?station_id=${encodeURIComponent(String(stationId))}`,
+    { timeoutMs: TIMEOUTS.chronos, signal },
+  );
 }
 
 export function calculateExposure(req: ExposureRequest, signal?: AbortSignal): Promise<ExposureResponse> {

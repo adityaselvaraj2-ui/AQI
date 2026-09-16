@@ -1,0 +1,162 @@
+{
+  "generated_utc": "2026-09-16T07:59:15Z",
+  "probe_date": "20260908",
+  "total_location_folders": 55584,
+  "active_on_probe_date": 15075,
+  "ncr_stations": [
+    {
+      "openaq_id": 17,
+      "raw_name": "R K Puram, Delhi - DPCC-3379481",
+      "lat": 28.563262,
+      "lon": 77.186937,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 5404,
+      "raw_name": "Pusa, Delhi - IMD-3379470",
+      "lat": 28.639645,
+      "lon": 77.146263,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 5541,
+      "raw_name": "Burari Crossing, New Delhi - IMD-3379467",
+      "lat": 28.7256504,
+      "lon": 77.2011573,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 5570,
+      "raw_name": "Aya Nagar, New Delhi - IMD-3379471",
+      "lat": 28.474261,
+      "lon": 77.131606,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 5610,
+      "raw_name": "North Campus, DU, Delhi - IMD-3379468",
+      "lat": 28.6573814,
+      "lon": 77.1585447,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 5613,
+      "raw_name": "ITO, New Delhi - CPCB-3379477",
+      "lat": 28.628624,
+      "lon": 77.24106,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 5616,
+      "raw_name": "Sector - 62, Noida, UP - IMD-3379473",
+      "lat": 28.6245479,
+      "lon": 77.3577104,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 5634,
+      "raw_name": "Lodhi Road, New Delhi - IMD-3379472",
+      "lat": 28.5918245,
+      "lon": 77.2273074,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 6932,
+      "raw_name": "Alipur, Delhi - DPCC-3379585",
+      "lat": 28.815329,
+      "lon": 77.15301,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 6951,
+      "raw_name": "Murthal, Sonipat - HSPCB-5944739",
+      "lat": 29.0272,
+      "lon": 77.0621,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 6953,
+      "raw_name": "Sector-2 IMT, Manesar - HSPCB-5933785",
+      "lat": 28.360699,
+      "lon": 76.93609,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 8118,
+      "raw_name": "New Delhi-8118",
+      "lat": 28.63576,
+      "lon": 77.22445,
+      "first_param_seen": "pm25"
+    },
+    {
+      "openaq_id": 10921,
+      "raw_name": "NISE Gwal Pahari, Gurugram - IMD-3379586",
+      "lat": 28.422681,
+      "lon": 77.148944,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 3024966,
+      "raw_name": "NASA GSFC Rutgers Calib. N8-2994922",
+      "lat": 28.31733,
+      "lon": 76.91603,
+      "first_param_seen": "pm25"
+    },
+    {
+      "openaq_id": 3409519,
+      "raw_name": "Vasundhara Nagar_UIT, Bhiwadi - RSPCB-3379929",
+      "lat": 28.207266,
+      "lon": 76.829265,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 4663956,
+      "raw_name": "Santushti Apartments, Vasant Kunj-4634402",
+      "lat": 28.5266,
+      "lon": 77.1493,
+      "first_param_seen": "pm25"
+    },
+    {
+      "openaq_id": 4712609,
+      "raw_name": "Air Check-6188596",
+      "lat": 28.623056,
+      "lon": 77.234167,
+      "first_param_seen": "pm25"
+    },
+    {
+      "openaq_id": 6105800,
+      "raw_name": "Sector 1, Noida extension-6075738",
+      "lat": 28.583491,
+      "lon": 77.431714,
+      "first_param_seen": "pm25"
+    },
+    {
+      "openaq_id": 6125489,
+      "raw_name": "Uptitude Cloud Pvt Ltd - Sector 62, GGN-6095421",
+      "lat": 28.40240847053802,
+      "lon": 77.08477464826682,
+      "first_param_seen": "pm25"
+    },
+    {
+      "openaq_id": 6145551,
+      "raw_name": "Anand Lok-6115517",
+      "lat": 28.5587,
+      "lon": 77.21886,
+      "first_param_seen": "pm25"
+    },
+    {
+      "openaq_id": 6148686,
+      "raw_name": "IIT Delhi, Delhi - IITM-6118616",
+      "lat": 28.54246,
+      "lon": 77.191651,
+      "first_param_seen": "pm10"
+    },
+    {
+      "openaq_id": 6458520,
+      "raw_name": "Wave City, Ghaziabad - UPPCB-6428455",
+      "lat": 28.646675,
+      "lon": 77.489049,
+      "first_param_seen": "o3"
+    }
+  ]
+}

@@ -48,10 +48,13 @@ from app.schemas.source_influence import SourceInfluenceResponse
 from app.services.source_influence_service import calculate_source_influence
 from app.api.v1.ml_forecast_endpoint import router as ml_router
 from app.api.v1.auth_endpoints import router as auth_router
+# Per-station forecast module (extracted to llm/model, models in llm/model/station_models)
+from llm.model.station_forecast_endpoint import router as station_forecast_router
 
 router = APIRouter(prefix="/api/v1")
 router.include_router(ml_router)
 router.include_router(auth_router)
+router.include_router(station_forecast_router)
 
 
 # ── GET /forecast/72hr ───────────────────────────────────────────────────────

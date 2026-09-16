@@ -1,0 +1,419 @@
+{
+  "generated_utc": "2026-09-16T09:12:54Z",
+  "source": "OpenAQ public S3 archive + DELHI_NCR_STATIONS registry",
+  "excluded": [
+    "Aya Nagar",
+    "Dilshad Garden",
+    "Faridabad (Sector 16A)",
+    "Mundka",
+    "North Campus (DU)"
+  ],
+  "excluded_reason": "no 2026 data in the public archive (station offline or archive gap)",
+  "stations": [
+    {
+      "openaq_id": 6932,
+      "name": "Alipur, Delhi - DPCC-3379585",
+      "lat": 28.815329,
+      "lon": 77.15301,
+      "registry_uid": "delhi-alipur",
+      "registry_name": "Alipur",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 235,
+      "name": "Anand Vihar, New Delhi - DPCC-3379575",
+      "lat": 28.646835,
+      "lon": 77.316032,
+      "registry_uid": "delhi-anand-vihar",
+      "registry_name": "Anand Vihar",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 8917,
+      "name": "Ashok Vihar, Delhi - DPCC-3379505",
+      "lat": 28.695381,
+      "lon": 77.181665,
+      "registry_uid": "delhi-ashok-vihar",
+      "registry_name": "Ashok Vihar",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 8472,
+      "name": "Bawana, Delhi - DPCC-3379538",
+      "lat": 28.7762,
+      "lon": 77.051074,
+      "registry_uid": "delhi-bawana",
+      "registry_name": "Bawana",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 5541,
+      "name": "Burari Crossing, New Delhi - IMD-3379467",
+      "lat": 28.7256504,
+      "lon": 77.2011573,
+      "registry_uid": "delhi-burari",
+      "registry_name": "Burari Crossing",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 5627,
+      "name": "CRRI Mathura Road, New Delhi - IMD-3379466",
+      "lat": 28.5512005,
+      "lon": 77.2735737,
+      "registry_uid": "delhi-crri-mathura-road",
+      "registry_name": "CRRI Mathura Road",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 5626,
+      "name": "DTU, New Delhi - CPCB-3379478",
+      "lat": 28.7500499,
+      "lon": 77.1112615,
+      "registry_uid": "delhi-dtu",
+      "registry_name": "DTU",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 6934,
+      "name": "Dr. Karni Singh Shooting Range, Delhi - DPCC-3379506",
+      "lat": 28.498571,
+      "lon": 77.26484,
+      "registry_uid": "delhi-karni-singh",
+      "registry_name": "Dr. Karni Singh Shooting Range",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 6931,
+      "name": "Dwarka-Sector 8, Delhi - DPCC -3379507",
+      "lat": 28.5710274,
+      "lon": 77.0719006,
+      "registry_uid": "delhi-dwarka-sec-8",
+      "registry_name": "Dwarka Sector 8",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 10908,
+      "name": "Sector 11, Faridabad - HSPCB-3379651",
+      "lat": 28.376058,
+      "lon": 77.315741,
+      "registry_uid": "faridabad-sec-11",
+      "registry_name": "Faridabad (Sector 11)",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 10820,
+      "name": "Sector 30, Faridabad - HSPCB-3379650",
+      "lat": 28.4417,
+      "lon": 77.3217,
+      "registry_uid": "faridabad-sec-30",
+      "registry_name": "Faridabad (Sector 30)",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 6924,
+      "name": "Indirapuram, Ghaziabad - UPPCB-3379596",
+      "lat": 28.646233,
+      "lon": 77.358075,
+      "registry_uid": "ghaziabad-indirapuram",
+      "registry_name": "Ghaziabad (Indirapuram)",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 7005,
+      "name": "Loni, Ghaziabad - UPPCB-3379597",
+      "lat": 28.757294,
+      "lon": 77.278792,
+      "registry_uid": "ghaziabad-loni",
+      "registry_name": "Ghaziabad (Loni)",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 10919,
+      "name": "Sanjay Nagar, Ghaziabad - UPPCB-3379595",
+      "lat": 28.685382,
+      "lon": 77.453839,
+      "registry_uid": "ghaziabad-sanjay-nagar",
+      "registry_name": "Ghaziabad (Sanjay Nagar)",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 5665,
+      "name": "Vasundhara, Ghaziabad - UPPCB-3379523",
+      "lat": 28.6603346,
+      "lon": 77.3572563,
+      "registry_uid": "ghaziabad-vasundhara",
+      "registry_name": "Ghaziabad (Vasundhara)",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 6978,
+      "name": "Knowledge Park - III, Greater Noida - UPPCB-3379527",
+      "lat": 28.47272,
+      "lon": 77.482,
+      "registry_uid": "greater-noida-kp3",
+      "registry_name": "Greater Noida (Knowledge Park III)",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 10825,
+      "name": "Sector-51, Gurugram - HSPCB-3379653",
+      "lat": 28.4227,
+      "lon": 77.0667,
+      "registry_uid": "gurugram-sec-51",
+      "registry_name": "Gurugram (Sector 51)",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 10900,
+      "name": "Teri Gram, Gurugram - HSPCB-3379652",
+      "lat": 28.4275,
+      "lon": 77.1465,
+      "registry_uid": "gurugram-teri-gram",
+      "registry_name": "Gurugram (Teri Gram)",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 301,
+      "name": "Vikas Sadan, Gurugram - HSPCB-5945694",
+      "lat": 28.4501238,
+      "lon": 77.0263051,
+      "registry_uid": "gurugram-vikas-sadan",
+      "registry_name": "Gurugram (Vikas Sadan)",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 5650,
+      "name": "IGI Airport (T3), Delhi - IMD-3379469",
+      "lat": 28.5627763,
+      "lon": 77.1180053,
+      "registry_uid": "delhi-igi-airport-t3",
+      "registry_name": "IGI Airport (T3)",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 5613,
+      "name": "ITO, New Delhi - CPCB-3379477",
+      "lat": 28.628624,
+      "lon": 77.24106,
+      "registry_uid": "delhi-ito",
+      "registry_name": "ITO",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 8235,
+      "name": "Jahangirpuri, Delhi - DPCC-3379508",
+      "lat": 28.73282,
+      "lon": 77.170633,
+      "registry_uid": "delhi-jahangirpuri",
+      "registry_name": "Jahangirpuri",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 6957,
+      "name": "Jawaharlal Nehru Stadium, Delhi - DPCC-3379509",
+      "lat": 28.58028,
+      "lon": 77.233829,
+      "registry_uid": "delhi-jln-stadium",
+      "registry_name": "Jawaharlal Nehru Stadium",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 5634,
+      "name": "Lodhi Road, New Delhi - IMD-3379472",
+      "lat": 28.5918245,
+      "lon": 77.2273074,
+      "registry_uid": "delhi-lodhi-road",
+      "registry_name": "Lodhi Road",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 6929,
+      "name": "Major Dhyan Chand National Stadium, Delhi - DPCC-3379510",
+      "lat": 28.611281,
+      "lon": 77.237738,
+      "registry_uid": "delhi-major-dhyan-chand",
+      "registry_name": "Major Dhyan Chand National Stadium",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 6358,
+      "name": "Mandir Marg, New Delhi - DPCC-3379480",
+      "lat": 28.636429,
+      "lon": 77.201067,
+      "registry_uid": "delhi-mandir-marg",
+      "registry_name": "Mandir Marg",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 10488,
+      "name": "Najafgarh, Delhi - DPCC-3379512",
+      "lat": 28.570173,
+      "lon": 76.933762,
+      "registry_uid": "delhi-najafgarh",
+      "registry_name": "Najafgarh",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 10485,
+      "name": "Narela, Delhi - DPCC-3379511",
+      "lat": 28.822836,
+      "lon": 77.101981,
+      "registry_uid": "delhi-narela",
+      "registry_name": "Narela",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 8365,
+      "name": "Nehru Nagar, Delhi - DPCC-3379514",
+      "lat": 28.56789,
+      "lon": 77.250515,
+      "registry_uid": "delhi-nehru-nagar",
+      "registry_name": "Nehru Nagar",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 6980,
+      "name": "Sector-1, Noida - UPPCB-3379617",
+      "lat": 28.589247,
+      "lon": 77.321962,
+      "registry_uid": "noida-sec-1",
+      "registry_name": "Noida Sector 1",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 6988,
+      "name": "Sector-116, Noida - UPPCB-3379616",
+      "lat": 28.56923,
+      "lon": 77.393848,
+      "registry_uid": "noida-sec-116",
+      "registry_name": "Noida Sector 116",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 5598,
+      "name": "Sector - 125, Noida, UP - UPPCB-3379526",
+      "lat": 28.5447608,
+      "lon": 77.3231257,
+      "registry_uid": "noida-sec-125",
+      "registry_name": "Noida Sector 125",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 5616,
+      "name": "Sector - 62, Noida, UP - IMD-3379473",
+      "lat": 28.6245479,
+      "lon": 77.3577104,
+      "registry_uid": "noida-sec-62",
+      "registry_name": "Noida Sector 62",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 8239,
+      "name": "Okhla Phase-2, Delhi - DPCC-3379513",
+      "lat": 28.530785,
+      "lon": 77.271255,
+      "registry_uid": "delhi-okhla-phase-2",
+      "registry_name": "Okhla Phase 2",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 6960,
+      "name": "Patparganj, Delhi - DPCC-3379516",
+      "lat": 28.623748,
+      "lon": 77.287205,
+      "registry_uid": "delhi-patparganj",
+      "registry_name": "Patparganj",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 50,
+      "name": "Punjabi Bagh, Delhi - DPCC-3379482",
+      "lat": 28.674045,
+      "lon": 77.131023,
+      "registry_uid": "delhi-punjabi-bagh",
+      "registry_name": "Punjabi Bagh",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 5404,
+      "name": "Pusa, Delhi - IMD-3379470",
+      "lat": 28.639645,
+      "lon": 77.146263,
+      "registry_uid": "delhi-pusa",
+      "registry_name": "Pusa",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 17,
+      "name": "R K Puram, Delhi - DPCC-3379481",
+      "lat": 28.563262,
+      "lon": 77.186937,
+      "registry_uid": "delhi-rk-puram",
+      "registry_name": "R K Puram",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 10831,
+      "name": "Rohini, Delhi - DPCC-3379515",
+      "lat": 28.732528,
+      "lon": 77.11992,
+      "registry_uid": "delhi-rohini",
+      "registry_name": "Rohini",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 5610,
+      "name": "North Campus, DU, Delhi - IMD-3379468",
+      "lat": 28.6573814,
+      "lon": 77.1585447,
+      "registry_uid": "delhi-shadipur",
+      "registry_name": "Shadipur",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 5586,
+      "name": "Sirifort, Delhi - CPCB-3379479",
+      "lat": 28.5504249,
+      "lon": 77.2159377,
+      "registry_uid": "delhi-sirifort",
+      "registry_name": "Siri Fort",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 8475,
+      "name": "Sonia Vihar, Delhi - DPCC-3379517",
+      "lat": 28.710508,
+      "lon": 77.249485,
+      "registry_uid": "delhi-sonia-vihar",
+      "registry_name": "Sonia Vihar",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 10484,
+      "name": "Sri Aurobindo Marg, Delhi - DPCC-3379540",
+      "lat": 28.531346,
+      "lon": 77.190156,
+      "registry_uid": "delhi-sri-aurobindo-marg",
+      "registry_name": "Sri Aurobindo Marg",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 6359,
+      "name": "IHBAS, Dilshad Garden,New Delhi - CPCB-3379475",
+      "lat": 28.6811736,
+      "lon": 77.3025234,
+      "registry_uid": "delhi-vivek-vihar",
+      "registry_name": "Vivek Vihar",
+      "match": "coords"
+    },
+    {
+      "openaq_id": 8915,
+      "name": "Wazirpur, Delhi - DPCC-3379519",
+      "lat": 28.699793,
+      "lon": 77.165453,
+      "registry_uid": "delhi-wazirpur",
+      "registry_name": "Wazirpur",
+      "match": "coords"
+    }
+  ]
+}

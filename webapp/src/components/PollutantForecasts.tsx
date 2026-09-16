@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Wind,
   Activity,
@@ -13,6 +13,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { PanelMessage } from "@/components/ui/panel-message";
 import { DailyForecastStrip } from "@/components/DailyForecastStrip";
+import { getStationForecast, getStationRegistry } from "@/lib/api";
 import type { Panel } from "@/hooks/useForecastData";
 import { aqiToCategory, categoryColor, pollutantSubIndex } from "@/lib/aqi";
 import type {
@@ -22,6 +23,8 @@ import type {
   ForecastResponse,
   HourlyForecast,
   Pollutant,
+  StationForecastResponse,
+  StationRegistryEntry,
 } from "@/lib/types";
 import { useTranslation } from "@/i18n";
 
@@ -130,8 +133,133 @@ export function PollutantForecasts({
   const [horizon, setHorizon] = useState<ViewHorizon>("72h");
   const [hoveredIdx, setHoveredIdx] = useState<{ [key: string]: number | null }>({});
 
+  // ── Trained per-station module (llm/) — per-station 72h forecast ──────────
+  const [stations, setStations] = useState<StationRegistryEntry[]>([]);
+  const [stationId, setStationId] = useState<number | null>(null);
+  const [stationForecast, setStationForecast] = useState<StationForecastResponse | null>(null);
+  const [stationLoading, setStationLoading] = useState(false);
+  const [stationError, setStationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    getStationRegistry()
+      .then((r) => {
+        if (!alive) return;
+        const trained = r.stations.filter((s) => s.trained);
+        setStations(trained.length > 0 ? trained : r.stations);
+        if (trained.length > 0) setStationId((cur) => cur ?? trained[0].station_id);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (stationId == null) return;
+    let alive = true;
+    setStationLoading(true);
+    setStationError(null);
+    getStationForecast(stationId)
+      .then((r) => {
+        if (alive) setStationForecast(r);
+      })
+      .catch(() => {
+        if (alive) {
+          setStationError("station model unavailable — showing city-wide forecast");
+          setStationForecast(null);
+        }
+      })
+      .finally(() => {
+        if (alive) setStationLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [stationId]);
+
   const forecastData = forecast?.data;
-  const hours = forecastData?.forecast_hours ?? [];
+  const rawHours = forecastData?.forecast_hours ?? [];
+
+  // station forecast hours shaped for the strip/cards, with a live "Now" anchor
+  // hour prepended (T0 comes from the same live sources as the Hero)
+  const stationHoursForStrip = useMemo<HourlyForecast[]>(() => {
+    if (!stationForecast) return rawHours;
+    const anchorHour: HourlyForecast | null = (() => {
+      const agg = cityAggregate?.sub_indices ?? null;
+      const m = consensus?.metrics ?? null;
+      const mk = (p: Pollutant, conc: number): HourlyForecast["sub_indices"][number] => ({
+        pollutant: p,
+        concentration: conc,
+        sub_index: pollutantSubIndex(p, conc),
+        category: aqiToCategory(pollutantSubIndex(p, conc)),
+      });
+      const subs: HourlyForecast["sub_indices"] = [];
+      const push = (p: Pollutant, conc?: number | null) => {
+        if (typeof conc === "number" && conc > 0) subs.push(mk(p, conc));
+      };
+      if (agg) {
+        (Object.keys(agg) as Pollutant[]).forEach((p) => {
+          const d = agg[p];
+          if (d) subs.push({ pollutant: p, concentration: d.conc, sub_index: d.index, category: aqiToCategory(d.index) });
+        });
+      } else if (m) {
+        push("PM2.5", m.pm25);
+        push("PM10", m.pm10);
+        push("NO2", m.no2);
+        push("O3", m.o3);
+        push("SO2", m.so2);
+      }
+      if (subs.length === 0) return null;
+      const aqi = Math.max(...subs.map((s) => s.sub_index));
+      const dom = subs.reduce((a, b) => (b.sub_index > a.sub_index ? b : a)).pollutant;
+      return {
+        timestamp: new Date().toISOString(),
+        aqi,
+        category: aqiToCategory(aqi),
+        dominant_pollutant: dom,
+        sub_indices: subs,
+        pbl_height_m: 0,
+        inversion_delta_t: 0,
+        wind_speed_ms: 0,
+        wind_direction_deg: 0,
+        pbl_height_met_m: 0,
+        pbl_suppression_pct: 0,
+        aerosol_optical_depth: 0,
+        aerosol_sw_forcing_w_m2: 0,
+        aerosol_dt_surface_c: 0,
+        feedback_iterations: 0,
+        plume_contribution: 0,
+      };
+    })();
+    const modelHours: HourlyForecast[] = stationForecast.forecast_hours.map((h) => ({
+      timestamp: h.timestamp,
+      aqi: h.aqi,
+      category: h.category as AqiCategory,
+      dominant_pollutant: h.dominant_pollutant as Pollutant,
+      sub_indices: h.sub_indices.map((s) => ({
+        pollutant: s.pollutant as Pollutant,
+        concentration: s.concentration,
+        sub_index: s.sub_index,
+        category: s.category as AqiCategory,
+      })),
+      pbl_height_m: 0,
+      inversion_delta_t: 0,
+      wind_speed_ms: 0,
+      wind_direction_deg: 0,
+      pbl_height_met_m: 0,
+      pbl_suppression_pct: 0,
+      aerosol_optical_depth: 0,
+      aerosol_sw_forcing_w_m2: 0,
+      aerosol_dt_surface_c: 0,
+      feedback_iterations: 0,
+      plume_contribution: 0,
+    }));
+    return anchorHour ? [anchorHour, ...modelHours] : modelHours;
+  }, [stationForecast, rawHours, cityAggregate, consensus]);
+
+  const hours = stationForecast ? stationHoursForStrip : rawHours;
+  const activeStation = stations.find((s) => s.station_id === stationId) ?? null;
   const isLoading = forecast?.status === "loading" && hours.length === 0 && !cityAggregate;
   const isError = forecast?.status === "error" && hours.length === 0 && !cityAggregate;
 
@@ -183,14 +311,20 @@ export function PollutantForecasts({
 
       const series: SeriesPoint[] = [];
 
+      // Checkpoint indices are horizon-relative; when the active series is the
+      // trained per-station module it already carries the live anchor at index 0.
+      const nHours = hours.length;
+      const cap = Math.max(0, nHours - 1);
+      const mk = (step: number) =>
+        Array.from({ length: 13 }, (_, i) => Math.min(i * step, cap));
       let checkpoints: number[] = [];
       if (horizon === "24h") {
-        checkpoints = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24];
+        checkpoints = nHours >= 25 ? [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24] : mk(2);
       } else if (horizon === "48h") {
-        checkpoints = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48];
+        checkpoints = nHours >= 49 ? [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48] : mk(4);
       } else {
         // Full 72h horizon
-        checkpoints = [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 71];
+        checkpoints = nHours >= 72 ? [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 71] : mk(6);
       }
 
       checkpoints.forEach((hIdx) => {
@@ -248,7 +382,7 @@ export function PollutantForecasts({
         series,
       };
     });
-  }, [hours, horizon, hour, cursor, cityAggregate, consensus]);
+  }, [hours, horizon, hour, cursor, cityAggregate, consensus, stationForecast]);
 
   const renderSplineChart = (pol: (typeof cards)[0]) => {
     const rawData = pol.series;
@@ -428,6 +562,76 @@ export function PollutantForecasts({
           </p>
         </div>
 
+        {/* Station selector — trained per-station forecast module (llm/) */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: "0.6rem",
+            margin: "0.9rem 0 0.2rem",
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "var(--mono)",
+              fontSize: "11px",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--mist)",
+            }}
+          >
+            Station Model
+          </span>
+          <select
+            value={stationId ?? ""}
+            onChange={(e) => setStationId(Number(e.target.value))}
+            aria-label="Select monitoring station for the trained 72h forecast"
+            style={{
+              background: "var(--slab)",
+              border: "1px solid var(--hairline-2)",
+              borderRadius: "4px",
+              color: "var(--bone)",
+              fontFamily: "var(--mono)",
+              fontSize: "12px",
+              padding: "0.4rem 0.6rem",
+              cursor: "pointer",
+              maxWidth: "260px",
+            }}
+          >
+            {stations.map((s) => (
+              <option key={s.station_id} value={s.station_id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+          {stationLoading && (
+            <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--mist)" }}>
+              running station model…
+            </span>
+          )}
+          {!stationLoading && stationForecast && (
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                fontFamily: "var(--mono)",
+                fontSize: "11px",
+                color: "var(--live)",
+              }}
+            >
+              ● {activeStation?.name ?? stationForecast.station.name} · trained module · T0 anchor{" "}
+              {stationForecast.anchor_used ? "live" : "archive"}
+            </span>
+          )}
+          {!stationLoading && stationError && (
+            <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--mist)" }}>
+              {stationError}
+            </span>
+          )}
+        </div>
+
         {/* Horizon Toggle */}
         <div className="map__ctrlRow" role="group" aria-label="Hourly forecast horizon view" style={{ marginBottom: "0.2rem" }}>
           <button
@@ -460,7 +664,7 @@ export function PollutantForecasts({
       {/* 7-Day Predictable Daily AQI Outlook Strip */}
       <div style={{ marginTop: "1rem" }}>
         <DailyForecastStrip
-          forecast={forecastData}
+          forecast={stationForecast ? undefined : forecastData}
           hours={hours}
           consensus={consensus}
           cityAggregate={cityAggregate}

@@ -1,0 +1,13 @@
+{
+  "stations": [
+    {
+      "openaq_id": 8915,
+      "name": "Wazirpur, Delhi - DPCC-3379519",
+      "lat": 28.699793,
+      "lon": 77.165453,
+      "registry_uid": "delhi-wazirpur",
+      "registry_name": "Wazirpur",
+      "match": "coords"
+    }
+  ]
+}

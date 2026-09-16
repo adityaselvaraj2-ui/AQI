@@ -1,0 +1,92 @@
+{
+  "station_id": 5650,
+  "name": "IGI Airport (T3)",
+  "trained_at": "2026-09-16T17:31:50",
+  "test_days": 120,
+  "split_time": "2026-05-19 23:00:00",
+  "stride": 2,
+  "init_model": "global",
+  "pollutants": {
+    "pm25": {
+      "overall": {
+        "n": 35219,
+        "mse": 430.315,
+        "rmse": 20.744,
+        "mae": 14.572,
+        "r2": 0.0406,
+        "bias": 3.415
+      },
+      "marks": {
+        "1": {
+          "rmse": 18.311,
+          "mae": 12.356,
+          "r2": 0.3319,
+          "bias": 1.185
+        }
+      },
+      "best_iteration": 296
+    },
+    "pm10": {
+      "overall": {
+        "n": 35511,
+        "mse": 5871.997,
+        "rmse": 76.629,
+        "mae": 46.416,
+        "r2": 0.1836,
+        "bias": 5.907
+      },
+      "marks": {
+        "1": {
+          "rmse": 64.76,
+          "mae": 38.451,
+          "r2": 0.4202,
+          "bias": 1.857
+        }
+      },
+      "best_iteration": 309
+    },
+    "no2": {
+      "overall": {
+        "n": 35574,
+        "mse": 680.355,
+        "rmse": 26.084,
+        "mae": 17.407,
+        "r2": 0.3517,
+        "bias": -2.918
+      },
+      "marks": {
+        "1": {
+          "rmse": 19.408,
+          "mae": 12.482,
+          "r2": 0.635,
+          "bias": -1.938
+        }
+      },
+      "best_iteration": 356
+    },
+    "o3": {
+      "overall": {
+        "n": 35738,
+        "mse": 424.187,
+        "rmse": 20.596,
+        "mae": 13.938,
+        "r2": 0.581,
+        "bias": -5.264
+      },
+      "marks": {
+        "1": {
+          "rmse": 17.287,
+          "mae": 11.912,
+          "r2": 0.7118,
+          "bias": -3.252
+        }
+      },
+      "best_iteration": 904
+    },
+    "so2": {
+      "status": "insufficient_data",
+      "n_train": 0,
+      "n_test": 0
+    }
+  }
+}

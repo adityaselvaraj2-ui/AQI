@@ -1,0 +1,106 @@
+{
+  "station_id": 6957,
+  "name": "Jawaharlal Nehru Stadium",
+  "trained_at": "2026-09-16T17:35:11",
+  "test_days": 120,
+  "split_time": "2026-05-19 23:00:00",
+  "stride": 2,
+  "init_model": "global",
+  "pollutants": {
+    "pm25": {
+      "overall": {
+        "n": 39315,
+        "mse": 283.92,
+        "rmse": 16.85,
+        "mae": 12.113,
+        "r2": 0.1394,
+        "bias": 0.155
+      },
+      "marks": {
+        "1": {
+          "rmse": 13.865,
+          "mae": 9.858,
+          "r2": 0.4159,
+          "bias": -1.056
+        }
+      },
+      "best_iteration": 281
+    },
+    "pm10": {
+      "overall": {
+        "n": 38509,
+        "mse": 5758.859,
+        "rmse": 75.887,
+        "mae": 43.969,
+        "r2": 0.3103,
+        "bias": 4.918
+      },
+      "marks": {
+        "1": {
+          "rmse": 61.668,
+          "mae": 34.757,
+          "r2": 0.5563,
+          "bias": 0.378
+        }
+      },
+      "best_iteration": 193
+    },
+    "no2": {
+      "overall": {
+        "n": 40226,
+        "mse": 295.339,
+        "rmse": 17.185,
+        "mae": 12.4,
+        "r2": 0.3125,
+        "bias": 5.627
+      },
+      "marks": {
+        "1": {
+          "rmse": 15.268,
+          "mae": 10.467,
+          "r2": 0.4698,
+          "bias": 4.534
+        }
+      },
+      "best_iteration": 748
+    },
+    "o3": {
+      "overall": {
+        "n": 39280,
+        "mse": 204.808,
+        "rmse": 14.311,
+        "mae": 10.74,
+        "r2": 0.3017,
+        "bias": 6.13
+      },
+      "marks": {
+        "1": {
+          "rmse": 12.4,
+          "mae": 9.016,
+          "r2": 0.5009,
+          "bias": 5.073
+        }
+      },
+      "best_iteration": 1068
+    },
+    "so2": {
+      "overall": {
+        "n": 39226,
+        "mse": 79.73,
+        "rmse": 8.929,
+        "mae": 6.708,
+        "r2": -0.3738,
+        "bias": 4.261
+      },
+      "marks": {
+        "1": {
+          "rmse": 7.858,
+          "mae": 5.72,
+          "r2": -0.0913,
+          "bias": 3.692
+        }
+      },
+      "best_iteration": 346
+    }
+  }
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "id": 8915,
+    "name": "Wazirpur",
+    "hours": 14204,
+    "files": 659,
+    "errors": 0,
+    "path": "llm/model/training/data\\station_8915_wazirpur.csv"
+  }
+]
