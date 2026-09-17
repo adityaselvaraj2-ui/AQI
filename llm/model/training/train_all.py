@@ -2,19 +2,27 @@
 
 Stage A (global): pools (station, T0, h) samples from every station's full
 archive history to learn the shared NCR dynamics (seasonality, diurnal cycle,
-weather response, CAMS correction).  RAM-bounded via issue-time stride and
-per-horizon subsampling; samples are packed as float32 numpy arrays.
+weather response, CAMS correction, FIRE response).  RAM-bounded via issue-time
+stride and per-horizon subsampling; samples are packed as float32 numpy arrays.
 
 Stage B (per station): each station's model CONTINUES the global model
 (init_model=) on THAT STATION'S OWN full history.  init_model produces a
 self-contained booster whose predict() includes the global prior — unlike
 init_score, which predict() silently drops (that would poison serving).
-Metrics: 120-day chronological holdout per station.
 
-Rows are NaN-tolerant: a sample is usable when the station-memory anchor
-feature (`{col}_now`) and the target exist — so the pre-CAMS era (2018–2022,
-where only HRES weather + station lags + calendar exist) still trains.
-LightGBM handles the remaining NaN covariates natively.
+Evaluation (per station, per pollutant):
+  * contract holdout  — the standing last-120-day chronological window
+  * rolling folds     — 3 additional chronological windows before it, one of
+                        which covers the Oct–Nov 2025 stubble season; metrics
+                        per fold and per horizon band (1-6h / 24h / 48-72h)
+  * blend             — model blended with persistence ({col}_now) and
+                        climatology ({col}_rmean168) with band-dependent
+                        weights; both model-only and blended metrics recorded
+Fine-tune rounds scale with available training rows (no fixed round count).
+
+Sample validity (drop-garbage): target + anchor present, neither on the CAPS
+clip plateau, and log-space 24h jumps within the discontinuity guard — see
+features.StationFeatureSpace.target_and_mask.
 
   python train_all.py --manifest data/discovery_manifest.json
   python train_all.py --global-only
@@ -37,16 +45,24 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from features import (  # noqa: E402
     TARGETS,
     CAPS,
+    HORIZON_BANDS,
     StationFeatureSpace,
+    blended,
+    horizon_band,
     load_station_csv,
     load_wx_csv,
     prepare_merged,
 )
 from train import PARAMS, TEST_DAYS, MIN_TEST_ROWS, HORIZONS, metrics  # noqa: E402
+from io_utils import atomic_write_json, merge_json_entries, ensure_disk_free  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.abspath(os.path.join(HERE, "..", "station_models"))
 GLOBAL_DIR = os.path.join(MODELS_DIR, "_global")
+DATA_DIR = os.path.join(HERE, "data")
+MERGED_DIR = os.path.join(HERE, "data_merged")
+FIRE_DIR = os.path.join(HERE, "data", "fire")
+HPO_PATH = os.path.join(HERE, "hpo_params.json")
 
 GLOBAL_PARAMS = dict(PARAMS, learning_rate=0.06, num_leaves=80, min_data_in_leaf=200)
 GLOBAL_MAX_ROUNDS = 900
@@ -54,13 +70,39 @@ GLOBAL_ES_ROUNDS = 60
 GLOBAL_STRIDE = 4            # thin issue times 4x in the pooled set
 GLOBAL_H_STEP = 8            # train global on horizons 1,9,17,...,73->1..72 step 8
 FT_STRIDE = 2                # thin issue times 2x per station fine-tune
-FT_MAX_ROUNDS = 450          # fresh trees ON TOP of the global model
-FT_ES_ROUNDS = 45
 FT_LR = 0.03
-
+FT_ES_ROUNDS = 45
+FT_MIN_ROUNDS = 120          # scaled fine-tune budget (see ft_rounds)
+FT_MAX_ROUNDS = 600
+FT_FOLD_ROUNDS = 150         # rolling-origin fold fits: fixed small budget
+FT_FOLD_LR = 0.05
 
 def slug(name: str) -> str:
     return re.sub(r"[^A-Za-z0-9]+", "_", name).strip("_")
+
+
+def load_hpo_params() -> dict[str, dict]:
+    try:
+        with open(HPO_PATH, encoding="utf-8") as fh:
+            raw = json.load(fh)
+        return {col: dict(p) for col, p in raw.items()}
+    except FileNotFoundError:
+        return {}
+
+
+def ft_rounds(n_train: int) -> int:
+    """Scale fine-tune rounds to station history volume (log curve, capped)."""
+    if n_train <= 50_000:
+        return FT_MIN_ROUNDS
+    return int(min(FT_MAX_ROUNDS, FT_MIN_ROUNDS + 480 * np.log10(n_train / 50_000) / np.log10(20)))
+
+
+def load_fire_daily(sid: int) -> pd.DataFrame | None:
+    path = os.path.join(FIRE_DIR, f"fire_{sid}.csv")
+    if not os.path.exists(path):
+        return None
+    f = pd.read_csv(path, index_col="date", parse_dates=True)
+    return f if len(f) else None
 
 
 def load_station_pair(sid: int, name: str, data_dir: str):
@@ -82,10 +124,11 @@ def load_station_pair(sid: int, name: str, data_dir: str):
 
 def assemble_samples(space: StationFeatureSpace, horizons: list[int],
                      stride: int) -> tuple[np.ndarray, list[str], np.ndarray, np.ndarray,
-                                           dict[str, np.ndarray]]:
+                                           dict[str, np.ndarray], dict[str, np.ndarray]]:
     """Pack (T0, h) samples into a contiguous float32 matrix.
 
-    Returns (X, feature_cols, t0_ns int64, h int16, {col: y float32}).
+    Returns (X, feature_cols, t0_ns int64, h int16,
+             {col: y float32}, {col: valid bool}).
     """
     idx = space.index[::stride]
     n = len(idx)
@@ -94,6 +137,7 @@ def assemble_samples(space: StationFeatureSpace, horizons: list[int],
     t0_parts: list[np.ndarray] = []
     h_parts: list[np.ndarray] = []
     y_parts: dict[str, list[np.ndarray]] = {c: [] for c in TARGETS}
+    m_parts: dict[str, list[np.ndarray]] = {c: [] for c in TARGETS}
 
     for j, h in enumerate(horizons):
         f = space.frame_for_horizon(h).iloc[::stride]
@@ -106,17 +150,19 @@ def assemble_samples(space: StationFeatureSpace, horizons: list[int],
         t0_parts.append(idx.asi8.copy())          # int64 ns
         h_parts.append(np.full(n, h, dtype=np.int16))
         for c in TARGETS:
-            y_parts[c].append(space.df[c].shift(-h).values[::stride].astype(np.float32))
+            y, mask = space.target_and_mask(c, h)
+            y_parts[c].append(y[::stride].astype(np.float32))
+            m_parts[c].append(mask[::stride])
 
     assert X is not None and cols is not None
     t0_ns = np.concatenate(t0_parts)
     hh = np.concatenate(h_parts)
     y = {c: np.concatenate(v) for c, v in y_parts.items()}
-    return X, list(cols or []), t0_ns, hh, y
+    mask = {c: np.concatenate(v) for c, v in m_parts.items()}
+    return X, list(cols or []), t0_ns, hh, y, mask
 
 
-def season_es_mask(t0_ns: np.ndarray, split_ns: int, tr_mask: np.ndarray,
-                   total_issues_hint: int) -> np.ndarray:
+def season_es_mask(t0_ns: np.ndarray, split_ns: int, tr_mask: np.ndarray) -> np.ndarray:
     """Early-stop mask over TRAIN rows: the last ~10% of pre-split issues,
     preferring the same calendar month as the holdout (season-matched ES)."""
     t0_dt = pd.DatetimeIndex(t0_ns)
@@ -133,6 +179,45 @@ def season_es_mask(t0_ns: np.ndarray, split_ns: int, tr_mask: np.ndarray,
     return es
 
 
+# ── conformal band calibration (10/90) ──────────────────────────────────────
+
+def conformal_bands(model: lgb.Booster, X: np.ndarray, hh: np.ndarray, y: np.ndarray,
+                    es: np.ndarray, cols: list[str], col: str,
+                    best_iter: int) -> tuple[dict, dict]:
+    """Split-conformal 10/90 bands from training-tail residuals, per horizon band.
+
+    Returns ({band: {q10, q90}}, {band: holdout_coverage}) — the coverage dict is
+    filled by the caller once holdout predictions exist.
+    """
+    pred_es = np.clip(model.predict(X[es], num_iteration=best_iter), 0, CAPS[col])
+    res = y[es] - pred_es
+    hh_es = hh[es]
+    bands = {}
+    for band, rng in HORIZON_BANDS.items():
+        m = (hh_es >= min(rng)) & (hh_es <= max(rng))
+        if m.sum() >= 100:
+            q10, q90 = np.quantile(res[m], 0.10), np.quantile(res[m], 0.90)
+        else:
+            q10, q90 = np.quantile(res, 0.10), np.quantile(res, 0.90)
+        bands[band] = {"q10": float(q10), "q90": float(q90), "n": int(m.sum())}
+    return bands, {b: 0.0 for b in bands}
+
+
+def coverage_of(bands: dict, y: np.ndarray, pred: np.ndarray, hh: np.ndarray) -> dict:
+    out = {}
+    for band, q in bands.items():
+        if band not in HORIZON_BANDS:
+            continue
+        rng = HORIZON_BANDS[band]
+        m = (hh >= min(rng)) & (hh <= max(rng))
+        if m.sum() < 30:
+            continue
+        lo = np.clip(pred[m] + q["q10"], 0, None)
+        hi = np.clip(pred[m] + q["q90"], 0, None)
+        out[band] = round(float(np.mean((y[m] >= lo) & (y[m] <= hi))), 4)
+    return out
+
+
 # ── Stage A: pooled global pretrain ─────────────────────────────────────────
 
 def collect_pooled(manifest: dict, data_dir: str, stride: int, h_step: int):
@@ -141,8 +226,8 @@ def collect_pooled(manifest: dict, data_dir: str, stride: int, h_step: int):
     cols: list[str] | None = None
     t0s: list[np.ndarray] = []
     hs: list[np.ndarray] = []
-    ss: list[np.ndarray] = []
     ys: dict[str, list[np.ndarray]] = {c: [] for c in TARGETS}
+    ms: dict[str, list[np.ndarray]] = {c: [] for c in TARGETS}
     used: list[int] = []
 
     for st in manifest["stations"]:
@@ -151,17 +236,17 @@ def collect_pooled(manifest: dict, data_dir: str, stride: int, h_step: int):
         if merged is None:
             print(f"  skip {sid} {name} (no/short data)", flush=True)
             continue
-        space = StationFeatureSpace(merged)
-        X, c, t0_ns, hh, y = assemble_samples(space, horizons, stride)
+        space = StationFeatureSpace(merged, load_fire_daily(sid))
+        X, c, t0_ns, hh, y, mask = assemble_samples(space, horizons, stride)
         del space, merged
         if cols is None:
             cols = c
         Xs.append(X)
         t0s.append(t0_ns)
         hs.append(hh)
-        ss.append(np.full(len(t0_ns), sid % 10000, dtype=np.int32))
         for col in TARGETS:
             ys[col].append(y[col])
+            ms[col].append(mask[col])
         used.append(sid)
         print(f"  pooled {sid} {name}: +{len(t0_ns)} rows (total {sum(len(a) for a in t0s)})",
               flush=True)
@@ -170,24 +255,22 @@ def collect_pooled(manifest: dict, data_dir: str, stride: int, h_step: int):
     del Xs
     t0_ns = np.concatenate(t0s)
     hh = np.concatenate(hs)
-    stn = np.concatenate(ss)
     y = {c: np.concatenate(v) for c, v in ys.items()}
-    return X, cols or [], t0_ns, hh, stn, y, used
+    mask = {c: np.concatenate(v) for c, v in ms.items()}
+    return X, cols or [], t0_ns, hh, y, mask, used
 
 
 def train_global(X: np.ndarray, cols: list[str], t0_ns: np.ndarray,
-                 y: np.ndarray, col: str) -> lgb.Booster | None:
+                 y: np.ndarray, mask: np.ndarray, col: str) -> lgb.Booster | None:
     split_ns = int(t0_ns.max()) - TEST_DAYS * 24 * 3600 * 10**9
     te = t0_ns >= split_ns
-    # NaN-tolerant validity: need the station-memory anchor + target only
-    now_idx = cols.index(f"{col}_now")
-    valid = ~np.isnan(y) & ~np.isnan(X[:, now_idx])
+    valid = mask
     tr, te = (~te) & valid, te & valid
     if tr.sum() < 10000 or te.sum() < 2000:
         print(f"  global {col}: not enough rows ({int(tr.sum())}/{int(te.sum())})", flush=True)
         return None
 
-    es = season_es_mask(t0_ns, split_ns, tr, int(tr.sum()))
+    es = season_es_mask(t0_ns, split_ns, tr)
     dtrain = lgb.Dataset(X[tr & ~es], label=y[tr & ~es])
     dval = lgb.Dataset(X[tr & es], label=y[tr & es], reference=dtrain)
     model = lgb.train(
@@ -204,7 +287,40 @@ def train_global(X: np.ndarray, cols: list[str], t0_ns: np.ndarray,
 
 # ── Stage B: per-station fine-tune ──────────────────────────────────────────
 
-def finetune_station(sid: int, name: str, data_dir: str) -> dict:
+def _band_metrics(y: np.ndarray, pred: np.ndarray, hh: np.ndarray) -> dict:
+    out = {}
+    for band, rng in HORIZON_BANDS.items():
+        lo, hi = min(rng), max(rng)
+        m = (hh >= lo) & (hh <= hi)
+        if m.sum() >= 30:
+            out[band] = metrics(y[m], pred[m])
+    return out
+
+
+def eval_windows(t0_ns: np.ndarray) -> list[dict]:
+    """Contract holdout (last TEST_DAYS) + rolling folds before it.
+
+    fold_3..fold_1 walk backwards in TEST_DAYS steps; fold_1 is pinned to fully
+    cover Oct–Nov 2025 (stubble season) when the station's history reaches it.
+    """
+    end_ns = int(t0_ns.max())
+    day_ns = 24 * 3600 * 10**9
+    windows = [{"name": "holdout_120d", "start": end_ns - TEST_DAYS * day_ns, "end": end_ns + 1}]
+    step = TEST_DAYS * day_ns
+    for k in (3, 2, 1):
+        we = end_ns - (4 - k) * step
+        ws = we - step
+        w = {"name": f"fold_{k}", "start": ws, "end": we}
+        if k == 1:  # pin to the stubble season when the archive covers it
+            oct25 = int(pd.Timestamp("2025-10-01", tz="UTC").value)
+            nov30 = int(pd.Timestamp("2025-11-30 23:00", tz="UTC").value)
+            if t0_ns.min() <= oct25:
+                w = {"name": "fold_1_stubble_oct_nov_2025", "start": oct25, "end": nov30 + 1}
+        windows.append(w)
+    return windows
+
+
+def finetune_station(sid: int, name: str, data_dir: str, hpo: dict[str, dict]) -> dict:
     merged = load_station_pair(sid, name, data_dir)
     if merged is None:
         return {"station_id": sid, "name": name, "status": "no_data"}
@@ -212,69 +328,133 @@ def finetune_station(sid: int, name: str, data_dir: str) -> dict:
     if not global_cols:
         return {"station_id": sid, "name": name, "status": "no_global_model"}
 
-    space = StationFeatureSpace(merged)
+    space = StationFeatureSpace(merged, load_fire_daily(sid))
     # step-2 horizons: the single horizon-feature model interpolates across h,
     # so training on 36 of 72 horizons halves cost with no serving difference
     horizons = list(range(1, 73, 2))
-    X, cols, t0_ns, hh, y = assemble_samples(space, horizons, FT_STRIDE)
+    X, cols, t0_ns, hh, y, mask = assemble_samples(space, horizons, FT_STRIDE)
     del space, merged
 
-    split_ns = int(t0_ns.max()) - TEST_DAYS * 24 * 3600 * 10**9
-    te0 = t0_ns >= split_ns
+    end_ns = int(t0_ns.max())
+    holdout_ns = end_ns - TEST_DAYS * 24 * 3600 * 10**9
+    windows = eval_windows(t0_ns)
 
     out_dir = os.path.join(MODELS_DIR, str(sid))
     os.makedirs(out_dir, exist_ok=True)
-    with open(os.path.join(out_dir, "feature_columns.json"), "w") as f:
-        json.dump(cols, f)
+    atomic_write_json(os.path.join(out_dir, "feature_columns.json"), cols)
 
-    result: dict = {"station_id": sid, "name": name, "status": "ok", "pollutants": {}}
+    result: dict = {"station_id": sid, "name": name, "status": "ok",
+                    "history_span": [str(pd.Timestamp(t0_ns.min())), str(pd.Timestamp(end_ns))],
+                    "pollutants": {}}
     for col in TARGETS:
         if col not in global_cols:
             continue
-        yc = y[col]
-        now_idx = cols.index(f"{col}_now")
-        valid = ~np.isnan(yc) & ~np.isnan(X[:, now_idx])
+        yc, valid = y[col], mask[col]
+        te0 = t0_ns >= holdout_ns
         tr, te = valid & ~te0, valid & te0
-        if tr.sum() < 5000 or te.sum() < MIN_TEST_ROWS:
+        n_train = int(tr.sum())
+        if n_train < 5000 or int(te.sum()) < MIN_TEST_ROWS:
             result["pollutants"][col] = {"status": "insufficient_data",
-                                         "n_train": int(tr.sum()), "n_test": int(te.sum())}
+                                         "n_train": n_train, "n_test": int(te.sum())}
             continue
 
-        es = season_es_mask(t0_ns, split_ns, tr, int(tr.sum()))
+        es = season_es_mask(t0_ns, holdout_ns, tr)
 
         # CONTINUE the global model on this station's own history: init_model
         # yields a self-contained booster (predict() keeps the global prior)
         gmodel = lgb.Booster(model_file=os.path.join(GLOBAL_DIR, f"{col}.txt"))
+        params = dict(PARAMS, learning_rate=FT_LR)
+        params.update(hpo.get(col, {}))
+        rounds = ft_rounds(n_train)
         dtrain = lgb.Dataset(X[tr & ~es], label=yc[tr & ~es])
         dval = lgb.Dataset(X[tr & es], label=yc[tr & es], reference=dtrain)
         model = lgb.train(
-            dict(PARAMS, learning_rate=FT_LR), dtrain, num_boost_round=FT_MAX_ROUNDS,
+            params, dtrain, num_boost_round=rounds,
             init_model=gmodel,
             valid_sets=[dval], callbacks=[lgb.early_stopping(FT_ES_ROUNDS, verbose=False)],
         )
-        best_iter = int(model.best_iteration or FT_MAX_ROUNDS)
+        best_iter = int(model.best_iteration or rounds)
 
-        pred = np.clip(model.predict(X[te], num_iteration=best_iter), 0, CAPS[col])
-        overall = metrics(yc[te], pred)
-        per_h = {}
-        te_h = hh[te]
-        for h in horizons:
-            m = te_h == h
-            if m.sum() >= 50:
-                per_h[str(h)] = metrics(yc[te][m], pred[m])
-        marks = {h: {k: v[k] for k in ("rmse", "mae", "r2", "bias")}
-                 for h, v in per_h.items() if h in ("1", "6", "12", "24", "48", "72")}
+        pred_raw = np.clip(model.predict(X[te], num_iteration=best_iter), 0, CAPS[col])
+        pred_bl = blended(pred_raw, X[te], cols, hh[te], col)
+        y_te = yc[te]
+        overall = metrics(y_te, pred_raw)
+        overall_bl = metrics(y_te, pred_bl)
+
+        # calibrated 10/90 bands: split-conformal on training-tail residuals,
+        # coverage verified on the holdout (the number that must be ~0.80)
+        bands, _ = conformal_bands(model, X, hh, yc, es, cols, col, best_iter)
+        use_blend0 = overall_bl["rmse"] <= overall["rmse"]
+        cover = coverage_of(bands, y_te, pred_bl if use_blend0 else pred_raw, hh[te])
+
+        # rolling-origin folds: for each earlier window, RETRAIN a fold model on
+        # only the data before that window (continued from the global model with a
+        # reduced fixed budget) and score INSIDE the window — true out-of-sample
+        # season-variance evidence, not in-sample re-scoring of the deployed model
+        use_blend = overall_bl["rmse"] <= overall["rmse"]
+        folds = {}
+        for w in windows:
+            if w["name"] == "holdout_120d":
+                fm = te.copy()          # deployed predictions exist only on te rows
+                p_m, p_b = pred_raw, pred_bl  # already te-indexed
+                yw = yc[fm]
+                pred = p_b if use_blend else p_m
+                folds[w["name"]] = {"window": [str(pd.Timestamp(w["start"])), str(pd.Timestamp(w["end"]))],
+                                    "n": int(fm.sum()),
+                                    "model": "deployed",
+                                    "overall": metrics(yw, pred),
+                                    "bands": _band_metrics(yw, pred, hh[fm])}
+                continue
+            tr_w = valid & (t0_ns < w["start"])
+            fm = valid & (t0_ns >= w["start"]) & (t0_ns < w["end"])
+            if tr_w.sum() < 5000 or int(fm.sum()) < 2000:
+                continue
+            fw_model = lgb.train(
+                dict(PARAMS, learning_rate=FT_FOLD_LR),
+                lgb.Dataset(X[tr_w], label=yc[tr_w]),
+                num_boost_round=FT_FOLD_ROUNDS, init_model=gmodel,
+            )
+            p_m = np.clip(fw_model.predict(X[fm], num_iteration=FT_FOLD_ROUNDS), 0, CAPS[col])
+            p_b = blended(p_m, X[fm], cols, hh[fm], col)
+            yw = yc[fm]
+            pred = p_b if use_blend else p_m
+            folds[w["name"]] = {"window": [str(pd.Timestamp(w["start"])), str(pd.Timestamp(w["end"]))],
+                                "n": int(fm.sum()),
+                                "model": "rolling-origin",
+                                "overall": metrics(yw, pred),
+                                "bands": _band_metrics(yw, pred, hh[fm])}
+        marks_raw = {h: {k: v[k] for k in ("rmse", "mae", "r2", "bias")}
+                     for h, v in _band_metrics(y_te, pred_raw, hh[te]).items()}
+        marks_bl = {h: {k: v[k] for k in ("rmse", "mae", "r2", "bias")}
+                    for h, v in _band_metrics(y_te, pred_bl, hh[te]).items()}
 
         model.save_model(os.path.join(out_dir, f"{col}.txt"))
-        result["pollutants"][col] = {"overall": overall, "marks": marks, "best_iteration": best_iter}
-        print(f"    [{sid} {name}] {col}: RMSE {overall['rmse']} MAE {overall['mae']} "
-              f"R2 {overall['r2']} bias {overall['bias']} (n={overall['n']})", flush=True)
+        result["pollutants"][col] = {
+            "overall": overall_bl if use_blend else overall,
+            "model_only": overall,
+            "blended": overall_bl,
+            "blend_used": bool(use_blend),
+            "bands_model": marks_raw,
+            "bands_blended": marks_bl,
+            "folds": folds,
+            "n_train": n_train,
+            "ft_rounds_budget": rounds,
+            "best_iteration": best_iter,
+            "hpo_applied": hpo.get(col, {}),
+            "bands_10_90": bands,
+            "coverage_10_90": cover,
+        }
+        src = overall_bl if use_blend else overall
+        print(f"    [{sid} {name}] {col}: RMSE {src['rmse']} MAE {src['mae']} "
+              f"R2 {src['r2']} bias {src['bias']} "
+              f"({'blend' if use_blend else 'model'}, n_train={n_train}, rounds<={rounds})", flush=True)
 
-    with open(os.path.join(out_dir, "meta.json"), "w") as f:
-        json.dump({"station_id": sid, "name": name, "trained_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                   "test_days": TEST_DAYS, "split_time": str(pd.Timestamp(split_ns)),
-                   "stride": FT_STRIDE, "init_model": "global",
-                   "pollutants": result["pollutants"]}, f, indent=2)
+    atomic_write_json(os.path.join(out_dir, "meta.json"),
+                      {"station_id": sid, "name": name, "trained_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                       "test_days": TEST_DAYS, "split_time": str(pd.Timestamp(holdout_ns)),
+                       "stride": FT_STRIDE, "init_model": "global",
+                       "folds": [w["name"] for w in windows],
+                       "pollutants": result["pollutants"]})
     return result
 
 
@@ -283,51 +463,55 @@ def main() -> None:
     ap.add_argument("--manifest", default=os.path.join(HERE, "data", "discovery_manifest.json"))
     ap.add_argument("--global-only", action="store_true")
     ap.add_argument("--finetune-only", action="store_true")
-    ap.add_argument("--data-dir", default=os.path.join(HERE, "data"))
+    ap.add_argument("--force", action="store_true",
+                    help="re-fine-tune stations that already have a checkpoint")
+    ap.add_argument("--only", default="",
+                    help="comma-separated station ids to fine-tune (default: all)")
+    ap.add_argument("--data-dir", default=MERGED_DIR)
     args = ap.parse_args()
 
+    ensure_disk_free(MODELS_DIR, need_gb=2.0)
     manifest = json.load(open(args.manifest))
     stations = manifest["stations"]
-    print(f"manifest: {len(stations)} stations", flush=True)
+    if args.only:
+        want = {int(x) for x in str(args.only).split(",") if x.strip()}
+        stations = [s for s in stations if int(s["openaq_id"]) in want]
+    print(f"manifest: {len(stations)} stations (data_dir={args.data_dir})", flush=True)
 
     if not args.finetune_only:
         os.makedirs(GLOBAL_DIR, exist_ok=True)
         print("=== Stage A: pooled global pretrain ===", flush=True)
-        X, cols, t0_ns, hh, stn, y, used = collect_pooled(
+        X, cols, t0_ns, hh, y, mask, used = collect_pooled(
             manifest, args.data_dir, GLOBAL_STRIDE, GLOBAL_H_STEP)
         print(f"pooled rows: {len(t0_ns)}, features: {len(cols)}", flush=True)
-        with open(os.path.join(GLOBAL_DIR, "feature_columns.json"), "w") as f:
-            json.dump(cols, f)
+        atomic_write_json(os.path.join(GLOBAL_DIR, "feature_columns.json"), cols)
         globals_ = []
         for col in TARGETS:
-            m = train_global(X, cols, t0_ns, y[col], col)
+            m = train_global(X, cols, t0_ns, y[col], mask[col], col)
             if m is not None:
                 globals_.append(col)
-        del X, y
-        with open(os.path.join(GLOBAL_DIR, "meta.json"), "w") as f:
-            json.dump({"trained_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                       "stations_used": used, "pollutants": globals_,
-                       "stride": GLOBAL_STRIDE, "h_step": GLOBAL_H_STEP}, f, indent=2)
+        del X, y, mask
+        atomic_write_json(os.path.join(GLOBAL_DIR, "meta.json"),
+                          {"trained_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
+                           "stations_used": used, "pollutants": globals_,
+                           "stride": GLOBAL_STRIDE, "h_step": GLOBAL_H_STEP})
         if args.global_only:
             return
 
-    print("=== Stage B: per-station fine-tune ===", flush=True)
+    hpo = load_hpo_params()
+    print(f"=== Stage B: per-station fine-tune (HPO: {bool(hpo)}) ===", flush=True)
     summary_path = os.path.join(MODELS_DIR, "metrics_summary.json")
-    rows: list[dict] = []
-    if os.path.exists(summary_path):  # MERGE, never clobber previous runs
-        try:
-            rows = json.load(open(summary_path, encoding="utf-8"))
-        except Exception:
-            rows = []
-    by_id = {int(r.get("station_id", -1)): r for r in rows}
     for st in stations:
         sid, name = int(st["openaq_id"]), st["registry_name"]
+        done_marker = os.path.join(MODELS_DIR, str(sid), "meta.json")
+        if not args.force and os.path.exists(done_marker):
+            print(f"=== skip {sid} {name} (checkpoint exists; --force to redo) ===", flush=True)
+            continue
         print(f"=== fine-tune {sid} {name} ===", flush=True)
-        res = finetune_station(sid, name, args.data_dir)
-        by_id[sid] = res
-        with open(summary_path, "w") as f:
-            json.dump(list(by_id.values()), f, indent=2)
-    print(f"summary -> {summary_path} ({len(by_id)} stations)", flush=True)
+        res = finetune_station(sid, name, args.data_dir, hpo)
+        # keyed read-modify-write: never clobbers other stations' entries
+        merge_json_entries(summary_path, [res], key="station_id", sort_key=lambda r: r["station_id"])
+    print(f"summary -> {summary_path}", flush=True)
 
 
 if __name__ == "__main__":

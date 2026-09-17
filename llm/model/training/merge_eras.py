@@ -76,10 +76,22 @@ def main() -> None:
 
         out_s = os.path.join(args.out, fname)
         out_w = os.path.join(args.out, f"wx_{sid}.csv")
+        n_obs = int(station[TARGETS].notna().any(axis=1).sum())
+        # integrity gate: never overwrite a good merged file with a smaller one,
+        # and log every row-count check against the sources (contract §4)
+        if os.path.exists(out_s):
+            prev = read_station(out_s)
+            prev_obs = int(prev[TARGETS].notna().any(axis=1).sum())
+            if prev_obs > n_obs:
+                report.append({"station_id": sid, "name": sname, "status": "skipped_regression",
+                               "existing_obs_hours": prev_obs, "new_obs_hours": n_obs})
+                print(f"  {sid} {sname}: SKIPPED — merged file already has {prev_obs} obs hours "
+                      f"> new {n_obs} (raw sources incomplete?)", flush=True)
+                continue
         station.to_csv(out_s, index_label="hour_utc", date_format="%Y-%m-%dT%H")
         wx.to_csv(out_w, index_label="hour_utc", date_format="%Y-%m-%dT%H")
-
-        n_obs = int(station[TARGETS].notna().any(axis=1).sum())
+        print(f"  [row-check] {fname}: {len(sm)} modern + {len(sl) if sl is not None else 0} legacy "
+              f"-> {len(station)} merged (obs {n_obs})", flush=True)
         report.append({
             "station_id": sid, "name": sname, "status": "ok",
             "hours": int(len(station)),

@@ -9,11 +9,19 @@ issue time T0 — exactly what the live service will have:
   C. CAMS memory at T0:                level + lag24 of CAMS at the station
   D. HRES weather at T0+h (forecast) and at T0 (analysis), plus wind vectors
   E. calendar at the TARGET hour:      IST hour-of-day, day-of-year, season flags
+  F. FIRE at T0 (FIRMS, day-granular): FRP/pixel counts within 50/100/200 km and
+                                       upwind-weighted 100/200 km, as of YESTERDAY
+                                       (archive availability), level + log1p +
+                                       lag7 + fire-season flag.  Fires are the
+                                       primary Oct–Dec PM driver in NCR.
 
-Memory strategy: the per-T0 base frame is materialised once; each horizon's
-training frame is assembled on demand by adding `horizon`, the target-hour
-CAMS/HRES/calendar fields, and shifting the target series.  One LightGBM model
-per (station, pollutant, horizon).
+Sample validity mask (drop-garbage rules, applied identically in training and
+evaluable per sample):
+  1. target and {col}_now must exist
+  2. neither may sit at the CAPS clip plateau (sensor-garbage artefact)
+  3. log-space 24h jump of the anchor within 2.5 + 4·σ_log — rejects monitor
+     re-zero/reboot spikes while keeping every real pollution episode
+     (a 150→450 µg/m³ episode jump is ~2σ_log; a sensor artefact is >6σ_log)
 """
 from __future__ import annotations
 
@@ -26,9 +34,23 @@ HRES_COLS = [
     "surface_pressure", "wind_speed_10m", "wind_direction_10m", "wind_speed_100m",
     "boundary_layer_height",
 ]
+FIRE_COLS = ["frp50", "n50", "frp100", "n100", "frp200", "n200", "frpup100", "nup100",
+             "frpup200", "nup200"]
 
 OBS_LAGS = [1, 2, 3, 6, 12, 24, 48, 72, 96, 120, 144, 168]
 OBS_ROLLS = [6, 24, 72, 168]
+
+CAPS = {"pm25": 1500, "pm10": 2000, "no2": 400, "o3": 400, "so2": 500}
+
+# horizon bands for reporting: near-term / day-ahead / long-lead
+HORIZON_BANDS = {"1-6h": range(1, 7), "24h": range(22, 27), "48-72h": range(48, 73)}
+
+
+def horizon_band(h: int) -> str:
+    for name, rng in HORIZON_BANDS.items():
+        if h in rng:
+            return name
+    return "other"
 
 
 def _parse_hours(series: pd.Series) -> pd.DatetimeIndex:
@@ -78,13 +100,80 @@ def prepare_merged(station: pd.DataFrame, wx: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-CAPS = {"pm25": 1500, "pm10": 2000, "no2": 400, "o3": 400, "so2": 500}
+def _hourly_fire(fire_daily: pd.DataFrame, index: pd.DatetimeIndex) -> pd.DataFrame:
+    """Expand daily fire aggregates to the hourly index.
+
+    A day's fire data becomes known the NEXT UTC day (archive availability), so
+    features are shifted by one day and forward-filled onto hours.
+    """
+    f = fire_daily.sort_index()
+    f.index = pd.DatetimeIndex(f.index)
+    if f.index.tz is None:
+        f.index = f.index.tz_localize("UTC")   # align with the (UTC) hourly index
+    f = f.shift(1, freq="D")                       # known-with-1-day-lag
+    idx = pd.DatetimeIndex(index.tz_localize("UTC") if index.tz is None else index)
+    days = idx.floor("D")
+    day_rows = f.reindex(days.unique()).ffill()    # one row per day, gaps forward-filled
+    out = day_rows.reindex(days)                   # expand day-rows onto hours (order = idx)
+    out.index = index                              # restore the caller's exact index
+    return out
+
+
+# blend weights (model, persistence, climatology) per horizon band — shared by
+# training AND serving so the served artifact is bit-identical to the scored one
+BLEND_W = {"1-6h": (0.68, 0.22, 0.10), "24h": (0.75, 0.12, 0.13), "48-72h": (0.85, 0.05, 0.10),
+           "other": (0.80, 0.10, 0.10)}
+
+
+def blended(pred: np.ndarray, X: np.ndarray, cols: list[str], hh: np.ndarray,
+            col: str) -> np.ndarray:
+    """Band-weighted blend of model prediction with persistence + climatology.
+
+    NaN-safe: after an observation gap, {col}_now and {col}_rmean168 can be
+    NaN (NaN would otherwise poison the whole blend and every metric computed
+    from it).  A missing component's weight is renormalised onto the remaining
+    finite components — persistence-weight flows to climatology, then to the
+    model; climatology-weight flows to persistence, then to the model."""
+    now = X[:, cols.index(f"{col}_now")]
+    clim = X[:, cols.index(f"{col}_rmean168")]
+    out = pred.copy()
+    in_band = np.zeros(len(hh), dtype=bool)
+    for band, (wm, wp, wc) in BLEND_W.items():
+        if band == "other":
+            continue
+        lo, hi = min(HORIZON_BANDS[band]), max(HORIZON_BANDS[band])
+        m = (hh >= lo) & (hh <= hi)
+        in_band |= m
+        out[m] = _mix(pred[m], now[m], clim[m], wm, wp, wc)
+    other = ~in_band
+    wm, wp, wc = BLEND_W["other"]
+    out[other] = _mix(pred[other], now[other], clim[other], wm, wp, wc)
+    return np.clip(out, 0, CAPS[col])
+
+
+def _mix(pred: np.ndarray, now: np.ndarray, clim: np.ndarray,
+         wm: float, wp: float, wc: float) -> np.ndarray:
+    """Weighted mix, NaN-safe by renormalisation (see blended docstring):
+    zeroing a missing component's weight and dividing by the surviving total
+    redistributes that weight across the remaining components proportionally.
+    pred is always finite (model output, clipped); if every blend input were
+    NaN the result would be 0, so fall back to raw pred in that corner."""
+    p_ok, n_ok, c_ok = np.isfinite(pred), np.isfinite(now), np.isfinite(clim)
+    wm_ = np.where(p_ok, wm, 0.0)
+    wpv = np.where(n_ok, wp, 0.0)
+    wcv = np.where(c_ok, wc, 0.0)
+    tot = wm_ + wpv + wcv
+    safe = np.where(tot <= 0, 1.0, tot)
+    out = ((wm_ / safe) * np.where(p_ok, pred, 0.0)
+           + (wpv / safe) * np.where(n_ok, now, 0.0)
+           + (wcv / safe) * np.where(c_ok, clim, 0.0))
+    return np.where(tot <= 0, pred, out)
 
 
 class StationFeatureSpace:
     """Base (issue-time) features for one station, reusable across all 72 horizons."""
 
-    def __init__(self, merged: pd.DataFrame):
+    def __init__(self, merged: pd.DataFrame, fire_daily: pd.DataFrame | None = None):
         self.df = merged
         self.index = merged.index
         self.n = len(merged)
@@ -102,6 +191,8 @@ class StationFeatureSpace:
                 base[f"{col}_rmean{win}"] = s.shift(1).rolling(win, min_periods=max(3, win // 3)).mean()
             base[f"{col}_rstd24"] = s.shift(1).rolling(24, min_periods=6).std()
             base[f"{col}_trend24"] = s.shift(1) - s.shift(25)
+            # log-space rolling sigma: robust scale for the discontinuity guard
+            base[f"{col}_lrstd24"] = np.log1p(s.shift(1)).rolling(24, min_periods=6).std()
 
         # CAMS level + memory at T0
         for col in TARGETS:
@@ -129,6 +220,19 @@ class StationFeatureSpace:
             base["met0_ws100"] = merged["wind_speed_100m"]
         if "wind_direction_10m" in merged.columns:
             base["met0_wsin"], base["met0_wcos"] = _cyclical(merged["wind_direction_10m"], 360.0)
+
+        # FIRMS fire memory at T0 (day-granular, known with a 1-day lag)
+        self.has_fire = fire_daily is not None and len(fire_daily) > 0
+        if self.has_fire:
+            fh = _hourly_fire(fire_daily[FIRE_COLS], merged.index)
+            for c in FIRE_COLS:
+                lvl = fh[c].astype(np.float32)
+                base[f"fire_{c}"] = lvl
+                base[f"fire_{c}_log"] = np.log1p(lvl)
+                base[f"fire_{c}_lag7"] = fh[c].shift(24 * 7)
+            frp200 = fh["frp200"].astype(np.float32)
+            base["fire_season"] = fh.index.month.isin([10, 11, 12]).astype(np.float32)
+            base["fire_frp200_anom7"] = frp200 / (fh["frp200"].shift(24 * 7) + 10.0)
 
         self.base = base.astype(np.float32)
         self.df_cams_cols = {c: f"cams_{c}" for c in TARGETS if f"cams_{c}" in merged.columns}
@@ -168,9 +272,26 @@ class StationFeatureSpace:
         f["tgt_is_winter"] = np.isin(tgt_index.month, [11, 12, 1, 2]).astype(np.float32)
         return f
 
+    def target_and_mask(self, col: str, h: int) -> tuple[np.ndarray, np.ndarray]:
+        """Target series at T0+h plus the sample-validity mask (see module docstring)."""
+        s = self.df[col]
+        y = s.shift(-h)
+        now = self.base[f"{col}_now"]
+        lrstd = self.base[f"{col}_lrstd24"]
+        cap = CAPS[col]
+        # discontinuity guard in log space (2.5 abs floor + 4 sigma)
+        jump = (np.log1p(now) - np.log1p(s.shift(25))).abs()
+        jump_next = (np.log1p(y) - np.log1p(s.shift(h + 24))).abs()
+        lrstd_next = lrstd.shift(h)
+        ok_jump = (jump <= 2.5 + 4.0 * (lrstd + 0.35)) & \
+                  (jump_next <= 2.5 + 4.0 * (lrstd_next + 0.35))
+        not_capped = (y < cap) & (now < cap)
+        mask = y.notna() & now.notna() & not_capped & ok_jump
+        return y.values.astype(np.float32), mask.values
+
     def target_for_horizon(self, col: str, h: int) -> pd.Series:
         return pd.Series(self.df[col].shift(-h).values, index=self.index, name=col)
 
 
-def build_issue_features(merged: pd.DataFrame) -> StationFeatureSpace:
-    return StationFeatureSpace(merged)
+def build_issue_features(merged: pd.DataFrame, fire_daily: pd.DataFrame | None = None) -> StationFeatureSpace:
+    return StationFeatureSpace(merged, fire_daily)

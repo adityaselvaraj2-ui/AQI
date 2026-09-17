@@ -67,3 +67,7 @@ data/raw/
 *.db
 
 .vercel
+
+# FIRMS raw response cache (re-fetchable via training/fetch_firms.py) and HPO pool (rebuildable via training/hpo.py)
+llm/model/training/data/firms_cache/
+llm/model/training/data/hpo_pool.npz

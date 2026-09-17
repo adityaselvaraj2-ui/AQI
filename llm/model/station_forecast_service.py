@@ -37,7 +37,26 @@ TRAINING_DIR = os.path.abspath(os.path.join(HERE, "training"))
 if TRAINING_DIR not in sys.path:
     sys.path.insert(0, TRAINING_DIR)
 
-from features import TARGETS, CAPS, StationFeatureSpace, prepare_merged, load_wx_csv  # noqa: E402
+from features import (  # noqa: E402
+    TARGETS, CAPS, StationFeatureSpace, prepare_merged, load_wx_csv, blended, horizon_band,
+)
+
+FIRE_DIR = os.path.join(TRAINING_DIR, "data", "fire")
+
+
+def fetch_fire_daily(station_id: int) -> pd.DataFrame | None:
+    """Local FIRMS daily fire aggregates built by training/build_fire_features.py.
+
+    The same file the trainer used, so the fire features at serving are exactly
+    the ones the model learned with (yesterday's FRP/pixel counts per ring)."""
+    p = os.path.join(FIRE_DIR, f"fire_{station_id}.csv")
+    if not os.path.exists(p):
+        return None
+    try:
+        f = pd.read_csv(p, index_col="date", parse_dates=True)
+        return f if len(f) else None
+    except Exception:  # noqa: BLE001
+        return None
 
 BUCKET = "https://openaq-data-archive.s3.amazonaws.com"
 PARAM_ALIASES = {"pm2.5": "pm25", "pm25": "pm25", "pm10": "pm10", "no2": "no2",
@@ -46,6 +65,8 @@ SPECIES_OUT = {"pm25": "PM2.5", "pm10": "PM10", "no2": "NO2", "o3": "O3", "so2":
 
 WX_CACHE: dict[tuple[float, float], tuple[float, pd.DataFrame]] = {}
 MODEL_CACHE: dict[str, object] = {}
+_HISTORY_CACHE: dict[tuple, tuple[float, pd.DataFrame]] = {}
+HISTORY_TTL_S = 1800  # archive files update daily; 30-min reuse is always fresh enough
 
 CAMS_URL = "https://air-quality-api.open-meteo.com/v1/air-quality"
 FCST_URL = "https://api.open-meteo.com/v1/forecast"
@@ -83,8 +104,19 @@ def _recent_day_keys(location_id: int, days: int) -> list[str]:
 
 
 def fetch_recent_history(location_id: int, days: int = 12) -> pd.DataFrame:
-    """Hourly means of the last `days` days of station observations (UTC index)."""
+    """Hourly means of the last `days` days of station observations (UTC index).
+
+    TTL-cached per (station, day-key set): the S3 archive updates daily and the
+    newest file lags by hours, so a completed fetch is reused for 30 minutes.
+    Cuts per-request latency from ~4.5 s (12 sequential S3 GETs) to ~1 s while
+    keeping the T0 anchor live via the consensus snapshot (fetched separately,
+    never cached)."""
     keys = _recent_day_keys(location_id, days)
+    cache_key = (location_id, tuple(keys))
+    now = time.monotonic()
+    hit = _HISTORY_CACHE.get(cache_key)
+    if hit and now - hit[0] < HISTORY_TTL_S:
+        return hit[1].copy()
     bucket: dict[str, dict[str, list[float]]] = defaultdict(lambda: defaultdict(list))
 
     def grab(key: str) -> None:
@@ -127,7 +159,9 @@ def fetch_recent_history(location_id: int, days: int = 12) -> pd.DataFrame:
     if df.empty:
         return df
     df.index = pd.DatetimeIndex(pd.to_datetime(df.index, format="%Y-%m-%dT%H", utc=True))
-    return df.sort_index()
+    df = df.sort_index()
+    _HISTORY_CACHE[cache_key] = (now, df)
+    return df
 
 
 # ── covariates: CAMS (past+future) + HRES weather (past+future) ─────────────
@@ -189,7 +223,13 @@ def load_station_models(station_id: int) -> dict | None:
         return MODEL_CACHE["bundle"]
 
     cols = json.load(open(os.path.join(sdir, "feature_columns.json")))
-    bundle = {"feature_columns": cols, "models": {}, "station_id": station_id}
+    bundle = {"feature_columns": cols, "models": {}, "station_id": station_id,
+              "has_fire": any(str(c).startswith("fire_") for c in cols)}
+    try:
+        with open(meta_path, encoding="utf-8") as fh:
+            bundle["meta"] = json.load(fh)
+    except Exception:  # noqa: BLE001
+        bundle["meta"] = {}
     for col in TARGETS:
         p = os.path.join(sdir, f"{col}.txt")
         if os.path.exists(p):
@@ -240,7 +280,8 @@ def build_issue_frame(bundle: dict, history: pd.DataFrame, wx: pd.DataFrame,
                 station.loc[now_hour, k] = float(v)
 
     merged = prepare_merged(station, wx)
-    space = StationFeatureSpace(merged)
+    fire = fetch_fire_daily(bundle["station_id"]) if bundle.get("has_fire") else None
+    space = StationFeatureSpace(merged, fire)
     t0 = now_hour
     if t0 not in space.index:
         t0 = space.index[space.index.get_indexer([t0], method="nearest")[0]]
@@ -258,9 +299,22 @@ def build_issue_frame(bundle: dict, history: pd.DataFrame, wx: pd.DataFrame,
 def predict_station(bundle: dict, history: pd.DataFrame, wx: pd.DataFrame,
                     anchor: dict[str, float] | None) -> tuple[dict[str, pd.DataFrame], pd.Timestamp]:
     X, t0 = build_issue_frame(bundle, history, wx, anchor)
+    # enforce the exact training column order (loud failure on any skew)
+    X = X[bundle["feature_columns"]]
+    hh = X.index.get_level_values("horizon").astype(int).to_numpy()
+    Xv = X.to_numpy(dtype=np.float32)
+    meta_p = (bundle.get("meta") or {}).get("pollutants") or {}
     preds = {}
     for col, model in bundle["models"].items():
         p = np.clip(model.predict(X, num_iteration=model.best_iteration if hasattr(model, "best_iteration") else None), 0, CAPS[col])
+        # same blend the artifact was scored with (shared implementation in features.py);
+        # applied only where training found it to be the better artifact
+        blend_used = bool((meta_p.get(col) or {}).get("blend_used", True))
+        if blend_used:
+            try:
+                p = blended(p, Xv, bundle["feature_columns"], hh, col)
+            except ValueError:  # old artifact without the anchor columns
+                pass
         preds[col] = pd.DataFrame({
             "horizon": X.index.get_level_values("horizon").astype(int),
             "pred": p,
@@ -282,16 +336,25 @@ def forecast_station_72hr(station_id: int, name: str, lat: float, lon: float,
     preds, t0 = predict_station(bundle, history, wx, anchor)
 
     # assemble per-hour outputs (t0 = the current UTC hour used as issue time)
+    meta_p = (bundle.get("meta") or {}).get("pollutants") or {}
     hours_out = []
     for h in range(1, 73):
         ts = t0 + pd.Timedelta(hours=h)
-        conc = {}
+        bname = horizon_band(h)
+        conc, p10, p90 = {}, {}, {}
         for col, dfp in preds.items():
-            conc[col] = float(dfp.loc[h, "pred"])
+            v = float(dfp.loc[h, "pred"])
+            conc[col] = v
+            q = (meta_p.get(col) or {}).get("bands_10_90", {}).get(bname)
+            if q:
+                p10[col] = round(max(0.0, v + q["q10"]), 2)
+                p90[col] = round(max(0.0, v + q["q90"]), 2)
         hours_out.append({
             "horizon": h,
             "timestamp": ts.isoformat(),
             "conc": conc,
+            "conc_p10": p10,
+            "conc_p90": p90,
         })
 
     return {

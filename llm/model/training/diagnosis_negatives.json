@@ -1,0 +1,1153 @@
+[
+ {
+  "station_id": 235,
+  "name": "Anand Vihar",
+  "pollutant": "so2",
+  "r2": -0.8446,
+  "hours_obs": 15764,
+  "span": [
+   "2015-06-29 14:00:00+00:00",
+   "2026-09-11 09:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2017": 2800,
+   "2025": 6690,
+   "2026": 5050
+  },
+  "max_gap_h": 61302.0,
+  "old2015_18_mean": 18.4,
+  "new2025_26_mean": 25.0,
+  "holdout_mean": 18.6,
+  "holdout_std": 9.2,
+  "holdout_cv": 0.496,
+  "holdout_p10": 7.6,
+  "holdout_p90": 30.4,
+  "pct_zero_diff": 0.6
+ },
+ {
+  "station_id": 5626,
+  "name": "DTU",
+  "pollutant": "no2",
+  "r2": -0.254,
+  "hours_obs": 31015,
+  "span": [
+   "2018-03-09 05:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 2701,
+   "2019": 3959,
+   "2020": 6401,
+   "2021": 3534,
+   "2022": 1857,
+   "2025": 7195,
+   "2026": 5368
+  },
+  "max_gap_h": 20202.0,
+  "old2015_18_mean": 34.0,
+  "new2025_26_mean": 33.0,
+  "holdout_mean": 18.9,
+  "holdout_std": 9.8,
+  "holdout_cv": 0.52,
+  "holdout_p10": 7.6,
+  "holdout_p90": 30.4,
+  "pct_zero_diff": 0.5
+ },
+ {
+  "station_id": 5626,
+  "name": "DTU",
+  "pollutant": "so2",
+  "r2": -0.4747,
+  "hours_obs": 29315,
+  "span": [
+   "2018-09-24 12:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 1237,
+   "2019": 3822,
+   "2020": 6396,
+   "2021": 3534,
+   "2022": 1859,
+   "2025": 7195,
+   "2026": 5272
+  },
+  "max_gap_h": 20202.0,
+  "old2015_18_mean": 17.6,
+  "new2025_26_mean": 8118649751317.8,
+  "holdout_mean": 25.9,
+  "holdout_std": 4.4,
+  "holdout_cv": 0.169,
+  "holdout_p10": 20.5,
+  "holdout_p90": 31.2,
+  "pct_zero_diff": 0.1
+ },
+ {
+  "station_id": 10908,
+  "name": "Faridabad (Sector 11)",
+  "pollutant": "pm25",
+  "r2": -0.184,
+  "hours_obs": 13304,
+  "span": [
+   "2020-03-11 08:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2020": 1989,
+   "2021": 1756,
+   "2022": 1636,
+   "2025": 2780,
+   "2026": 5143
+  },
+  "max_gap_h": 20548.0,
+  "holdout_mean": 86.1,
+  "holdout_std": 63.0,
+  "holdout_cv": 0.732,
+  "holdout_p10": 22.6,
+  "holdout_p90": 166.2,
+  "pct_zero_diff": 1.8
+ },
+ {
+  "station_id": 10908,
+  "name": "Faridabad (Sector 11)",
+  "pollutant": "no2",
+  "r2": -8.746,
+  "hours_obs": 13325,
+  "span": [
+   "2020-03-11 08:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2020": 1990,
+   "2021": 1756,
+   "2022": 1637,
+   "2025": 2780,
+   "2026": 5162
+  },
+  "max_gap_h": 20548.0,
+  "holdout_mean": 25.0,
+  "holdout_std": 0.7,
+  "holdout_cv": 0.03,
+  "holdout_p10": 24.3,
+  "holdout_p90": 25.7,
+  "pct_zero_diff": 0.2
+ },
+ {
+  "station_id": 10908,
+  "name": "Faridabad (Sector 11)",
+  "pollutant": "o3",
+  "r2": -0.733,
+  "hours_obs": 13328,
+  "span": [
+   "2020-03-11 08:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2020": 1990,
+   "2021": 1756,
+   "2022": 1638,
+   "2025": 2781,
+   "2026": 5163
+  },
+  "max_gap_h": 20548.0,
+  "holdout_mean": 16.0,
+  "holdout_std": 3.5,
+  "holdout_cv": 0.218,
+  "holdout_p10": 14.6,
+  "holdout_p90": 16.7,
+  "pct_zero_diff": 0.2
+ },
+ {
+  "station_id": 10908,
+  "name": "Faridabad (Sector 11)",
+  "pollutant": "so2",
+  "r2": -0.8674,
+  "hours_obs": 13340,
+  "span": [
+   "2020-03-11 08:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2020": 1988,
+   "2021": 1755,
+   "2022": 1635,
+   "2025": 2799,
+   "2026": 5163
+  },
+  "max_gap_h": 20548.0,
+  "holdout_mean": 6.3,
+  "holdout_std": 3.5,
+  "holdout_cv": 0.552,
+  "holdout_p10": 3.8,
+  "holdout_p90": 8.4,
+  "pct_zero_diff": 0.8
+ },
+ {
+  "station_id": 10820,
+  "name": "Faridabad (Sector 30)",
+  "pollutant": "pm10",
+  "r2": -0.2671,
+  "hours_obs": 10288,
+  "span": [
+   "2020-03-11 08:00:00+00:00",
+   "2026-09-11 09:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2020": 3534,
+   "2021": 2075,
+   "2022": 1253,
+   "2025": 1135,
+   "2026": 2291
+  },
+  "max_gap_h": 20552.0,
+  "holdout_mean": 102.8,
+  "holdout_std": 46.5,
+  "holdout_cv": 0.452,
+  "holdout_p10": 50.7,
+  "holdout_p90": 169.2,
+  "pct_zero_diff": 1.1
+ },
+ {
+  "station_id": 10820,
+  "name": "Faridabad (Sector 30)",
+  "pollutant": "no2",
+  "r2": -0.2317,
+  "hours_obs": 10416,
+  "span": [
+   "2020-03-11 08:00:00+00:00",
+   "2026-09-11 09:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2020": 3535,
+   "2021": 2076,
+   "2022": 1255,
+   "2025": 1181,
+   "2026": 2369
+  },
+  "max_gap_h": 20552.0,
+  "holdout_mean": 29.2,
+  "holdout_std": 4.0,
+  "holdout_cv": 0.136,
+  "holdout_p10": 29.0,
+  "holdout_p90": 30.8,
+  "pct_zero_diff": 0.3
+ },
+ {
+  "station_id": 10820,
+  "name": "Faridabad (Sector 30)",
+  "pollutant": "o3",
+  "r2": -0.1658,
+  "hours_obs": 10185,
+  "span": [
+   "2020-03-11 08:00:00+00:00",
+   "2026-09-11 09:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2020": 3535,
+   "2021": 2077,
+   "2022": 1254,
+   "2025": 1102,
+   "2026": 2217
+  },
+  "max_gap_h": 20552.0,
+  "holdout_mean": 16.4,
+  "holdout_std": 19.1,
+  "holdout_cv": 1.168,
+  "holdout_p10": 5.5,
+  "holdout_p90": 32.7,
+  "pct_zero_diff": 1.0
+ },
+ {
+  "station_id": 10820,
+  "name": "Faridabad (Sector 30)",
+  "pollutant": "so2",
+  "r2": -2.3989,
+  "hours_obs": 10787,
+  "span": [
+   "2020-03-11 08:00:00+00:00",
+   "2026-09-11 09:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2020": 3535,
+   "2021": 2077,
+   "2022": 1256,
+   "2025": 1205,
+   "2026": 2714
+  },
+  "max_gap_h": 20552.0,
+  "holdout_mean": 3.1,
+  "holdout_std": 1.5,
+  "holdout_cv": 0.501,
+  "holdout_p10": 1.7,
+  "holdout_p90": 5.0,
+  "pct_zero_diff": 3.2
+ },
+ {
+  "station_id": 6924,
+  "name": "Ghaziabad (Indirapuram)",
+  "pollutant": "so2",
+  "r2": -0.2894,
+  "hours_obs": 22699,
+  "span": [
+   "2019-04-27 11:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2019": 3223,
+   "2020": 4017,
+   "2021": 2594,
+   "2025": 6665,
+   "2026": 5203
+  },
+  "max_gap_h": 20202.0,
+  "holdout_mean": 12.6,
+  "holdout_std": 3.6,
+  "holdout_cv": 0.286,
+  "holdout_p10": 8.6,
+  "holdout_p90": 15.2,
+  "pct_zero_diff": 2.1
+ },
+ {
+  "station_id": 7005,
+  "name": "Ghaziabad (Loni)",
+  "pollutant": "so2",
+  "r2": -0.0322,
+  "hours_obs": 22562,
+  "span": [
+   "2019-04-27 11:00:00+00:00",
+   "2026-09-11 09:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2019": 3219,
+   "2020": 4150,
+   "2021": 2579,
+   "2022": 1449,
+   "2025": 6462,
+   "2026": 4703
+  },
+  "max_gap_h": 20202.0,
+  "holdout_mean": 13.9,
+  "holdout_std": 9.3,
+  "holdout_cv": 0.673,
+  "holdout_p10": 4.8,
+  "holdout_p90": 22.5,
+  "pct_zero_diff": 0.8
+ },
+ {
+  "station_id": 10919,
+  "name": "Ghaziabad (Sanjay Nagar)",
+  "pollutant": "no2",
+  "r2": -0.0773,
+  "hours_obs": 23071,
+  "span": [
+   "2019-04-27 11:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2019": 3051,
+   "2020": 4098,
+   "2021": 2235,
+   "2022": 1529,
+   "2025": 6981,
+   "2026": 5177
+  },
+  "max_gap_h": 20202.0,
+  "holdout_mean": 27.4,
+  "holdout_std": 17.8,
+  "holdout_cv": 0.651,
+  "holdout_p10": 11.3,
+  "holdout_p90": 50.6,
+  "pct_zero_diff": 0.2
+ },
+ {
+  "station_id": 5665,
+  "name": "Ghaziabad (Vasundhara)",
+  "pollutant": "so2",
+  "r2": -4.4003,
+  "hours_obs": 30623,
+  "span": [
+   "2018-03-09 05:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 2951,
+   "2019": 3890,
+   "2020": 6230,
+   "2021": 3514,
+   "2022": 2311,
+   "2025": 6822,
+   "2026": 4905
+  },
+  "max_gap_h": 20202.0,
+  "old2015_18_mean": 36.1,
+  "new2025_26_mean": 19.5,
+  "holdout_mean": 12.4,
+  "holdout_std": 14.4,
+  "holdout_cv": 1.162,
+  "holdout_p10": 4.2,
+  "holdout_p90": 21.8,
+  "pct_zero_diff": 0.8
+ },
+ {
+  "station_id": 6978,
+  "name": "Greater Noida (Knowledge Park III)",
+  "pollutant": "so2",
+  "r2": -0.1264,
+  "hours_obs": 25997,
+  "span": [
+   "2018-08-10 05:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 2339,
+   "2019": 4073,
+   "2020": 3576,
+   "2021": 2322,
+   "2022": 1635,
+   "2025": 6964,
+   "2026": 5088
+  },
+  "max_gap_h": 20203.0,
+  "old2015_18_mean": 13.6,
+  "new2025_26_mean": 12.2,
+  "holdout_mean": 7.7,
+  "holdout_std": 12.9,
+  "holdout_cv": 1.668,
+  "holdout_p10": 3.7,
+  "holdout_p90": 12.8,
+  "pct_zero_diff": 0.9
+ },
+ {
+  "station_id": 10825,
+  "name": "Gurugram (Sector 51)",
+  "pollutant": "so2",
+  "r2": -0.1954,
+  "hours_obs": 15701,
+  "span": [
+   "2020-03-11 07:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2020": 3668,
+   "2021": 2336,
+   "2022": 1643,
+   "2025": 2984,
+   "2026": 5070
+  },
+  "max_gap_h": 20548.0,
+  "holdout_mean": 13.2,
+  "holdout_std": 77.5,
+  "holdout_cv": 5.861,
+  "holdout_p10": 4.2,
+  "holdout_p90": 10.7,
+  "pct_zero_diff": 3.1
+ },
+ {
+  "station_id": 10900,
+  "name": "Gurugram (Teri Gram)",
+  "pollutant": "pm25",
+  "r2": -0.1146,
+  "hours_obs": 14458,
+  "span": [
+   "2020-03-30 14:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2020": 3204,
+   "2021": 2974,
+   "2022": 1987,
+   "2025": 2237,
+   "2026": 4056
+  },
+  "max_gap_h": 20548.0,
+  "holdout_mean": 64.4,
+  "holdout_std": 46.0,
+  "holdout_cv": 0.715,
+  "holdout_p10": 25.7,
+  "holdout_p90": 99.3,
+  "pct_zero_diff": 0.4
+ },
+ {
+  "station_id": 10900,
+  "name": "Gurugram (Teri Gram)",
+  "pollutant": "pm10",
+  "r2": -0.1728,
+  "hours_obs": 14425,
+  "span": [
+   "2020-03-30 14:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2020": 3204,
+   "2021": 2975,
+   "2022": 1987,
+   "2025": 2238,
+   "2026": 4021
+  },
+  "max_gap_h": 20548.0,
+  "holdout_mean": 116.8,
+  "holdout_std": 79.4,
+  "holdout_cv": 0.68,
+  "holdout_p10": 44.9,
+  "holdout_p90": 189.8,
+  "pct_zero_diff": 0.4
+ },
+ {
+  "station_id": 10900,
+  "name": "Gurugram (Teri Gram)",
+  "pollutant": "so2",
+  "r2": -0.0328,
+  "hours_obs": 13283,
+  "span": [
+   "2020-03-30 14:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2020": 3204,
+   "2021": 2974,
+   "2022": 1987,
+   "2025": 1109,
+   "2026": 4009
+  },
+  "max_gap_h": 26661.0,
+  "holdout_mean": 10.9,
+  "holdout_std": 7.5,
+  "holdout_cv": 0.689,
+  "holdout_p10": 3.6,
+  "holdout_p90": 20.3,
+  "pct_zero_diff": 1.8
+ },
+ {
+  "station_id": 5613,
+  "name": "ITO",
+  "pollutant": "no2",
+  "r2": -0.3864,
+  "hours_obs": 18718,
+  "span": [
+   "2018-03-09 05:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 2229,
+   "2019": 3592,
+   "2025": 7174,
+   "2026": 5322
+  },
+  "max_gap_h": 44557.0,
+  "old2015_18_mean": 58.1,
+  "new2025_26_mean": 55.5,
+  "holdout_mean": 45.7,
+  "holdout_std": 15.6,
+  "holdout_cv": 0.34,
+  "holdout_p10": 28.1,
+  "holdout_p90": 62.4,
+  "pct_zero_diff": 0.8
+ },
+ {
+  "station_id": 8235,
+  "name": "Jahangirpuri",
+  "pollutant": "o3",
+  "r2": -0.4743,
+  "hours_obs": 15647,
+  "span": [
+   "2018-08-10 06:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 1219,
+   "2019": 3666,
+   "2020": 3386,
+   "2021": 2051,
+   "2026": 5319
+  },
+  "max_gap_h": 35085.0,
+  "old2015_18_mean": 26.5,
+  "new2025_26_mean": 23.0,
+  "holdout_mean": 16.8,
+  "holdout_std": 15.1,
+  "holdout_cv": 0.899,
+  "holdout_p10": 5.7,
+  "holdout_p90": 35.6,
+  "pct_zero_diff": 0.9
+ },
+ {
+  "station_id": 6957,
+  "name": "Jawaharlal Nehru Stadium",
+  "pollutant": "so2",
+  "r2": -0.3738,
+  "hours_obs": 16963,
+  "span": [
+   "2018-08-10 08:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 1493,
+   "2019": 3989,
+   "2020": 4057,
+   "2021": 2122,
+   "2026": 5296
+  },
+  "max_gap_h": 35085.0,
+  "old2015_18_mean": 17.5,
+  "new2025_26_mean": 15.5,
+  "holdout_mean": 12.3,
+  "holdout_std": 8.1,
+  "holdout_cv": 0.66,
+  "holdout_p10": 4.3,
+  "holdout_p90": 21.7,
+  "pct_zero_diff": 0.9
+ },
+ {
+  "station_id": 10485,
+  "name": "Narela",
+  "pollutant": "o3",
+  "r2": -0.9146,
+  "hours_obs": 25399,
+  "span": [
+   "2018-08-10 05:00:00+00:00",
+   "2026-09-11 08:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 1917,
+   "2019": 3615,
+   "2020": 3714,
+   "2021": 2363,
+   "2022": 1666,
+   "2025": 6962,
+   "2026": 5162
+  },
+  "max_gap_h": 20204.0,
+  "old2015_18_mean": 27.5,
+  "new2025_26_mean": 33.4,
+  "holdout_mean": 14.4,
+  "holdout_std": 9.9,
+  "holdout_cv": 0.689,
+  "holdout_p10": 4.1,
+  "holdout_p90": 28.8,
+  "pct_zero_diff": 0.4
+ },
+ {
+  "station_id": 6988,
+  "name": "Noida Sector 116",
+  "pollutant": "pm25",
+  "r2": -0.2862,
+  "hours_obs": 13580,
+  "span": [
+   "2021-12-31 22:00:00+00:00",
+   "2026-09-11 09:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2022": 1864,
+   "2025": 6419,
+   "2026": 5296
+  },
+  "max_gap_h": 20548.0,
+  "holdout_mean": 49.0,
+  "holdout_std": 25.0,
+  "holdout_cv": 0.51,
+  "holdout_p10": 22.0,
+  "holdout_p90": 80.8,
+  "pct_zero_diff": 2.9
+ },
+ {
+  "station_id": 6988,
+  "name": "Noida Sector 116",
+  "pollutant": "so2",
+  "r2": -0.0883,
+  "hours_obs": 13542,
+  "span": [
+   "2021-12-31 22:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2022": 1822,
+   "2025": 6418,
+   "2026": 5301
+  },
+  "max_gap_h": 20554.0,
+  "holdout_mean": 11.6,
+  "holdout_std": 5.4,
+  "holdout_cv": 0.462,
+  "holdout_p10": 6.6,
+  "holdout_p90": 18.0,
+  "pct_zero_diff": 0.8
+ },
+ {
+  "station_id": 5598,
+  "name": "Noida Sector 125",
+  "pollutant": "pm10",
+  "r2": -2.1851,
+  "hours_obs": 28016,
+  "span": [
+   "2018-03-09 05:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 2977,
+   "2019": 3518,
+   "2020": 4639,
+   "2021": 2988,
+   "2022": 2089,
+   "2025": 6785,
+   "2026": 5020
+  },
+  "max_gap_h": 20202.0,
+  "old2015_18_mean": 276.9,
+  "new2025_26_mean": 229.4,
+  "holdout_mean": 156.2,
+  "holdout_std": 116.0,
+  "holdout_cv": 0.743,
+  "holdout_p10": 46.0,
+  "holdout_p90": 311.0,
+  "pct_zero_diff": 1.4
+ },
+ {
+  "station_id": 5598,
+  "name": "Noida Sector 125",
+  "pollutant": "so2",
+  "r2": -1.3093,
+  "hours_obs": 28132,
+  "span": [
+   "2018-03-09 05:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 2980,
+   "2019": 3520,
+   "2020": 4793,
+   "2021": 2932,
+   "2022": 2007,
+   "2025": 6810,
+   "2026": 5090
+  },
+  "max_gap_h": 20202.0,
+  "old2015_18_mean": 26.1,
+  "new2025_26_mean": 9.9,
+  "holdout_mean": 6.4,
+  "holdout_std": 3.4,
+  "holdout_cv": 0.525,
+  "holdout_p10": 3.2,
+  "holdout_p90": 9.2,
+  "pct_zero_diff": 2.0
+ },
+ {
+  "station_id": 8239,
+  "name": "Okhla Phase 2",
+  "pollutant": "o3",
+  "r2": -0.6212,
+  "hours_obs": 5241,
+  "span": [
+   "2025-12-31 18:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2026": 5235
+  },
+  "max_gap_h": 242.0,
+  "holdout_mean": 20.2,
+  "holdout_std": 16.5,
+  "holdout_cv": 0.813,
+  "holdout_p10": 5.1,
+  "holdout_p90": 45.5,
+  "pct_zero_diff": 0.4
+ },
+ {
+  "station_id": 8239,
+  "name": "Okhla Phase 2",
+  "pollutant": "so2",
+  "r2": -2.3039,
+  "hours_obs": 5298,
+  "span": [
+   "2025-12-31 18:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2026": 5292
+  },
+  "max_gap_h": 242.0,
+  "holdout_mean": 8.7,
+  "holdout_std": 4.7,
+  "holdout_cv": 0.546,
+  "holdout_p10": 4.2,
+  "holdout_p90": 14.0,
+  "pct_zero_diff": 1.1
+ },
+ {
+  "station_id": 6960,
+  "name": "Patparganj",
+  "pollutant": "pm25",
+  "r2": -0.1914,
+  "hours_obs": 5302,
+  "span": [
+   "2025-12-31 18:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2026": 5296
+  },
+  "max_gap_h": 242.0,
+  "holdout_mean": 36.6,
+  "holdout_std": 23.1,
+  "holdout_cv": 0.633,
+  "holdout_p10": 12.2,
+  "holdout_p90": 66.0,
+  "pct_zero_diff": 3.4
+ },
+ {
+  "station_id": 6960,
+  "name": "Patparganj",
+  "pollutant": "o3",
+  "r2": -0.3038,
+  "hours_obs": 5334,
+  "span": [
+   "2025-12-31 18:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2026": 5328
+  },
+  "max_gap_h": 242.0,
+  "holdout_mean": 21.4,
+  "holdout_std": 21.3,
+  "holdout_cv": 0.996,
+  "holdout_p10": 3.5,
+  "holdout_p90": 51.0,
+  "pct_zero_diff": 0.3
+ },
+ {
+  "station_id": 50,
+  "name": "Punjabi Bagh",
+  "pollutant": "pm25",
+  "r2": -0.0646,
+  "hours_obs": 17144,
+  "span": [
+   "2015-06-29 00:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2016": 5725,
+   "2017": 4813,
+   "2026": 5206
+  },
+  "max_gap_h": 68882.0,
+  "old2015_18_mean": 124.8,
+  "new2025_26_mean": 72.9,
+  "holdout_mean": 43.0,
+  "holdout_std": 26.3,
+  "holdout_cv": 0.612,
+  "holdout_p10": 16.0,
+  "holdout_p90": 74.9,
+  "pct_zero_diff": 2.9
+ },
+ {
+  "station_id": 50,
+  "name": "Punjabi Bagh",
+  "pollutant": "so2",
+  "r2": -1.3146,
+  "hours_obs": 9450,
+  "span": [
+   "2015-06-29 00:00:00+00:00",
+   "2026-09-11 09:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2016": 1033,
+   "2017": 2412,
+   "2026": 5193
+  },
+  "max_gap_h": 68882.0,
+  "old2015_18_mean": 21.8,
+  "new2025_26_mean": 29.3,
+  "holdout_mean": 28.8,
+  "holdout_std": 8.7,
+  "holdout_cv": 0.302,
+  "holdout_p10": 18.6,
+  "holdout_p90": 38.1,
+  "pct_zero_diff": 0.3
+ },
+ {
+  "station_id": 5404,
+  "name": "Pusa",
+  "pollutant": "pm25",
+  "r2": -0.1308,
+  "hours_obs": 4758,
+  "span": [
+   "2026-01-08 11:00:00+00:00",
+   "2026-09-11 08:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2026": 4758
+  },
+  "max_gap_h": 243.0,
+  "holdout_mean": 34.3,
+  "holdout_std": 21.5,
+  "holdout_cv": 0.629,
+  "holdout_p10": 12.5,
+  "holdout_p90": 60.7,
+  "pct_zero_diff": 0.2
+ },
+ {
+  "station_id": 17,
+  "name": "R K Puram",
+  "pollutant": "pm25",
+  "r2": -0.0695,
+  "hours_obs": 16640,
+  "span": [
+   "2015-06-29 14:00:00+00:00",
+   "2026-09-11 09:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2015": 1070,
+   "2016": 5000,
+   "2017": 4757,
+   "2026": 5197
+  },
+  "max_gap_h": 68882.0,
+  "old2015_18_mean": 131.4,
+  "new2025_26_mean": 73.2,
+  "holdout_mean": 43.4,
+  "holdout_std": 25.6,
+  "holdout_cv": 0.589,
+  "holdout_p10": 16.0,
+  "holdout_p90": 76.6,
+  "pct_zero_diff": 2.8
+ },
+ {
+  "station_id": 17,
+  "name": "R K Puram",
+  "pollutant": "so2",
+  "r2": -3.6444,
+  "hours_obs": 9404,
+  "span": [
+   "2015-06-29 14:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2017": 2509,
+   "2026": 4995
+  },
+  "max_gap_h": 68882.0,
+  "old2015_18_mean": 29.9,
+  "new2025_26_mean": 22.7,
+  "holdout_mean": 16.9,
+  "holdout_std": 17.9,
+  "holdout_cv": 1.064,
+  "holdout_p10": 3.6,
+  "holdout_p90": 28.4,
+  "pct_zero_diff": 2.0
+ },
+ {
+  "station_id": 10831,
+  "name": "Rohini",
+  "pollutant": "pm25",
+  "r2": -0.3317,
+  "hours_obs": 16827,
+  "span": [
+   "2018-08-10 21:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 1621,
+   "2019": 3808,
+   "2020": 4043,
+   "2021": 2127,
+   "2026": 5222
+  },
+  "max_gap_h": 35080.0,
+  "old2015_18_mean": 169.5,
+  "new2025_26_mean": 80.2,
+  "holdout_mean": 50.6,
+  "holdout_std": 31.7,
+  "holdout_cv": 0.627,
+  "holdout_p10": 22.0,
+  "holdout_p90": 84.2,
+  "pct_zero_diff": 3.3
+ },
+ {
+  "station_id": 10831,
+  "name": "Rohini",
+  "pollutant": "pm10",
+  "r2": -0.0907,
+  "hours_obs": 17117,
+  "span": [
+   "2018-08-10 21:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 1615,
+   "2019": 3816,
+   "2020": 4114,
+   "2021": 2211,
+   "2026": 5355
+  },
+  "max_gap_h": 35080.0,
+  "old2015_18_mean": 303.6,
+  "new2025_26_mean": 205.9,
+  "holdout_mean": 162.9,
+  "holdout_std": 102.4,
+  "holdout_cv": 0.629,
+  "holdout_p10": 67.8,
+  "holdout_p90": 285.0,
+  "pct_zero_diff": 1.1
+ },
+ {
+  "station_id": 10831,
+  "name": "Rohini",
+  "pollutant": "o3",
+  "r2": -2.5703,
+  "hours_obs": 16926,
+  "span": [
+   "2018-08-10 21:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 1604,
+   "2019": 3724,
+   "2020": 4128,
+   "2021": 2122,
+   "2026": 5342
+  },
+  "max_gap_h": 35080.0,
+  "old2015_18_mean": 26.8,
+  "new2025_26_mean": 25.7,
+  "holdout_mean": 12.7,
+  "holdout_std": 11.7,
+  "holdout_cv": 0.924,
+  "holdout_p10": 3.1,
+  "holdout_p90": 25.6,
+  "pct_zero_diff": 1.2
+ },
+ {
+  "station_id": 5610,
+  "name": "Shadipur",
+  "pollutant": "pm25",
+  "r2": -0.4061,
+  "hours_obs": 18298,
+  "span": [
+   "2018-03-09 05:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 2321,
+   "2019": 3198,
+   "2020": 5096,
+   "2021": 2795,
+   "2026": 4888
+  },
+  "max_gap_h": 35124.0,
+  "old2015_18_mean": 128.3,
+  "new2025_26_mean": 62.0,
+  "holdout_mean": 40.7,
+  "holdout_std": 25.8,
+  "holdout_cv": 0.634,
+  "holdout_p10": 13.4,
+  "holdout_p90": 72.0,
+  "pct_zero_diff": 0.1
+ },
+ {
+  "station_id": 5610,
+  "name": "Shadipur",
+  "pollutant": "pm10",
+  "r2": -0.0985,
+  "hours_obs": 18322,
+  "span": [
+   "2018-03-09 05:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 2337,
+   "2019": 3198,
+   "2020": 5096,
+   "2021": 2798,
+   "2026": 4893
+  },
+  "max_gap_h": 35118.0,
+  "old2015_18_mean": 233.9,
+  "new2025_26_mean": 164.1,
+  "holdout_mean": 134.5,
+  "holdout_std": 96.0,
+  "holdout_cv": 0.714,
+  "holdout_p10": 40.9,
+  "holdout_p90": 248.3,
+  "pct_zero_diff": 0.0
+ },
+ {
+  "station_id": 6359,
+  "name": "Vivek Vihar",
+  "pollutant": "pm25",
+  "r2": -0.1045,
+  "hours_obs": 20234,
+  "span": [
+   "2018-04-28 15:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 2472,
+   "2019": 3791,
+   "2020": 6243,
+   "2021": 2603,
+   "2026": 5119
+  },
+  "max_gap_h": 35074.0,
+  "old2015_18_mean": 100.4,
+  "new2025_26_mean": 74.9,
+  "holdout_mean": 57.8,
+  "holdout_std": 170.2,
+  "holdout_cv": 2.945,
+  "holdout_p10": 20.9,
+  "holdout_p90": 88.7,
+  "pct_zero_diff": 2.5
+ },
+ {
+  "station_id": 6359,
+  "name": "Vivek Vihar",
+  "pollutant": "so2",
+  "r2": -0.5385,
+  "hours_obs": 20341,
+  "span": [
+   "2018-04-28 15:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2018": 2559,
+   "2019": 3791,
+   "2020": 6243,
+   "2021": 2604,
+   "2026": 5138
+  },
+  "max_gap_h": 35074.0,
+  "old2015_18_mean": 17.5,
+  "new2025_26_mean": 13.8,
+  "holdout_mean": 14.1,
+  "holdout_std": 4.8,
+  "holdout_cv": 0.337,
+  "holdout_p10": 8.6,
+  "holdout_p90": 19.8,
+  "pct_zero_diff": 0.0
+ },
+ {
+  "station_id": 8915,
+  "name": "Wazirpur",
+  "pollutant": "o3",
+  "r2": -0.3683,
+  "hours_obs": 23317,
+  "span": [
+   "2018-12-14 01:00:00+00:00",
+   "2026-09-11 10:00:00+00:00"
+  ],
+  "hours_by_year": {
+   "2019": 3419,
+   "2020": 3779,
+   "2021": 2147,
+   "2022": 1499,
+   "2025": 7088,
+   "2026": 5207
+  },
+  "max_gap_h": 20204.0,
+  "holdout_mean": 18.0,
+  "holdout_std": 12.9,
+  "holdout_cv": 0.721,
+  "holdout_p10": 6.2,
+  "holdout_p90": 34.7,
+  "pct_zero_diff": 0.8
+ }
+]

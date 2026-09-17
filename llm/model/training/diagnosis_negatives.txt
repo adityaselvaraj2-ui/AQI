@@ -1,0 +1,138 @@
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+D:\games and stuff\new_one\llm\model\training\diagnose_negatives.py:101: FutureWarning: last is deprecated and will be removed in a future version. Please create a mask and filter using `.loc` instead
+  tail = s.last("120D")
+45 negative-R2 pairs diagnosed -> diagnosis_negatives.json
+
+station                            poll       R2  obsHrs years                         maxGap  eraJump%   old18   new26  holdCV
+Anand Vihar                        so2     -0.84   15764 2017,2025,2026                 61302              18.4    25.0   0.496
+DTU                                no2     -0.25   31015 2018,2019,2020,2021,2022,202   20202              34.0    33.0    0.52
+DTU                                so2     -0.47   29315 2018,2019,2020,2021,2022,202   20202              17.6 8118649751317.8   0.169
+Faridabad (Sector 11)              pm25    -0.18   13304 2020,2021,2022,2025,2026       20548                             0.732
+Faridabad (Sector 11)              no2     -8.75   13325 2020,2021,2022,2025,2026       20548                              0.03
+Faridabad (Sector 11)              o3      -0.73   13328 2020,2021,2022,2025,2026       20548                             0.218
+Faridabad (Sector 11)              so2     -0.87   13340 2020,2021,2022,2025,2026       20548                             0.552
+Faridabad (Sector 30)              pm10    -0.27   10288 2020,2021,2022,2025,2026       20552                             0.452
+Faridabad (Sector 30)              no2     -0.23   10416 2020,2021,2022,2025,2026       20552                             0.136
+Faridabad (Sector 30)              o3      -0.17   10185 2020,2021,2022,2025,2026       20552                             1.168
+Faridabad (Sector 30)              so2     -2.40   10787 2020,2021,2022,2025,2026       20552                             0.501
+Ghaziabad (Indirapuram)            so2     -0.29   22699 2019,2020,2021,2025,2026       20202                             0.286
+Ghaziabad (Loni)                   so2     -0.03   22562 2019,2020,2021,2022,2025,202   20202                             0.673
+Ghaziabad (Sanjay Nagar)           no2     -0.08   23071 2019,2020,2021,2022,2025,202   20202                             0.651
+Ghaziabad (Vasundhara)             so2     -4.40   30623 2018,2019,2020,2021,2022,202   20202              36.1    19.5   1.162
+Greater Noida (Knowledge Park III  so2     -0.13   25997 2018,2019,2020,2021,2022,202   20203              13.6    12.2   1.668
+Gurugram (Sector 51)               so2     -0.20   15701 2020,2021,2022,2025,2026       20548                             5.861
+Gurugram (Teri Gram)               pm25    -0.11   14458 2020,2021,2022,2025,2026       20548                             0.715
+Gurugram (Teri Gram)               pm10    -0.17   14425 2020,2021,2022,2025,2026       20548                              0.68
+Gurugram (Teri Gram)               so2     -0.03   13283 2020,2021,2022,2025,2026       26661                             0.689
+ITO                                no2     -0.39   18718 2018,2019,2025,2026            44557              58.1    55.5    0.34
+Jahangirpuri                       o3      -0.47   15647 2018,2019,2020,2021,2026       35085              26.5    23.0   0.899
+Jawaharlal Nehru Stadium           so2     -0.37   16963 2018,2019,2020,2021,2026       35085              17.5    15.5    0.66
+Narela                             o3      -0.91   25399 2018,2019,2020,2021,2022,202   20204              27.5    33.4   0.689
+Noida Sector 116                   pm25    -0.29   13580 2022,2025,2026                 20548                              0.51
+Noida Sector 116                   so2     -0.09   13542 2022,2025,2026                 20554                             0.462
+Noida Sector 125                   pm10    -2.19   28016 2018,2019,2020,2021,2022,202   20202             276.9   229.4   0.743
+Noida Sector 125                   so2     -1.31   28132 2018,2019,2020,2021,2022,202   20202              26.1     9.9   0.525
+Okhla Phase 2                      o3      -0.62    5241 2026                             242                             0.813
+Okhla Phase 2                      so2     -2.30    5298 2026                             242                             0.546
+Patparganj                         pm25    -0.19    5302 2026                             242                             0.633
+Patparganj                         o3      -0.30    5334 2026                             242                             0.996
+Punjabi Bagh                       pm25    -0.06   17144 2016,2017,2026                 68882             124.8    72.9   0.612
+Punjabi Bagh                       so2     -1.31    9450 2016,2017,2026                 68882              21.8    29.3   0.302
+Pusa                               pm25    -0.13    4758 2026                             243                             0.629
+R K Puram                          pm25    -0.07   16640 2015,2016,2017,2026            68882             131.4    73.2   0.589
+R K Puram                          so2     -3.64    9404 2017,2026                      68882              29.9    22.7   1.064
+Rohini                             pm25    -0.33   16827 2018,2019,2020,2021,2026       35080             169.5    80.2   0.627
+Rohini                             pm10    -0.09   17117 2018,2019,2020,2021,2026       35080             303.6   205.9   0.629
+Rohini                             o3      -2.57   16926 2018,2019,2020,2021,2026       35080              26.8    25.7   0.924
+Shadipur                           pm25    -0.41   18298 2018,2019,2020,2021,2026       35124             128.3    62.0   0.634
+Shadipur                           pm10    -0.10   18322 2018,2019,2020,2021,2026       35118             233.9   164.1   0.714
+Vivek Vihar                        pm25    -0.10   20234 2018,2019,2020,2021,2026       35074             100.4    74.9   2.945
+Vivek Vihar                        so2     -0.54   20341 2018,2019,2020,2021,2026       35074              17.5    13.8   0.337
+Wazirpur                           o3      -0.37   23317 2019,2020,2021,2022,2025,202   20204                             0.721

@@ -1,0 +1,542 @@
+====================================================================================================
+CONTRACT CHECK — 218 (station, pollutant) pairs  |  source: metrics_summary.json
+====================================================================================================
+
+### PER-STATION (every pair listed; V = verdict per threshold: R=RMSE M=MAE Q=R2 B=|bias|)
+Alipur                 PM2.5 RMSE   21.50 FAIL     MAE  16.06 FAIL     R2 +0.394 FAIL     bias   +0.36 PASS     n=27620  -> F/F/F
+Alipur                 PM10  RMSE   92.22 FAIL     MAE  56.92 FAIL     R2 +0.304 FAIL     bias  -13.71 FAIL     n=27985  -> F/F/F/F
+Alipur                 NO2   RMSE   13.07 PASS     MAE   8.60 PASS     R2 +0.417 FAIL     bias   -1.26 PASS     n=27149  -> F
+Alipur                 O3    RMSE    5.35 PASS     MAE   3.93 PASS     R2 +0.725 PASS     bias   +1.66 PASS     n=29496  -> ALL-PASS
+Alipur                 SO2   RMSE    3.72 PASS     MAE   2.47 PASS     R2 +0.478 FAIL     bias   +0.00 PASS     n=28960  -> F
+Anand Vihar            PM2.5 RMSE   30.42 FAIL     MAE  22.14 FAIL     R2 +0.200 FAIL     bias   -3.04 PASS     n=26362  -> F/F/F
+Anand Vihar            PM10  RMSE  128.40 FAIL     MAE  87.44 FAIL     R2 +0.372 FAIL     bias  -23.78 FAIL     n=24757  -> F/F/F/F
+Anand Vihar            NO2   RMSE   18.74 MARGINAL MAE  13.02 MARGINAL R2 +0.350 FAIL     bias   -0.49 PASS     n=30953  -> M/M/F
+Anand Vihar            O3    RMSE    8.12 PASS     MAE   6.00 PASS     R2 +0.525 MARGINAL bias   +2.09 PASS     n=29801  -> M
+Anand Vihar            SO2   RMSE    8.49 PASS     MAE   6.14 PASS     R2 +0.152 FAIL     bias   +3.04 PASS     n=30873  -> F
+Ashok Vihar            PM2.5 RMSE   20.98 FAIL     MAE  15.27 FAIL     R2 +0.166 FAIL     bias   +1.56 PASS     n=35496  -> F/F/F
+Ashok Vihar            PM10  RMSE   68.08 FAIL     MAE  41.56 FAIL     R2 +0.407 FAIL     bias   -1.98 PASS     n=36355  -> F/F/F
+Ashok Vihar            NO2   RMSE   12.00 PASS     MAE   8.23 PASS     R2 +0.360 FAIL     bias   +2.57 PASS     n=36900  -> F
+Ashok Vihar            O3    RMSE    8.04 PASS     MAE   5.75 PASS     R2 +0.667 MARGINAL bias   +2.85 PASS     n=36654  -> M
+Ashok Vihar            SO2   RMSE    5.04 PASS     MAE   3.64 PASS     R2 +0.579 MARGINAL bias   -0.40 PASS     n=36794  -> M
+Bawana                 PM2.5 RMSE   31.93 FAIL     MAE  23.03 FAIL     R2 +0.292 FAIL     bias   -4.89 PASS     n=26898  -> F/F/F
+Bawana                 PM10  RMSE   84.78 FAIL     MAE  50.97 FAIL     R2 +0.316 FAIL     bias   -3.21 PASS     n=29742  -> F/F/F
+Bawana                 NO2   RMSE    5.87 PASS     MAE   4.07 PASS     R2 +0.518 MARGINAL bias   +0.93 PASS     n=32421  -> M
+Bawana                 O3    RMSE    6.88 PASS     MAE   5.12 PASS     R2 +0.504 MARGINAL bias   +2.68 PASS     n=32855  -> M
+Bawana                 SO2   RMSE    5.62 PASS     MAE   2.92 PASS     R2 +0.502 MARGINAL bias   +0.58 PASS     n=32447  -> M
+Burari Crossing        PM2.5 RMSE   22.13 FAIL     MAE  16.23 FAIL     R2 +0.239 FAIL     bias   -1.13 PASS     n=29229  -> F/F/F
+Burari Crossing        PM10  RMSE   65.28 FAIL     MAE  40.28 FAIL     R2 +0.467 FAIL     bias   -2.75 PASS     n=28145  -> F/F/F
+Burari Crossing        NO2   RMSE   13.08 PASS     MAE   8.32 PASS     R2 +0.128 FAIL     bias   -0.11 PASS     n=31093  -> F
+Burari Crossing        O3    RMSE   23.99 FAIL     MAE  16.62 FAIL     R2 +0.512 MARGINAL bias   +0.09 PASS     n=30883  -> F/F/M
+CRRI Mathura Road      PM2.5 RMSE   17.05 MARGINAL MAE  12.50 MARGINAL R2 +0.344 FAIL     bias   -0.54 PASS     n=33216  -> M/M/F
+CRRI Mathura Road      PM10  RMSE   65.14 FAIL     MAE  44.62 FAIL     R2 +0.449 FAIL     bias   +8.29 MARGINAL n=31031  -> F/F/F/M
+CRRI Mathura Road      NO2   RMSE   14.64 PASS     MAE   9.80 PASS     R2 +0.317 FAIL     bias   +0.01 PASS     n=26538  -> F
+CRRI Mathura Road      O3    RMSE   16.53 MARGINAL MAE  10.27 MARGINAL R2 +0.460 FAIL     bias   +3.51 PASS     n=32580  -> M/M/F
+DTU                    PM2.5 RMSE   25.05 FAIL     MAE  16.19 FAIL     R2 +0.243 FAIL     bias   -0.39 PASS     n=38078  -> F/F/F
+DTU                    PM10  RMSE   69.19 FAIL     MAE  40.42 FAIL     R2 +0.276 FAIL     bias   +7.52 MARGINAL n=38566  -> F/F/F/M
+DTU                    NO2   RMSE    9.71 PASS     MAE   7.54 PASS     R2 -0.153 FAIL     bias   +3.04 PASS     n=39336  -> F
+DTU                    O3    RMSE    9.51 PASS     MAE   7.10 PASS     R2 +0.294 FAIL     bias   +1.93 PASS     n=40221  -> F
+DTU                    SO2   RMSE    3.82 PASS     MAE   2.87 PASS     R2 +0.080 FAIL     bias   -0.37 PASS     n=37165  -> F
+Dr. Karni Singh Shooting Range PM2.5 RMSE   18.78 MARGINAL MAE  14.02 MARGINAL R2 +0.161 FAIL     bias   +1.90 PASS     n=30132  -> M/M/F
+Dr. Karni Singh Shooting Range PM10  RMSE   73.97 FAIL     MAE  44.62 FAIL     R2 +0.433 FAIL     bias   -0.03 PASS     n=34511  -> F/F/F
+Dr. Karni Singh Shooting Range NO2   RMSE   10.33 PASS     MAE   7.57 PASS     R2 +0.440 FAIL     bias   +2.42 PASS     n=35386  -> F
+Dr. Karni Singh Shooting Range O3    RMSE    9.28 PASS     MAE   6.80 PASS     R2 +0.716 PASS     bias   +2.41 PASS     n=35270  -> ALL-PASS
+Dr. Karni Singh Shooting Range SO2   RMSE    3.29 PASS     MAE   1.91 PASS     R2 +0.566 MARGINAL bias   +0.25 PASS     n=35492  -> M
+Dwarka Sector 8        PM2.5 RMSE   20.03 FAIL     MAE  14.55 MARGINAL R2 +0.295 FAIL     bias   +4.79 PASS     n=34499  -> F/M/F
+Dwarka Sector 8        PM10  RMSE  104.42 FAIL     MAE  66.05 FAIL     R2 +0.329 FAIL     bias   +2.69 PASS     n=37747  -> F/F/F
+Dwarka Sector 8        NO2   RMSE   13.61 PASS     MAE   9.65 PASS     R2 +0.513 MARGINAL bias   +1.50 PASS     n=39484  -> M
+Dwarka Sector 8        O3    RMSE    9.72 PASS     MAE   7.49 PASS     R2 +0.613 MARGINAL bias   +4.85 PASS     n=35528  -> M
+Dwarka Sector 8        SO2   RMSE    8.64 PASS     MAE   4.11 PASS     R2 +0.035 FAIL     bias   -0.32 PASS     n=35335  -> F
+Faridabad (Sector 11)  PM2.5 RMSE   61.26 FAIL     MAE  43.38 FAIL     R2 +0.054 FAIL     bias   -4.36 PASS     n=35123  -> F/F/F
+Faridabad (Sector 11)  PM10  RMSE   95.54 FAIL     MAE  71.45 FAIL     R2 +0.112 FAIL     bias   +2.44 PASS     n=30520  -> F/F/F
+Faridabad (Sector 11)  NO2   RMSE    2.05 PASS     MAE   1.64 PASS     R2 -8.679 FAIL     bias   -1.17 PASS     n=36298  -> F
+Faridabad (Sector 11)  O3    RMSE    4.05 PASS     MAE   2.34 PASS     R2 -0.292 FAIL     bias   +0.85 PASS     n=36298  -> F
+Faridabad (Sector 11)  SO2   RMSE    2.31 PASS     MAE   1.64 PASS     R2 -0.207 FAIL     bias   +0.40 PASS     n=36298  -> F
+Faridabad (Sector 30)  PM2.5 RMSE   30.11 FAIL     MAE  17.59 FAIL     R2 +0.169 FAIL     bias   -1.08 PASS     n=17147  -> F/F/F
+Faridabad (Sector 30)  PM10  RMSE   34.35 FAIL     MAE  24.91 FAIL     R2 +0.148 FAIL     bias   +9.09 MARGINAL n=17344  -> F/F/F/M
+Faridabad (Sector 30)  NO2   RMSE    3.35 PASS     MAE   2.09 PASS     R2 -0.598 FAIL     bias   -0.98 PASS     n=17091  -> F
+Faridabad (Sector 30)  O3    RMSE   19.07 MARGINAL MAE  10.08 MARGINAL R2 -0.083 FAIL     bias   -0.38 PASS     n=16567  -> M/M/F
+Faridabad (Sector 30)  SO2   RMSE    1.53 PASS     MAE   1.16 PASS     R2 -0.603 FAIL     bias   +0.78 PASS     n=17881  -> F
+Ghaziabad (Indirapuram) PM2.5 RMSE   21.73 FAIL     MAE  15.47 FAIL     R2 +0.296 FAIL     bias   -0.03 PASS     n=31160  -> F/F/F
+Ghaziabad (Indirapuram) PM10  RMSE   88.83 FAIL     MAE  56.43 FAIL     R2 +0.414 FAIL     bias   +5.04 MARGINAL n=31062  -> F/F/F/M
+Ghaziabad (Indirapuram) NO2   RMSE   14.52 PASS     MAE   9.88 PASS     R2 +0.350 FAIL     bias   +2.41 PASS     n=31460  -> F
+Ghaziabad (Indirapuram) O3    RMSE    8.84 PASS     MAE   6.60 PASS     R2 +0.494 FAIL     bias   +3.65 PASS     n=32147  -> F
+Ghaziabad (Indirapuram) SO2   RMSE    3.64 PASS     MAE   2.18 PASS     R2 -0.089 FAIL     bias   -0.22 PASS     n=32419  -> F
+Ghaziabad (Loni)       PM2.5 RMSE   31.94 FAIL     MAE  20.63 FAIL     R2 +0.382 FAIL     bias   +3.15 PASS     n=20637  -> F/F/F
+Ghaziabad (Loni)       PM10  RMSE   84.09 FAIL     MAE  57.75 FAIL     R2 +0.620 MARGINAL bias   -6.05 MARGINAL n=24695  -> F/F/M/M
+Ghaziabad (Loni)       NO2   RMSE   11.00 PASS     MAE   7.94 PASS     R2 +0.600 MARGINAL bias   -0.85 PASS     n=27982  -> M
+Ghaziabad (Loni)       O3    RMSE   13.68 PASS     MAE   9.79 PASS     R2 +0.660 MARGINAL bias   +0.55 PASS     n=28705  -> M
+Ghaziabad (Loni)       SO2   RMSE    7.34 PASS     MAE   4.88 PASS     R2 +0.018 FAIL     bias   +0.35 PASS     n=23976  -> F
+Ghaziabad (Sanjay Nagar) PM2.5 RMSE   19.31 MARGINAL MAE  14.60 MARGINAL R2 +0.346 FAIL     bias   +1.22 PASS     n=28127  -> M/M/F
+Ghaziabad (Sanjay Nagar) PM10  RMSE   77.44 FAIL     MAE  47.58 FAIL     R2 +0.529 MARGINAL bias   +0.14 PASS     n=28757  -> F/F/M
+Ghaziabad (Sanjay Nagar) NO2   RMSE   14.92 PASS     MAE  12.14 MARGINAL R2 +0.161 FAIL     bias   +7.25 MARGINAL n=30542  -> M/F/M
+Ghaziabad (Sanjay Nagar) O3    RMSE   17.75 MARGINAL MAE  10.96 MARGINAL R2 +0.552 MARGINAL bias   +0.17 PASS     n=29362  -> M/M/M
+Ghaziabad (Sanjay Nagar) SO2   RMSE    4.92 PASS     MAE   3.23 PASS     R2 +0.436 FAIL     bias   +0.77 PASS     n=29929  -> F
+Ghaziabad (Vasundhara) PM2.5 RMSE   23.68 FAIL     MAE  17.19 FAIL     R2 +0.053 FAIL     bias   +0.22 PASS     n=22717  -> F/F/F
+Ghaziabad (Vasundhara) PM10  RMSE   76.10 FAIL     MAE  46.67 FAIL     R2 +0.388 FAIL     bias   -4.94 PASS     n=25251  -> F/F/F
+Ghaziabad (Vasundhara) NO2   RMSE   12.86 PASS     MAE   9.21 PASS     R2 +0.323 FAIL     bias   +0.58 PASS     n=29474  -> F
+Ghaziabad (Vasundhara) O3    RMSE   17.18 MARGINAL MAE  12.17 MARGINAL R2 +0.566 MARGINAL bias   +0.92 PASS     n=26634  -> M/M/M
+Ghaziabad (Vasundhara) SO2   RMSE   11.80 PASS     MAE   6.25 PASS     R2 -0.699 FAIL     bias   +1.25 PASS     n=29162  -> F
+Greater Noida (Knowledge Park III) PM2.5 RMSE   36.38 FAIL     MAE  17.34 FAIL     R2 +0.195 FAIL     bias   -0.42 PASS     n=25117  -> F/F/F
+Greater Noida (Knowledge Park III) PM10  RMSE   91.53 FAIL     MAE  60.93 FAIL     R2 +0.490 FAIL     bias  -11.00 FAIL     n=30609  -> F/F/F/F
+Greater Noida (Knowledge Park III) NO2   RMSE   13.58 PASS     MAE   9.15 PASS     R2 +0.226 FAIL     bias   +3.85 PASS     n=33429  -> F
+Greater Noida (Knowledge Park III) O3    RMSE   18.17 MARGINAL MAE  12.72 MARGINAL R2 +0.656 MARGINAL bias   -2.81 PASS     n=33389  -> M/M/M
+Greater Noida (Knowledge Park III) SO2   RMSE    4.37 PASS     MAE   2.41 PASS     R2 +0.037 FAIL     bias   +0.89 PASS     n=32098  -> F
+Gurugram (Sector 51)   PM2.5 RMSE   54.40 FAIL     MAE  28.64 FAIL     R2 +0.204 FAIL     bias   -6.25 MARGINAL n=26914  -> F/F/F/M
+Gurugram (Sector 51)   PM10  RMSE   79.17 FAIL     MAE  51.19 FAIL     R2 +0.365 FAIL     bias   -1.25 PASS     n=26805  -> F/F/F
+Gurugram (Sector 51)   NO2   RMSE    9.10 PASS     MAE   6.69 PASS     R2 +0.543 MARGINAL bias   -2.39 PASS     n=27730  -> M
+Gurugram (Sector 51)   O3    RMSE   11.66 PASS     MAE   8.23 PASS     R2 +0.615 MARGINAL bias   -0.42 PASS     n=28028  -> M
+Gurugram (Sector 51)   SO2   RMSE    5.14 PASS     MAE   2.71 PASS     R2 -2.329 FAIL     bias   +1.09 PASS     n=25339  -> F
+Gurugram (Teri Gram)   PM2.5 RMSE   53.68 FAIL     MAE  31.84 FAIL     R2 +0.016 FAIL     bias   +1.43 PASS     n=22763  -> F/F/F
+Gurugram (Teri Gram)   PM10  RMSE   89.72 FAIL     MAE  54.87 FAIL     R2 +0.028 FAIL     bias  -11.47 FAIL     n=22327  -> F/F/F/F
+Gurugram (Teri Gram)   NO2   RMSE    8.88 PASS     MAE   6.74 PASS     R2 +0.445 FAIL     bias   -1.77 PASS     n=23214  -> F
+Gurugram (Teri Gram)   O3    RMSE    8.92 PASS     MAE   5.29 PASS     R2 +0.640 MARGINAL bias   -0.72 PASS     n=23757  -> M
+Gurugram (Teri Gram)   SO2   RMSE    6.85 PASS     MAE   4.83 PASS     R2 +0.016 FAIL     bias   +0.15 PASS     n=20601  -> F
+Gurugram (Vikas Sadan) PM2.5 RMSE   62.70 FAIL     MAE  40.38 FAIL     R2 +0.140 FAIL     bias   -1.16 PASS     n=12357  -> F/F/F
+Gurugram (Vikas Sadan) PM10  RMSE   79.22 FAIL     MAE  50.18 FAIL     R2 +0.284 FAIL     bias  -14.66 FAIL     n=12553  -> F/F/F/F
+Gurugram (Vikas Sadan) NO2   RMSE    4.52 PASS     MAE   3.53 PASS     R2 +0.142 FAIL     bias   +1.91 PASS     n=17054  -> F
+Gurugram (Vikas Sadan) O3    RMSE   10.20 PASS     MAE   8.27 PASS     R2 +0.316 FAIL     bias   +3.36 PASS     n=21838  -> F
+Gurugram (Vikas Sadan) SO2   RMSE    8.30 PASS     MAE   3.25 PASS     R2 +0.128 FAIL     bias   +1.31 PASS     n=17685  -> F
+IGI Airport (T3)       PM2.5 RMSE   19.61 MARGINAL MAE  13.72 MARGINAL R2 +0.119 FAIL     bias   +1.83 PASS     n=28813  -> M/M/F
+IGI Airport (T3)       PM10  RMSE   66.46 FAIL     MAE  40.57 FAIL     R2 +0.318 FAIL     bias   -9.01 MARGINAL n=29084  -> F/F/F/M
+IGI Airport (T3)       NO2   RMSE   25.48 FAIL     MAE  17.05 FAIL     R2 +0.348 FAIL     bias   -1.98 PASS     n=29360  -> F/F/F
+IGI Airport (T3)       O3    RMSE   20.43 FAIL     MAE  14.03 MARGINAL R2 +0.585 MARGINAL bias   -3.09 PASS     n=29561  -> F/M/M
+ITO                    PM2.5 RMSE   17.37 MARGINAL MAE  12.35 MARGINAL R2 +0.219 FAIL     bias   +1.09 PASS     n=34490  -> M/M/F
+ITO                    PM10  RMSE   59.97 FAIL     MAE  35.33 FAIL     R2 +0.218 FAIL     bias   +4.76 PASS     n=34650  -> F/F/F
+ITO                    NO2   RMSE   18.35 MARGINAL MAE  13.18 MARGINAL R2 -0.221 FAIL     bias   -0.76 PASS     n=35569  -> M/M/F
+ITO                    O3    RMSE   14.12 PASS     MAE   9.04 PASS     R2 +0.257 FAIL     bias   +0.60 PASS     n=34361  -> F
+ITO                    SO2   RMSE   10.96 PASS     MAE   8.05 PASS     R2 +0.000 FAIL     bias   +0.70 PASS     n=30062  -> F
+Jahangirpuri           PM2.5 RMSE   35.59 FAIL     MAE  27.59 FAIL     R2 +0.059 FAIL     bias   +2.21 PASS     n=26762  -> F/F/F
+Jahangirpuri           PM10  RMSE   86.11 FAIL     MAE  55.30 FAIL     R2 +0.408 FAIL     bias   +0.48 PASS     n=35037  -> F/F/F
+Jahangirpuri           NO2   RMSE   11.13 PASS     MAE   8.13 PASS     R2 +0.580 MARGINAL bias   +2.33 PASS     n=37432  -> M
+Jahangirpuri           O3    RMSE   17.34 MARGINAL MAE  13.05 MARGINAL R2 -0.663 FAIL     bias  +10.33 FAIL     n=37089  -> M/M/F/F
+Jahangirpuri           SO2   RMSE    5.46 PASS     MAE   3.83 PASS     R2 +0.309 FAIL     bias   +0.79 PASS     n=36876  -> F
+Jawaharlal Nehru Stadium PM2.5 RMSE   16.61 MARGINAL MAE  11.96 MARGINAL R2 +0.169 FAIL     bias   +0.24 PASS     n=32228  -> M/M/F
+Jawaharlal Nehru Stadium PM10  RMSE   77.56 FAIL     MAE  44.30 FAIL     R2 +0.318 FAIL     bias   +3.14 PASS     n=31059  -> F/F/F
+Jawaharlal Nehru Stadium NO2   RMSE   16.29 MARGINAL MAE  10.61 MARGINAL R2 +0.398 FAIL     bias   +0.73 PASS     n=33647  -> M/M/F
+Jawaharlal Nehru Stadium O3    RMSE   12.24 PASS     MAE   9.12 PASS     R2 +0.482 FAIL     bias   +3.47 PASS     n=32241  -> F
+Jawaharlal Nehru Stadium SO2   RMSE    7.37 PASS     MAE   5.62 PASS     R2 +0.106 FAIL     bias   +2.71 PASS     n=32194  -> F
+Lodhi Road             PM2.5 RMSE   17.53 MARGINAL MAE  13.11 MARGINAL R2 +0.144 FAIL     bias   -2.17 PASS     n=22191  -> M/M/F
+Lodhi Road             PM10  RMSE   59.51 FAIL     MAE  36.21 FAIL     R2 +0.374 FAIL     bias   +0.12 PASS     n=27991  -> F/F/F
+Lodhi Road             NO2   RMSE    6.63 PASS     MAE   5.18 PASS     R2 +0.093 FAIL     bias   +0.64 PASS     n=28625  -> F
+Lodhi Road             O3    RMSE   19.19 MARGINAL MAE  12.88 MARGINAL R2 +0.637 MARGINAL bias   +3.86 PASS     n=27668  -> M/M/M
+Major Dhyan Chand National Stadium PM2.5 RMSE   17.55 MARGINAL MAE  13.51 MARGINAL R2 +0.160 FAIL     bias   +5.15 MARGINAL n=34603  -> M/M/F/M
+Major Dhyan Chand National Stadium PM10  RMSE   72.85 FAIL     MAE  41.44 FAIL     R2 +0.359 FAIL     bias   +6.68 MARGINAL n=37464  -> F/F/F/M
+Major Dhyan Chand National Stadium NO2   RMSE   14.90 PASS     MAE  10.47 MARGINAL R2 +0.561 MARGINAL bias   +0.87 PASS     n=38759  -> M/M
+Major Dhyan Chand National Stadium O3    RMSE    8.20 PASS     MAE   5.83 PASS     R2 +0.654 MARGINAL bias   -0.56 PASS     n=39301  -> M
+Major Dhyan Chand National Stadium SO2   RMSE    4.54 PASS     MAE   3.10 PASS     R2 +0.297 FAIL     bias   +0.59 PASS     n=37410  -> F
+Mandir Marg            PM2.5 RMSE   22.91 FAIL     MAE  17.08 FAIL     R2 +0.102 FAIL     bias   +1.31 PASS     n=21728  -> F/F/F
+Mandir Marg            PM10  RMSE   76.26 FAIL     MAE  42.92 FAIL     R2 +0.319 FAIL     bias   -5.83 MARGINAL n=29922  -> F/F/F/M
+Mandir Marg            NO2   RMSE   10.57 PASS     MAE   7.75 PASS     R2 +0.464 FAIL     bias   +1.58 PASS     n=28160  -> F
+Mandir Marg            O3    RMSE   13.76 PASS     MAE   8.57 PASS     R2 +0.498 FAIL     bias   +2.16 PASS     n=27498  -> F
+Mandir Marg            SO2   RMSE   17.56 MARGINAL MAE   9.79 PASS     R2 +0.090 FAIL     bias   +0.27 PASS     n=21364  -> M/F
+Najafgarh              PM2.5 RMSE   19.30 MARGINAL MAE  13.92 MARGINAL R2 +0.152 FAIL     bias   -0.05 PASS     n=31506  -> M/M/F
+Najafgarh              PM10  RMSE   68.56 FAIL     MAE  40.61 FAIL     R2 +0.149 FAIL     bias   +4.82 PASS     n=35224  -> F/F/F
+Najafgarh              NO2   RMSE    8.34 PASS     MAE   6.52 PASS     R2 +0.274 FAIL     bias   +2.85 PASS     n=37026  -> F
+Najafgarh              O3    RMSE   11.00 PASS     MAE   8.77 PASS     R2 +0.317 FAIL     bias   +6.19 MARGINAL n=33573  -> F/M
+Najafgarh              SO2   RMSE    6.28 PASS     MAE   4.60 PASS     R2 +0.385 FAIL     bias   -1.52 PASS     n=36751  -> F
+Narela                 PM2.5 RMSE   24.29 FAIL     MAE  16.84 FAIL     R2 +0.426 FAIL     bias   +0.55 PASS     n=33782  -> F/F/F
+Narela                 PM10  RMSE   69.69 FAIL     MAE  45.49 FAIL     R2 +0.507 MARGINAL bias   -1.33 PASS     n=34026  -> F/F/M
+Narela                 NO2   RMSE    7.38 PASS     MAE   5.78 PASS     R2 +0.334 FAIL     bias   +2.06 PASS     n=35132  -> F
+Narela                 O3    RMSE   12.36 PASS     MAE   9.91 PASS     R2 -0.488 FAIL     bias   +6.19 MARGINAL n=29583  -> F/M
+Narela                 SO2   RMSE    9.36 PASS     MAE   4.45 PASS     R2 +0.313 FAIL     bias   -0.33 PASS     n=34180  -> F
+Nehru Nagar            PM2.5 RMSE   23.72 FAIL     MAE  17.78 FAIL     R2 +0.152 FAIL     bias   -0.49 PASS     n=31719  -> F/F/F
+Nehru Nagar            PM10  RMSE   70.40 FAIL     MAE  44.08 FAIL     R2 +0.375 FAIL     bias  -10.10 FAIL     n=36288  -> F/F/F/F
+Nehru Nagar            NO2   RMSE    9.91 PASS     MAE   7.37 PASS     R2 +0.591 MARGINAL bias   -0.45 PASS     n=36282  -> M
+Nehru Nagar            O3    RMSE   12.99 PASS     MAE   9.99 PASS     R2 +0.511 MARGINAL bias   +6.17 MARGINAL n=36503  -> M/M
+Nehru Nagar            SO2   RMSE   10.37 PASS     MAE   5.16 PASS     R2 +0.396 FAIL     bias   +1.17 PASS     n=34622  -> F
+Noida Sector 1         PM2.5 RMSE   25.72 FAIL     MAE  18.57 FAIL     R2 +0.152 FAIL     bias   +3.00 PASS     n=19142  -> F/F/F
+Noida Sector 1         PM10  RMSE   77.95 FAIL     MAE  50.12 FAIL     R2 +0.305 FAIL     bias   +9.43 MARGINAL n=23455  -> F/F/F/M
+Noida Sector 1         NO2   RMSE   17.59 MARGINAL MAE  13.40 MARGINAL R2 +0.317 FAIL     bias   +5.39 MARGINAL n=18841  -> M/M/F/M
+Noida Sector 1         O3    RMSE   25.96 FAIL     MAE  18.58 FAIL     R2 +0.639 MARGINAL bias   -1.51 PASS     n=22932  -> F/F/M
+Noida Sector 1         SO2   RMSE    4.29 PASS     MAE   3.10 PASS     R2 -0.060 FAIL     bias   +1.31 PASS     n=22836  -> F
+Noida Sector 116       PM2.5 RMSE   23.84 FAIL     MAE  17.77 FAIL     R2 +0.127 FAIL     bias   -2.79 PASS     n=34446  -> F/F/F
+Noida Sector 116       PM10  RMSE   69.71 FAIL     MAE  46.08 FAIL     R2 +0.291 FAIL     bias   +0.32 PASS     n=28179  -> F/F/F
+Noida Sector 116       NO2   RMSE   17.54 MARGINAL MAE  12.46 MARGINAL R2 +0.420 FAIL     bias   +0.50 PASS     n=33578  -> M/M/F
+Noida Sector 116       O3    RMSE   25.34 FAIL     MAE  18.03 FAIL     R2 +0.588 MARGINAL bias   -5.88 MARGINAL n=33585  -> F/F/M/M
+Noida Sector 116       SO2   RMSE    5.95 PASS     MAE   3.54 PASS     R2 +0.006 FAIL     bias   +1.34 PASS     n=34741  -> F
+Noida Sector 125       PM2.5 RMSE   26.06 FAIL     MAE  17.34 FAIL     R2 +0.271 FAIL     bias   -0.33 PASS     n=26867  -> F/F/F
+Noida Sector 125       PM10  RMSE   90.98 FAIL     MAE  60.05 FAIL     R2 +0.371 FAIL     bias   +3.29 PASS     n=27497  -> F/F/F
+Noida Sector 125       NO2   RMSE   15.39 MARGINAL MAE  10.49 MARGINAL R2 +0.342 FAIL     bias   +1.52 PASS     n=29668  -> M/M/F
+Noida Sector 125       O3    RMSE   16.31 MARGINAL MAE   9.73 PASS     R2 +0.579 MARGINAL bias   +0.93 PASS     n=30635  -> M/M
+Noida Sector 125       SO2   RMSE    2.64 PASS     MAE   1.91 PASS     R2 -0.171 FAIL     bias   +0.55 PASS     n=32000  -> F
+Noida Sector 62        PM2.5 RMSE   18.75 MARGINAL MAE  13.35 MARGINAL R2 +0.224 FAIL     bias   -2.96 PASS     n=26422  -> M/M/F
+Noida Sector 62        PM10  RMSE   53.16 FAIL     MAE  31.07 FAIL     R2 +0.471 FAIL     bias   -1.76 PASS     n=26927  -> F/F/F
+Noida Sector 62        NO2   RMSE   11.62 PASS     MAE   8.04 PASS     R2 +0.133 FAIL     bias   -2.21 PASS     n=23261  -> F
+Noida Sector 62        O3    RMSE   26.53 FAIL     MAE  13.05 MARGINAL R2 +0.292 FAIL     bias   +0.93 PASS     n=26612  -> F/M/F
+Okhla Phase 2          PM2.5 RMSE   17.22 MARGINAL MAE  13.21 MARGINAL R2 +0.206 FAIL     bias   +3.57 PASS     n=38265  -> M/M/F
+Okhla Phase 2          PM10  RMSE   76.46 FAIL     MAE  54.66 FAIL     R2 +0.336 FAIL     bias  +19.86 FAIL     n=37703  -> F/F/F/F
+Okhla Phase 2          NO2   RMSE    9.61 PASS     MAE   7.14 PASS     R2 +0.536 MARGINAL bias   +2.42 PASS     n=39057  -> M
+Okhla Phase 2          O3    RMSE   11.03 PASS     MAE   8.82 PASS     R2 +0.498 FAIL     bias   +4.84 PASS     n=38183  -> F
+Okhla Phase 2          SO2   RMSE    4.66 PASS     MAE   3.55 PASS     R2 -0.382 FAIL     bias   +2.11 PASS     n=38632  -> F
+Patparganj             PM2.5 RMSE   23.21 FAIL     MAE  18.33 FAIL     R2 -0.031 FAIL     bias   +9.87 MARGINAL n=33314  -> F/F/F/M
+Patparganj             PM10  RMSE   80.31 FAIL     MAE  49.24 FAIL     R2 +0.400 FAIL     bias   +3.29 PASS     n=34255  -> F/F/F
+Patparganj             NO2   RMSE   15.79 MARGINAL MAE  11.46 MARGINAL R2 +0.396 FAIL     bias   +4.28 PASS     n=36123  -> M/M/F
+Patparganj             O3    RMSE   16.64 MARGINAL MAE  12.50 MARGINAL R2 +0.218 FAIL     bias  +10.78 FAIL     n=35678  -> M/M/F/F
+Patparganj             SO2   RMSE    3.71 PASS     MAE   2.61 PASS     R2 +0.495 FAIL     bias   -0.40 PASS     n=34308  -> F
+Punjabi Bagh           PM2.5 RMSE   23.38 FAIL     MAE  16.86 FAIL     R2 +0.173 FAIL     bias   -0.91 PASS     n=31969  -> F/F/F
+Punjabi Bagh           PM10  RMSE   69.45 FAIL     MAE  45.66 FAIL     R2 +0.341 FAIL     bias   -0.69 PASS     n=33589  -> F/F/F
+Punjabi Bagh           NO2   RMSE    8.12 PASS     MAE   5.98 PASS     R2 +0.330 FAIL     bias   +1.38 PASS     n=35656  -> F
+Punjabi Bagh           O3    RMSE   17.81 MARGINAL MAE  10.06 MARGINAL R2 +0.354 FAIL     bias   +1.18 PASS     n=30003  -> M/M/F
+Punjabi Bagh           SO2   RMSE   11.29 PASS     MAE   7.88 PASS     R2 -0.530 FAIL     bias   +2.27 PASS     n=33963  -> F
+Pusa                   PM2.5 RMSE   20.96 FAIL     MAE  15.26 FAIL     R2 -0.158 FAIL     bias   -3.05 PASS     n=25188  -> F/F/F
+Pusa                   PM10  RMSE   58.06 FAIL     MAE  37.27 FAIL     R2 +0.364 FAIL     bias   +4.11 PASS     n=26300  -> F/F/F
+Pusa                   NO2   RMSE   18.91 MARGINAL MAE  14.09 MARGINAL R2 +0.429 FAIL     bias   +0.74 PASS     n=26096  -> M/M/F
+Pusa                   O3    RMSE   27.84 FAIL     MAE  21.20 FAIL     R2 +0.527 MARGINAL bias   +7.79 MARGINAL n=23279  -> F/F/M/M
+R K Puram              PM2.5 RMSE   22.93 FAIL     MAE  17.87 FAIL     R2 +0.179 FAIL     bias   +5.95 MARGINAL n=29872  -> F/F/F/M
+R K Puram              PM10  RMSE   72.53 FAIL     MAE  48.03 FAIL     R2 +0.400 FAIL     bias   +0.37 PASS     n=29013  -> F/F/F
+R K Puram              NO2   RMSE   21.91 FAIL     MAE  12.41 MARGINAL R2 +0.273 FAIL     bias   +1.09 PASS     n=32517  -> F/M/F
+R K Puram              O3    RMSE   12.76 PASS     MAE   9.57 PASS     R2 +0.302 FAIL     bias   +5.12 MARGINAL n=26108  -> F/M
+R K Puram              SO2   RMSE   17.99 MARGINAL MAE  12.03 MARGINAL R2 -0.268 FAIL     bias   +5.83 MARGINAL n=26723  -> M/M/F/M
+Rohini                 PM2.5 RMSE   25.62 FAIL     MAE  18.81 FAIL     R2 +0.257 FAIL     bias   +5.44 MARGINAL n=36192  -> F/F/F/M
+Rohini                 PM10  RMSE   86.35 FAIL     MAE  52.67 FAIL     R2 +0.317 FAIL     bias   +5.12 MARGINAL n=38895  -> F/F/F/M
+Rohini                 NO2   RMSE   10.32 PASS     MAE   8.04 PASS     R2 +0.505 MARGINAL bias   +3.98 PASS     n=38564  -> M
+Rohini                 O3    RMSE   17.27 MARGINAL MAE  14.10 MARGINAL R2 -1.223 FAIL     bias  +12.63 FAIL     n=39403  -> M/M/F/F
+Rohini                 SO2   RMSE    4.48 PASS     MAE   2.44 PASS     R2 +0.357 FAIL     bias   +0.94 PASS     n=38748  -> F
+Shadipur               PM2.5 RMSE   22.68 FAIL     MAE  16.34 FAIL     R2 +0.073 FAIL     bias   -1.72 PASS     n=21903  -> F/F/F
+Shadipur               PM10  RMSE   78.45 FAIL     MAE  47.28 FAIL     R2 +0.342 FAIL     bias   -2.15 PASS     n=21526  -> F/F/F
+Shadipur               NO2   RMSE   40.02 FAIL     MAE  25.53 FAIL     R2 +0.295 FAIL     bias   -8.72 MARGINAL n=23270  -> F/F/F/M
+Shadipur               O3    RMSE   21.35 FAIL     MAE  14.55 MARGINAL R2 +0.557 MARGINAL bias   +1.34 PASS     n=22768  -> F/M/M
+Siri Fort              PM2.5 RMSE   17.46 MARGINAL MAE  12.29 MARGINAL R2 +0.144 FAIL     bias   -2.65 PASS     n=39277  -> M/M/F
+Siri Fort              PM10  RMSE   69.54 FAIL     MAE  43.53 FAIL     R2 +0.339 FAIL     bias   +3.64 PASS     n=39666  -> F/F/F
+Siri Fort              NO2   RMSE    8.63 PASS     MAE   6.26 PASS     R2 +0.342 FAIL     bias   +1.40 PASS     n=40925  -> F
+Siri Fort              O3    RMSE   11.27 PASS     MAE   8.19 PASS     R2 +0.171 FAIL     bias   +1.35 PASS     n=41064  -> F
+Siri Fort              SO2   RMSE    5.48 PASS     MAE   3.39 PASS     R2 +0.291 FAIL     bias   -0.63 PASS     n=40651  -> F
+Sonia Vihar            PM2.5 RMSE   27.87 FAIL     MAE  19.49 FAIL     R2 +0.190 FAIL     bias   +0.58 PASS     n=30779  -> F/F/F
+Sonia Vihar            PM10  RMSE   86.49 FAIL     MAE  48.95 FAIL     R2 +0.298 FAIL     bias   -3.74 PASS     n=32610  -> F/F/F
+Sonia Vihar            NO2   RMSE   10.52 PASS     MAE   7.48 PASS     R2 +0.356 FAIL     bias   +0.12 PASS     n=30182  -> F
+Sonia Vihar            O3    RMSE   18.19 MARGINAL MAE  11.62 MARGINAL R2 +0.231 FAIL     bias   +4.18 PASS     n=29354  -> M/M/F
+Sonia Vihar            SO2   RMSE    6.67 PASS     MAE   4.52 PASS     R2 +0.569 MARGINAL bias   +0.24 PASS     n=32826  -> M
+Sri Aurobindo Marg     PM2.5 RMSE   14.32 PASS     MAE  10.87 MARGINAL R2 +0.271 FAIL     bias   +1.83 PASS     n=35737  -> M/F
+Sri Aurobindo Marg     PM10  RMSE   65.65 FAIL     MAE  36.00 FAIL     R2 +0.351 FAIL     bias   -4.70 PASS     n=33952  -> F/F/F
+Sri Aurobindo Marg     NO2   RMSE    8.31 PASS     MAE   5.69 PASS     R2 +0.590 MARGINAL bias   +0.16 PASS     n=36273  -> M
+Sri Aurobindo Marg     O3    RMSE    9.85 PASS     MAE   7.62 PASS     R2 +0.513 MARGINAL bias   +3.46 PASS     n=34543  -> M
+Sri Aurobindo Marg     SO2   RMSE   10.17 PASS     MAE   6.40 PASS     R2 +0.338 FAIL     bias   -0.48 PASS     n=34048  -> F
+Vivek Vihar            PM2.5 RMSE   41.88 FAIL     MAE  26.14 FAIL     R2 -0.035 FAIL     bias  +10.56 FAIL     n=31519  -> F/F/F/F
+Vivek Vihar            PM10  RMSE   63.83 FAIL     MAE  40.04 FAIL     R2 +0.192 FAIL     bias  +11.01 FAIL     n=31234  -> F/F/F/F
+Vivek Vihar            NO2   RMSE   12.93 PASS     MAE   8.52 PASS     R2 +0.476 FAIL     bias   +3.52 PASS     n=30315  -> F
+Vivek Vihar            O3    RMSE   19.77 MARGINAL MAE  11.41 MARGINAL R2 +0.298 FAIL     bias   -2.38 PASS     n=31864  -> M/M/F
+Vivek Vihar            SO2   RMSE    4.84 PASS     MAE   3.63 PASS     R2 -0.067 FAIL     bias   -0.43 PASS     n=32762  -> F
+Wazirpur               PM2.5 RMSE   27.53 FAIL     MAE  19.80 FAIL     R2 +0.193 FAIL     bias   -1.51 PASS     n=31109  -> F/F/F
+Wazirpur               PM10  RMSE  101.65 FAIL     MAE  64.39 FAIL     R2 +0.356 FAIL     bias  -10.89 FAIL     n=32953  -> F/F/F/F
+Wazirpur               NO2   RMSE   12.38 PASS     MAE   7.97 PASS     R2 +0.437 FAIL     bias   +1.61 PASS     n=31862  -> F
+Wazirpur               O3    RMSE    9.20 PASS     MAE   7.08 PASS     R2 +0.309 FAIL     bias   +4.23 PASS     n=33306  -> F
+Wazirpur               SO2   RMSE    3.48 PASS     MAE   2.25 PASS     R2 +0.639 MARGINAL bias   +0.04 PASS     n=32763  -> M
+
+### CONTRACT RESULT
+pairs passing ALL 4 thresholds: 2/218  (0.9%)
+
+### PER-POLLUTANT AGGREGATE (median across stations + pair pass-rate)
+poll    medRMSE  medMAE   medR2  medBias  RMSE_P  MAE_P   R2_P  BIAS_P   ALL4
+PM2.5     23.21   16.86  +0.173    +0.22   1/45   0/45   0/45   39/45   0/45
+PM10      76.26   46.67  +0.351    +0.12   0/45   0/45   0/45   26/45   0/45
+NO2       12.00    8.13  +0.350    +0.93  34/45  32/45   0/45   42/45   0/45
+O3        13.68    9.73  +0.504    +2.09  25/45  26/45   2/45   36/45   2/45
+SO2        5.47    3.54  +0.098    +0.57  36/38  37/38   0/38   37/38   0/38
+
+### FULL FAILING LIST (216 pairs, actual numbers, nothing collapsed)
+Alipur                 PM2.5 RMSE   21.50 FAIL     MAE  16.06 FAIL     R2 +0.394 FAIL     bias   +0.36 PASS     n=27620  -> F/F/F
+Alipur                 PM10  RMSE   92.22 FAIL     MAE  56.92 FAIL     R2 +0.304 FAIL     bias  -13.71 FAIL     n=27985  -> F/F/F/F
+Alipur                 NO2   RMSE   13.07 PASS     MAE   8.60 PASS     R2 +0.417 FAIL     bias   -1.26 PASS     n=27149  -> F
+Alipur                 SO2   RMSE    3.72 PASS     MAE   2.47 PASS     R2 +0.478 FAIL     bias   +0.00 PASS     n=28960  -> F
+Anand Vihar            PM2.5 RMSE   30.42 FAIL     MAE  22.14 FAIL     R2 +0.200 FAIL     bias   -3.04 PASS     n=26362  -> F/F/F
+Anand Vihar            PM10  RMSE  128.40 FAIL     MAE  87.44 FAIL     R2 +0.372 FAIL     bias  -23.78 FAIL     n=24757  -> F/F/F/F
+Anand Vihar            NO2   RMSE   18.74 MARGINAL MAE  13.02 MARGINAL R2 +0.350 FAIL     bias   -0.49 PASS     n=30953  -> M/M/F
+Anand Vihar            O3    RMSE    8.12 PASS     MAE   6.00 PASS     R2 +0.525 MARGINAL bias   +2.09 PASS     n=29801  -> M
+Anand Vihar            SO2   RMSE    8.49 PASS     MAE   6.14 PASS     R2 +0.152 FAIL     bias   +3.04 PASS     n=30873  -> F
+Ashok Vihar            PM2.5 RMSE   20.98 FAIL     MAE  15.27 FAIL     R2 +0.166 FAIL     bias   +1.56 PASS     n=35496  -> F/F/F
+Ashok Vihar            PM10  RMSE   68.08 FAIL     MAE  41.56 FAIL     R2 +0.407 FAIL     bias   -1.98 PASS     n=36355  -> F/F/F
+Ashok Vihar            NO2   RMSE   12.00 PASS     MAE   8.23 PASS     R2 +0.360 FAIL     bias   +2.57 PASS     n=36900  -> F
+Ashok Vihar            O3    RMSE    8.04 PASS     MAE   5.75 PASS     R2 +0.667 MARGINAL bias   +2.85 PASS     n=36654  -> M
+Ashok Vihar            SO2   RMSE    5.04 PASS     MAE   3.64 PASS     R2 +0.579 MARGINAL bias   -0.40 PASS     n=36794  -> M
+Bawana                 PM2.5 RMSE   31.93 FAIL     MAE  23.03 FAIL     R2 +0.292 FAIL     bias   -4.89 PASS     n=26898  -> F/F/F
+Bawana                 PM10  RMSE   84.78 FAIL     MAE  50.97 FAIL     R2 +0.316 FAIL     bias   -3.21 PASS     n=29742  -> F/F/F
+Bawana                 NO2   RMSE    5.87 PASS     MAE   4.07 PASS     R2 +0.518 MARGINAL bias   +0.93 PASS     n=32421  -> M
+Bawana                 O3    RMSE    6.88 PASS     MAE   5.12 PASS     R2 +0.504 MARGINAL bias   +2.68 PASS     n=32855  -> M
+Bawana                 SO2   RMSE    5.62 PASS     MAE   2.92 PASS     R2 +0.502 MARGINAL bias   +0.58 PASS     n=32447  -> M
+Burari Crossing        PM2.5 RMSE   22.13 FAIL     MAE  16.23 FAIL     R2 +0.239 FAIL     bias   -1.13 PASS     n=29229  -> F/F/F
+Burari Crossing        PM10  RMSE   65.28 FAIL     MAE  40.28 FAIL     R2 +0.467 FAIL     bias   -2.75 PASS     n=28145  -> F/F/F
+Burari Crossing        NO2   RMSE   13.08 PASS     MAE   8.32 PASS     R2 +0.128 FAIL     bias   -0.11 PASS     n=31093  -> F
+Burari Crossing        O3    RMSE   23.99 FAIL     MAE  16.62 FAIL     R2 +0.512 MARGINAL bias   +0.09 PASS     n=30883  -> F/F/M
+CRRI Mathura Road      PM2.5 RMSE   17.05 MARGINAL MAE  12.50 MARGINAL R2 +0.344 FAIL     bias   -0.54 PASS     n=33216  -> M/M/F
+CRRI Mathura Road      PM10  RMSE   65.14 FAIL     MAE  44.62 FAIL     R2 +0.449 FAIL     bias   +8.29 MARGINAL n=31031  -> F/F/F/M
+CRRI Mathura Road      NO2   RMSE   14.64 PASS     MAE   9.80 PASS     R2 +0.317 FAIL     bias   +0.01 PASS     n=26538  -> F
+CRRI Mathura Road      O3    RMSE   16.53 MARGINAL MAE  10.27 MARGINAL R2 +0.460 FAIL     bias   +3.51 PASS     n=32580  -> M/M/F
+DTU                    PM2.5 RMSE   25.05 FAIL     MAE  16.19 FAIL     R2 +0.243 FAIL     bias   -0.39 PASS     n=38078  -> F/F/F
+DTU                    PM10  RMSE   69.19 FAIL     MAE  40.42 FAIL     R2 +0.276 FAIL     bias   +7.52 MARGINAL n=38566  -> F/F/F/M
+DTU                    NO2   RMSE    9.71 PASS     MAE   7.54 PASS     R2 -0.153 FAIL     bias   +3.04 PASS     n=39336  -> F
+DTU                    O3    RMSE    9.51 PASS     MAE   7.10 PASS     R2 +0.294 FAIL     bias   +1.93 PASS     n=40221  -> F
+DTU                    SO2   RMSE    3.82 PASS     MAE   2.87 PASS     R2 +0.080 FAIL     bias   -0.37 PASS     n=37165  -> F
+Dr. Karni Singh Shooting Range PM2.5 RMSE   18.78 MARGINAL MAE  14.02 MARGINAL R2 +0.161 FAIL     bias   +1.90 PASS     n=30132  -> M/M/F
+Dr. Karni Singh Shooting Range PM10  RMSE   73.97 FAIL     MAE  44.62 FAIL     R2 +0.433 FAIL     bias   -0.03 PASS     n=34511  -> F/F/F
+Dr. Karni Singh Shooting Range NO2   RMSE   10.33 PASS     MAE   7.57 PASS     R2 +0.440 FAIL     bias   +2.42 PASS     n=35386  -> F
+Dr. Karni Singh Shooting Range SO2   RMSE    3.29 PASS     MAE   1.91 PASS     R2 +0.566 MARGINAL bias   +0.25 PASS     n=35492  -> M
+Dwarka Sector 8        PM2.5 RMSE   20.03 FAIL     MAE  14.55 MARGINAL R2 +0.295 FAIL     bias   +4.79 PASS     n=34499  -> F/M/F
+Dwarka Sector 8        PM10  RMSE  104.42 FAIL     MAE  66.05 FAIL     R2 +0.329 FAIL     bias   +2.69 PASS     n=37747  -> F/F/F
+Dwarka Sector 8        NO2   RMSE   13.61 PASS     MAE   9.65 PASS     R2 +0.513 MARGINAL bias   +1.50 PASS     n=39484  -> M
+Dwarka Sector 8        O3    RMSE    9.72 PASS     MAE   7.49 PASS     R2 +0.613 MARGINAL bias   +4.85 PASS     n=35528  -> M
+Dwarka Sector 8        SO2   RMSE    8.64 PASS     MAE   4.11 PASS     R2 +0.035 FAIL     bias   -0.32 PASS     n=35335  -> F
+Faridabad (Sector 11)  PM2.5 RMSE   61.26 FAIL     MAE  43.38 FAIL     R2 +0.054 FAIL     bias   -4.36 PASS     n=35123  -> F/F/F
+Faridabad (Sector 11)  PM10  RMSE   95.54 FAIL     MAE  71.45 FAIL     R2 +0.112 FAIL     bias   +2.44 PASS     n=30520  -> F/F/F
+Faridabad (Sector 11)  NO2   RMSE    2.05 PASS     MAE   1.64 PASS     R2 -8.679 FAIL     bias   -1.17 PASS     n=36298  -> F
+Faridabad (Sector 11)  O3    RMSE    4.05 PASS     MAE   2.34 PASS     R2 -0.292 FAIL     bias   +0.85 PASS     n=36298  -> F
+Faridabad (Sector 11)  SO2   RMSE    2.31 PASS     MAE   1.64 PASS     R2 -0.207 FAIL     bias   +0.40 PASS     n=36298  -> F
+Faridabad (Sector 30)  PM2.5 RMSE   30.11 FAIL     MAE  17.59 FAIL     R2 +0.169 FAIL     bias   -1.08 PASS     n=17147  -> F/F/F
+Faridabad (Sector 30)  PM10  RMSE   34.35 FAIL     MAE  24.91 FAIL     R2 +0.148 FAIL     bias   +9.09 MARGINAL n=17344  -> F/F/F/M
+Faridabad (Sector 30)  NO2   RMSE    3.35 PASS     MAE   2.09 PASS     R2 -0.598 FAIL     bias   -0.98 PASS     n=17091  -> F
+Faridabad (Sector 30)  O3    RMSE   19.07 MARGINAL MAE  10.08 MARGINAL R2 -0.083 FAIL     bias   -0.38 PASS     n=16567  -> M/M/F
+Faridabad (Sector 30)  SO2   RMSE    1.53 PASS     MAE   1.16 PASS     R2 -0.603 FAIL     bias   +0.78 PASS     n=17881  -> F
+Ghaziabad (Indirapuram) PM2.5 RMSE   21.73 FAIL     MAE  15.47 FAIL     R2 +0.296 FAIL     bias   -0.03 PASS     n=31160  -> F/F/F
+Ghaziabad (Indirapuram) PM10  RMSE   88.83 FAIL     MAE  56.43 FAIL     R2 +0.414 FAIL     bias   +5.04 MARGINAL n=31062  -> F/F/F/M
+Ghaziabad (Indirapuram) NO2   RMSE   14.52 PASS     MAE   9.88 PASS     R2 +0.350 FAIL     bias   +2.41 PASS     n=31460  -> F
+Ghaziabad (Indirapuram) O3    RMSE    8.84 PASS     MAE   6.60 PASS     R2 +0.494 FAIL     bias   +3.65 PASS     n=32147  -> F
+Ghaziabad (Indirapuram) SO2   RMSE    3.64 PASS     MAE   2.18 PASS     R2 -0.089 FAIL     bias   -0.22 PASS     n=32419  -> F
+Ghaziabad (Loni)       PM2.5 RMSE   31.94 FAIL     MAE  20.63 FAIL     R2 +0.382 FAIL     bias   +3.15 PASS     n=20637  -> F/F/F
+Ghaziabad (Loni)       PM10  RMSE   84.09 FAIL     MAE  57.75 FAIL     R2 +0.620 MARGINAL bias   -6.05 MARGINAL n=24695  -> F/F/M/M
+Ghaziabad (Loni)       NO2   RMSE   11.00 PASS     MAE   7.94 PASS     R2 +0.600 MARGINAL bias   -0.85 PASS     n=27982  -> M
+Ghaziabad (Loni)       O3    RMSE   13.68 PASS     MAE   9.79 PASS     R2 +0.660 MARGINAL bias   +0.55 PASS     n=28705  -> M
+Ghaziabad (Loni)       SO2   RMSE    7.34 PASS     MAE   4.88 PASS     R2 +0.018 FAIL     bias   +0.35 PASS     n=23976  -> F
+Ghaziabad (Sanjay Nagar) PM2.5 RMSE   19.31 MARGINAL MAE  14.60 MARGINAL R2 +0.346 FAIL     bias   +1.22 PASS     n=28127  -> M/M/F
+Ghaziabad (Sanjay Nagar) PM10  RMSE   77.44 FAIL     MAE  47.58 FAIL     R2 +0.529 MARGINAL bias   +0.14 PASS     n=28757  -> F/F/M
+Ghaziabad (Sanjay Nagar) NO2   RMSE   14.92 PASS     MAE  12.14 MARGINAL R2 +0.161 FAIL     bias   +7.25 MARGINAL n=30542  -> M/F/M
+Ghaziabad (Sanjay Nagar) O3    RMSE   17.75 MARGINAL MAE  10.96 MARGINAL R2 +0.552 MARGINAL bias   +0.17 PASS     n=29362  -> M/M/M
+Ghaziabad (Sanjay Nagar) SO2   RMSE    4.92 PASS     MAE   3.23 PASS     R2 +0.436 FAIL     bias   +0.77 PASS     n=29929  -> F
+Ghaziabad (Vasundhara) PM2.5 RMSE   23.68 FAIL     MAE  17.19 FAIL     R2 +0.053 FAIL     bias   +0.22 PASS     n=22717  -> F/F/F
+Ghaziabad (Vasundhara) PM10  RMSE   76.10 FAIL     MAE  46.67 FAIL     R2 +0.388 FAIL     bias   -4.94 PASS     n=25251  -> F/F/F
+Ghaziabad (Vasundhara) NO2   RMSE   12.86 PASS     MAE   9.21 PASS     R2 +0.323 FAIL     bias   +0.58 PASS     n=29474  -> F
+Ghaziabad (Vasundhara) O3    RMSE   17.18 MARGINAL MAE  12.17 MARGINAL R2 +0.566 MARGINAL bias   +0.92 PASS     n=26634  -> M/M/M
+Ghaziabad (Vasundhara) SO2   RMSE   11.80 PASS     MAE   6.25 PASS     R2 -0.699 FAIL     bias   +1.25 PASS     n=29162  -> F
+Greater Noida (Knowledge Park III) PM2.5 RMSE   36.38 FAIL     MAE  17.34 FAIL     R2 +0.195 FAIL     bias   -0.42 PASS     n=25117  -> F/F/F
+Greater Noida (Knowledge Park III) PM10  RMSE   91.53 FAIL     MAE  60.93 FAIL     R2 +0.490 FAIL     bias  -11.00 FAIL     n=30609  -> F/F/F/F
+Greater Noida (Knowledge Park III) NO2   RMSE   13.58 PASS     MAE   9.15 PASS     R2 +0.226 FAIL     bias   +3.85 PASS     n=33429  -> F
+Greater Noida (Knowledge Park III) O3    RMSE   18.17 MARGINAL MAE  12.72 MARGINAL R2 +0.656 MARGINAL bias   -2.81 PASS     n=33389  -> M/M/M
+Greater Noida (Knowledge Park III) SO2   RMSE    4.37 PASS     MAE   2.41 PASS     R2 +0.037 FAIL     bias   +0.89 PASS     n=32098  -> F
+Gurugram (Sector 51)   PM2.5 RMSE   54.40 FAIL     MAE  28.64 FAIL     R2 +0.204 FAIL     bias   -6.25 MARGINAL n=26914  -> F/F/F/M
+Gurugram (Sector 51)   PM10  RMSE   79.17 FAIL     MAE  51.19 FAIL     R2 +0.365 FAIL     bias   -1.25 PASS     n=26805  -> F/F/F
+Gurugram (Sector 51)   NO2   RMSE    9.10 PASS     MAE   6.69 PASS     R2 +0.543 MARGINAL bias   -2.39 PASS     n=27730  -> M
+Gurugram (Sector 51)   O3    RMSE   11.66 PASS     MAE   8.23 PASS     R2 +0.615 MARGINAL bias   -0.42 PASS     n=28028  -> M
+Gurugram (Sector 51)   SO2   RMSE    5.14 PASS     MAE   2.71 PASS     R2 -2.329 FAIL     bias   +1.09 PASS     n=25339  -> F
+Gurugram (Teri Gram)   PM2.5 RMSE   53.68 FAIL     MAE  31.84 FAIL     R2 +0.016 FAIL     bias   +1.43 PASS     n=22763  -> F/F/F
+Gurugram (Teri Gram)   PM10  RMSE   89.72 FAIL     MAE  54.87 FAIL     R2 +0.028 FAIL     bias  -11.47 FAIL     n=22327  -> F/F/F/F
+Gurugram (Teri Gram)   NO2   RMSE    8.88 PASS     MAE   6.74 PASS     R2 +0.445 FAIL     bias   -1.77 PASS     n=23214  -> F
+Gurugram (Teri Gram)   O3    RMSE    8.92 PASS     MAE   5.29 PASS     R2 +0.640 MARGINAL bias   -0.72 PASS     n=23757  -> M
+Gurugram (Teri Gram)   SO2   RMSE    6.85 PASS     MAE   4.83 PASS     R2 +0.016 FAIL     bias   +0.15 PASS     n=20601  -> F
+Gurugram (Vikas Sadan) PM2.5 RMSE   62.70 FAIL     MAE  40.38 FAIL     R2 +0.140 FAIL     bias   -1.16 PASS     n=12357  -> F/F/F
+Gurugram (Vikas Sadan) PM10  RMSE   79.22 FAIL     MAE  50.18 FAIL     R2 +0.284 FAIL     bias  -14.66 FAIL     n=12553  -> F/F/F/F
+Gurugram (Vikas Sadan) NO2   RMSE    4.52 PASS     MAE   3.53 PASS     R2 +0.142 FAIL     bias   +1.91 PASS     n=17054  -> F
+Gurugram (Vikas Sadan) O3    RMSE   10.20 PASS     MAE   8.27 PASS     R2 +0.316 FAIL     bias   +3.36 PASS     n=21838  -> F
+Gurugram (Vikas Sadan) SO2   RMSE    8.30 PASS     MAE   3.25 PASS     R2 +0.128 FAIL     bias   +1.31 PASS     n=17685  -> F
+IGI Airport (T3)       PM2.5 RMSE   19.61 MARGINAL MAE  13.72 MARGINAL R2 +0.119 FAIL     bias   +1.83 PASS     n=28813  -> M/M/F
+IGI Airport (T3)       PM10  RMSE   66.46 FAIL     MAE  40.57 FAIL     R2 +0.318 FAIL     bias   -9.01 MARGINAL n=29084  -> F/F/F/M
+IGI Airport (T3)       NO2   RMSE   25.48 FAIL     MAE  17.05 FAIL     R2 +0.348 FAIL     bias   -1.98 PASS     n=29360  -> F/F/F
+IGI Airport (T3)       O3    RMSE   20.43 FAIL     MAE  14.03 MARGINAL R2 +0.585 MARGINAL bias   -3.09 PASS     n=29561  -> F/M/M
+ITO                    PM2.5 RMSE   17.37 MARGINAL MAE  12.35 MARGINAL R2 +0.219 FAIL     bias   +1.09 PASS     n=34490  -> M/M/F
+ITO                    PM10  RMSE   59.97 FAIL     MAE  35.33 FAIL     R2 +0.218 FAIL     bias   +4.76 PASS     n=34650  -> F/F/F
+ITO                    NO2   RMSE   18.35 MARGINAL MAE  13.18 MARGINAL R2 -0.221 FAIL     bias   -0.76 PASS     n=35569  -> M/M/F
+ITO                    O3    RMSE   14.12 PASS     MAE   9.04 PASS     R2 +0.257 FAIL     bias   +0.60 PASS     n=34361  -> F
+ITO                    SO2   RMSE   10.96 PASS     MAE   8.05 PASS     R2 +0.000 FAIL     bias   +0.70 PASS     n=30062  -> F
+Jahangirpuri           PM2.5 RMSE   35.59 FAIL     MAE  27.59 FAIL     R2 +0.059 FAIL     bias   +2.21 PASS     n=26762  -> F/F/F
+Jahangirpuri           PM10  RMSE   86.11 FAIL     MAE  55.30 FAIL     R2 +0.408 FAIL     bias   +0.48 PASS     n=35037  -> F/F/F
+Jahangirpuri           NO2   RMSE   11.13 PASS     MAE   8.13 PASS     R2 +0.580 MARGINAL bias   +2.33 PASS     n=37432  -> M
+Jahangirpuri           O3    RMSE   17.34 MARGINAL MAE  13.05 MARGINAL R2 -0.663 FAIL     bias  +10.33 FAIL     n=37089  -> M/M/F/F
+Jahangirpuri           SO2   RMSE    5.46 PASS     MAE   3.83 PASS     R2 +0.309 FAIL     bias   +0.79 PASS     n=36876  -> F
+Jawaharlal Nehru Stadium PM2.5 RMSE   16.61 MARGINAL MAE  11.96 MARGINAL R2 +0.169 FAIL     bias   +0.24 PASS     n=32228  -> M/M/F
+Jawaharlal Nehru Stadium PM10  RMSE   77.56 FAIL     MAE  44.30 FAIL     R2 +0.318 FAIL     bias   +3.14 PASS     n=31059  -> F/F/F
+Jawaharlal Nehru Stadium NO2   RMSE   16.29 MARGINAL MAE  10.61 MARGINAL R2 +0.398 FAIL     bias   +0.73 PASS     n=33647  -> M/M/F
+Jawaharlal Nehru Stadium O3    RMSE   12.24 PASS     MAE   9.12 PASS     R2 +0.482 FAIL     bias   +3.47 PASS     n=32241  -> F
+Jawaharlal Nehru Stadium SO2   RMSE    7.37 PASS     MAE   5.62 PASS     R2 +0.106 FAIL     bias   +2.71 PASS     n=32194  -> F
+Lodhi Road             PM2.5 RMSE   17.53 MARGINAL MAE  13.11 MARGINAL R2 +0.144 FAIL     bias   -2.17 PASS     n=22191  -> M/M/F
+Lodhi Road             PM10  RMSE   59.51 FAIL     MAE  36.21 FAIL     R2 +0.374 FAIL     bias   +0.12 PASS     n=27991  -> F/F/F
+Lodhi Road             NO2   RMSE    6.63 PASS     MAE   5.18 PASS     R2 +0.093 FAIL     bias   +0.64 PASS     n=28625  -> F
+Lodhi Road             O3    RMSE   19.19 MARGINAL MAE  12.88 MARGINAL R2 +0.637 MARGINAL bias   +3.86 PASS     n=27668  -> M/M/M
+Major Dhyan Chand National Stadium PM2.5 RMSE   17.55 MARGINAL MAE  13.51 MARGINAL R2 +0.160 FAIL     bias   +5.15 MARGINAL n=34603  -> M/M/F/M
+Major Dhyan Chand National Stadium PM10  RMSE   72.85 FAIL     MAE  41.44 FAIL     R2 +0.359 FAIL     bias   +6.68 MARGINAL n=37464  -> F/F/F/M
+Major Dhyan Chand National Stadium NO2   RMSE   14.90 PASS     MAE  10.47 MARGINAL R2 +0.561 MARGINAL bias   +0.87 PASS     n=38759  -> M/M
+Major Dhyan Chand National Stadium O3    RMSE    8.20 PASS     MAE   5.83 PASS     R2 +0.654 MARGINAL bias   -0.56 PASS     n=39301  -> M
+Major Dhyan Chand National Stadium SO2   RMSE    4.54 PASS     MAE   3.10 PASS     R2 +0.297 FAIL     bias   +0.59 PASS     n=37410  -> F
+Mandir Marg            PM2.5 RMSE   22.91 FAIL     MAE  17.08 FAIL     R2 +0.102 FAIL     bias   +1.31 PASS     n=21728  -> F/F/F
+Mandir Marg            PM10  RMSE   76.26 FAIL     MAE  42.92 FAIL     R2 +0.319 FAIL     bias   -5.83 MARGINAL n=29922  -> F/F/F/M
+Mandir Marg            NO2   RMSE   10.57 PASS     MAE   7.75 PASS     R2 +0.464 FAIL     bias   +1.58 PASS     n=28160  -> F
+Mandir Marg            O3    RMSE   13.76 PASS     MAE   8.57 PASS     R2 +0.498 FAIL     bias   +2.16 PASS     n=27498  -> F
+Mandir Marg            SO2   RMSE   17.56 MARGINAL MAE   9.79 PASS     R2 +0.090 FAIL     bias   +0.27 PASS     n=21364  -> M/F
+Najafgarh              PM2.5 RMSE   19.30 MARGINAL MAE  13.92 MARGINAL R2 +0.152 FAIL     bias   -0.05 PASS     n=31506  -> M/M/F
+Najafgarh              PM10  RMSE   68.56 FAIL     MAE  40.61 FAIL     R2 +0.149 FAIL     bias   +4.82 PASS     n=35224  -> F/F/F
+Najafgarh              NO2   RMSE    8.34 PASS     MAE   6.52 PASS     R2 +0.274 FAIL     bias   +2.85 PASS     n=37026  -> F
+Najafgarh              O3    RMSE   11.00 PASS     MAE   8.77 PASS     R2 +0.317 FAIL     bias   +6.19 MARGINAL n=33573  -> F/M
+Najafgarh              SO2   RMSE    6.28 PASS     MAE   4.60 PASS     R2 +0.385 FAIL     bias   -1.52 PASS     n=36751  -> F
+Narela                 PM2.5 RMSE   24.29 FAIL     MAE  16.84 FAIL     R2 +0.426 FAIL     bias   +0.55 PASS     n=33782  -> F/F/F
+Narela                 PM10  RMSE   69.69 FAIL     MAE  45.49 FAIL     R2 +0.507 MARGINAL bias   -1.33 PASS     n=34026  -> F/F/M
+Narela                 NO2   RMSE    7.38 PASS     MAE   5.78 PASS     R2 +0.334 FAIL     bias   +2.06 PASS     n=35132  -> F
+Narela                 O3    RMSE   12.36 PASS     MAE   9.91 PASS     R2 -0.488 FAIL     bias   +6.19 MARGINAL n=29583  -> F/M
+Narela                 SO2   RMSE    9.36 PASS     MAE   4.45 PASS     R2 +0.313 FAIL     bias   -0.33 PASS     n=34180  -> F
+Nehru Nagar            PM2.5 RMSE   23.72 FAIL     MAE  17.78 FAIL     R2 +0.152 FAIL     bias   -0.49 PASS     n=31719  -> F/F/F
+Nehru Nagar            PM10  RMSE   70.40 FAIL     MAE  44.08 FAIL     R2 +0.375 FAIL     bias  -10.10 FAIL     n=36288  -> F/F/F/F
+Nehru Nagar            NO2   RMSE    9.91 PASS     MAE   7.37 PASS     R2 +0.591 MARGINAL bias   -0.45 PASS     n=36282  -> M
+Nehru Nagar            O3    RMSE   12.99 PASS     MAE   9.99 PASS     R2 +0.511 MARGINAL bias   +6.17 MARGINAL n=36503  -> M/M
+Nehru Nagar            SO2   RMSE   10.37 PASS     MAE   5.16 PASS     R2 +0.396 FAIL     bias   +1.17 PASS     n=34622  -> F
+Noida Sector 1         PM2.5 RMSE   25.72 FAIL     MAE  18.57 FAIL     R2 +0.152 FAIL     bias   +3.00 PASS     n=19142  -> F/F/F
+Noida Sector 1         PM10  RMSE   77.95 FAIL     MAE  50.12 FAIL     R2 +0.305 FAIL     bias   +9.43 MARGINAL n=23455  -> F/F/F/M
+Noida Sector 1         NO2   RMSE   17.59 MARGINAL MAE  13.40 MARGINAL R2 +0.317 FAIL     bias   +5.39 MARGINAL n=18841  -> M/M/F/M
+Noida Sector 1         O3    RMSE   25.96 FAIL     MAE  18.58 FAIL     R2 +0.639 MARGINAL bias   -1.51 PASS     n=22932  -> F/F/M
+Noida Sector 1         SO2   RMSE    4.29 PASS     MAE   3.10 PASS     R2 -0.060 FAIL     bias   +1.31 PASS     n=22836  -> F
+Noida Sector 116       PM2.5 RMSE   23.84 FAIL     MAE  17.77 FAIL     R2 +0.127 FAIL     bias   -2.79 PASS     n=34446  -> F/F/F
+Noida Sector 116       PM10  RMSE   69.71 FAIL     MAE  46.08 FAIL     R2 +0.291 FAIL     bias   +0.32 PASS     n=28179  -> F/F/F
+Noida Sector 116       NO2   RMSE   17.54 MARGINAL MAE  12.46 MARGINAL R2 +0.420 FAIL     bias   +0.50 PASS     n=33578  -> M/M/F
+Noida Sector 116       O3    RMSE   25.34 FAIL     MAE  18.03 FAIL     R2 +0.588 MARGINAL bias   -5.88 MARGINAL n=33585  -> F/F/M/M
+Noida Sector 116       SO2   RMSE    5.95 PASS     MAE   3.54 PASS     R2 +0.006 FAIL     bias   +1.34 PASS     n=34741  -> F
+Noida Sector 125       PM2.5 RMSE   26.06 FAIL     MAE  17.34 FAIL     R2 +0.271 FAIL     bias   -0.33 PASS     n=26867  -> F/F/F
+Noida Sector 125       PM10  RMSE   90.98 FAIL     MAE  60.05 FAIL     R2 +0.371 FAIL     bias   +3.29 PASS     n=27497  -> F/F/F
+Noida Sector 125       NO2   RMSE   15.39 MARGINAL MAE  10.49 MARGINAL R2 +0.342 FAIL     bias   +1.52 PASS     n=29668  -> M/M/F
+Noida Sector 125       O3    RMSE   16.31 MARGINAL MAE   9.73 PASS     R2 +0.579 MARGINAL bias   +0.93 PASS     n=30635  -> M/M
+Noida Sector 125       SO2   RMSE    2.64 PASS     MAE   1.91 PASS     R2 -0.171 FAIL     bias   +0.55 PASS     n=32000  -> F
+Noida Sector 62        PM2.5 RMSE   18.75 MARGINAL MAE  13.35 MARGINAL R2 +0.224 FAIL     bias   -2.96 PASS     n=26422  -> M/M/F
+Noida Sector 62        PM10  RMSE   53.16 FAIL     MAE  31.07 FAIL     R2 +0.471 FAIL     bias   -1.76 PASS     n=26927  -> F/F/F
+Noida Sector 62        NO2   RMSE   11.62 PASS     MAE   8.04 PASS     R2 +0.133 FAIL     bias   -2.21 PASS     n=23261  -> F
+Noida Sector 62        O3    RMSE   26.53 FAIL     MAE  13.05 MARGINAL R2 +0.292 FAIL     bias   +0.93 PASS     n=26612  -> F/M/F
+Okhla Phase 2          PM2.5 RMSE   17.22 MARGINAL MAE  13.21 MARGINAL R2 +0.206 FAIL     bias   +3.57 PASS     n=38265  -> M/M/F
+Okhla Phase 2          PM10  RMSE   76.46 FAIL     MAE  54.66 FAIL     R2 +0.336 FAIL     bias  +19.86 FAIL     n=37703  -> F/F/F/F
+Okhla Phase 2          NO2   RMSE    9.61 PASS     MAE   7.14 PASS     R2 +0.536 MARGINAL bias   +2.42 PASS     n=39057  -> M
+Okhla Phase 2          O3    RMSE   11.03 PASS     MAE   8.82 PASS     R2 +0.498 FAIL     bias   +4.84 PASS     n=38183  -> F
+Okhla Phase 2          SO2   RMSE    4.66 PASS     MAE   3.55 PASS     R2 -0.382 FAIL     bias   +2.11 PASS     n=38632  -> F
+Patparganj             PM2.5 RMSE   23.21 FAIL     MAE  18.33 FAIL     R2 -0.031 FAIL     bias   +9.87 MARGINAL n=33314  -> F/F/F/M
+Patparganj             PM10  RMSE   80.31 FAIL     MAE  49.24 FAIL     R2 +0.400 FAIL     bias   +3.29 PASS     n=34255  -> F/F/F
+Patparganj             NO2   RMSE   15.79 MARGINAL MAE  11.46 MARGINAL R2 +0.396 FAIL     bias   +4.28 PASS     n=36123  -> M/M/F
+Patparganj             O3    RMSE   16.64 MARGINAL MAE  12.50 MARGINAL R2 +0.218 FAIL     bias  +10.78 FAIL     n=35678  -> M/M/F/F
+Patparganj             SO2   RMSE    3.71 PASS     MAE   2.61 PASS     R2 +0.495 FAIL     bias   -0.40 PASS     n=34308  -> F
+Punjabi Bagh           PM2.5 RMSE   23.38 FAIL     MAE  16.86 FAIL     R2 +0.173 FAIL     bias   -0.91 PASS     n=31969  -> F/F/F
+Punjabi Bagh           PM10  RMSE   69.45 FAIL     MAE  45.66 FAIL     R2 +0.341 FAIL     bias   -0.69 PASS     n=33589  -> F/F/F
+Punjabi Bagh           NO2   RMSE    8.12 PASS     MAE   5.98 PASS     R2 +0.330 FAIL     bias   +1.38 PASS     n=35656  -> F
+Punjabi Bagh           O3    RMSE   17.81 MARGINAL MAE  10.06 MARGINAL R2 +0.354 FAIL     bias   +1.18 PASS     n=30003  -> M/M/F
+Punjabi Bagh           SO2   RMSE   11.29 PASS     MAE   7.88 PASS     R2 -0.530 FAIL     bias   +2.27 PASS     n=33963  -> F
+Pusa                   PM2.5 RMSE   20.96 FAIL     MAE  15.26 FAIL     R2 -0.158 FAIL     bias   -3.05 PASS     n=25188  -> F/F/F
+Pusa                   PM10  RMSE   58.06 FAIL     MAE  37.27 FAIL     R2 +0.364 FAIL     bias   +4.11 PASS     n=26300  -> F/F/F
+Pusa                   NO2   RMSE   18.91 MARGINAL MAE  14.09 MARGINAL R2 +0.429 FAIL     bias   +0.74 PASS     n=26096  -> M/M/F
+Pusa                   O3    RMSE   27.84 FAIL     MAE  21.20 FAIL     R2 +0.527 MARGINAL bias   +7.79 MARGINAL n=23279  -> F/F/M/M
+R K Puram              PM2.5 RMSE   22.93 FAIL     MAE  17.87 FAIL     R2 +0.179 FAIL     bias   +5.95 MARGINAL n=29872  -> F/F/F/M
+R K Puram              PM10  RMSE   72.53 FAIL     MAE  48.03 FAIL     R2 +0.400 FAIL     bias   +0.37 PASS     n=29013  -> F/F/F
+R K Puram              NO2   RMSE   21.91 FAIL     MAE  12.41 MARGINAL R2 +0.273 FAIL     bias   +1.09 PASS     n=32517  -> F/M/F
+R K Puram              O3    RMSE   12.76 PASS     MAE   9.57 PASS     R2 +0.302 FAIL     bias   +5.12 MARGINAL n=26108  -> F/M
+R K Puram              SO2   RMSE   17.99 MARGINAL MAE  12.03 MARGINAL R2 -0.268 FAIL     bias   +5.83 MARGINAL n=26723  -> M/M/F/M
+Rohini                 PM2.5 RMSE   25.62 FAIL     MAE  18.81 FAIL     R2 +0.257 FAIL     bias   +5.44 MARGINAL n=36192  -> F/F/F/M
+Rohini                 PM10  RMSE   86.35 FAIL     MAE  52.67 FAIL     R2 +0.317 FAIL     bias   +5.12 MARGINAL n=38895  -> F/F/F/M
+Rohini                 NO2   RMSE   10.32 PASS     MAE   8.04 PASS     R2 +0.505 MARGINAL bias   +3.98 PASS     n=38564  -> M
+Rohini                 O3    RMSE   17.27 MARGINAL MAE  14.10 MARGINAL R2 -1.223 FAIL     bias  +12.63 FAIL     n=39403  -> M/M/F/F
+Rohini                 SO2   RMSE    4.48 PASS     MAE   2.44 PASS     R2 +0.357 FAIL     bias   +0.94 PASS     n=38748  -> F
+Shadipur               PM2.5 RMSE   22.68 FAIL     MAE  16.34 FAIL     R2 +0.073 FAIL     bias   -1.72 PASS     n=21903  -> F/F/F
+Shadipur               PM10  RMSE   78.45 FAIL     MAE  47.28 FAIL     R2 +0.342 FAIL     bias   -2.15 PASS     n=21526  -> F/F/F
+Shadipur               NO2   RMSE   40.02 FAIL     MAE  25.53 FAIL     R2 +0.295 FAIL     bias   -8.72 MARGINAL n=23270  -> F/F/F/M
+Shadipur               O3    RMSE   21.35 FAIL     MAE  14.55 MARGINAL R2 +0.557 MARGINAL bias   +1.34 PASS     n=22768  -> F/M/M
+Siri Fort              PM2.5 RMSE   17.46 MARGINAL MAE  12.29 MARGINAL R2 +0.144 FAIL     bias   -2.65 PASS     n=39277  -> M/M/F
+Siri Fort              PM10  RMSE   69.54 FAIL     MAE  43.53 FAIL     R2 +0.339 FAIL     bias   +3.64 PASS     n=39666  -> F/F/F
+Siri Fort              NO2   RMSE    8.63 PASS     MAE   6.26 PASS     R2 +0.342 FAIL     bias   +1.40 PASS     n=40925  -> F
+Siri Fort              O3    RMSE   11.27 PASS     MAE   8.19 PASS     R2 +0.171 FAIL     bias   +1.35 PASS     n=41064  -> F
+Siri Fort              SO2   RMSE    5.48 PASS     MAE   3.39 PASS     R2 +0.291 FAIL     bias   -0.63 PASS     n=40651  -> F
+Sonia Vihar            PM2.5 RMSE   27.87 FAIL     MAE  19.49 FAIL     R2 +0.190 FAIL     bias   +0.58 PASS     n=30779  -> F/F/F
+Sonia Vihar            PM10  RMSE   86.49 FAIL     MAE  48.95 FAIL     R2 +0.298 FAIL     bias   -3.74 PASS     n=32610  -> F/F/F
+Sonia Vihar            NO2   RMSE   10.52 PASS     MAE   7.48 PASS     R2 +0.356 FAIL     bias   +0.12 PASS     n=30182  -> F
+Sonia Vihar            O3    RMSE   18.19 MARGINAL MAE  11.62 MARGINAL R2 +0.231 FAIL     bias   +4.18 PASS     n=29354  -> M/M/F
+Sonia Vihar            SO2   RMSE    6.67 PASS     MAE   4.52 PASS     R2 +0.569 MARGINAL bias   +0.24 PASS     n=32826  -> M
+Sri Aurobindo Marg     PM2.5 RMSE   14.32 PASS     MAE  10.87 MARGINAL R2 +0.271 FAIL     bias   +1.83 PASS     n=35737  -> M/F
+Sri Aurobindo Marg     PM10  RMSE   65.65 FAIL     MAE  36.00 FAIL     R2 +0.351 FAIL     bias   -4.70 PASS     n=33952  -> F/F/F
+Sri Aurobindo Marg     NO2   RMSE    8.31 PASS     MAE   5.69 PASS     R2 +0.590 MARGINAL bias   +0.16 PASS     n=36273  -> M
+Sri Aurobindo Marg     O3    RMSE    9.85 PASS     MAE   7.62 PASS     R2 +0.513 MARGINAL bias   +3.46 PASS     n=34543  -> M
+Sri Aurobindo Marg     SO2   RMSE   10.17 PASS     MAE   6.40 PASS     R2 +0.338 FAIL     bias   -0.48 PASS     n=34048  -> F
+Vivek Vihar            PM2.5 RMSE   41.88 FAIL     MAE  26.14 FAIL     R2 -0.035 FAIL     bias  +10.56 FAIL     n=31519  -> F/F/F/F
+Vivek Vihar            PM10  RMSE   63.83 FAIL     MAE  40.04 FAIL     R2 +0.192 FAIL     bias  +11.01 FAIL     n=31234  -> F/F/F/F
+Vivek Vihar            NO2   RMSE   12.93 PASS     MAE   8.52 PASS     R2 +0.476 FAIL     bias   +3.52 PASS     n=30315  -> F
+Vivek Vihar            O3    RMSE   19.77 MARGINAL MAE  11.41 MARGINAL R2 +0.298 FAIL     bias   -2.38 PASS     n=31864  -> M/M/F
+Vivek Vihar            SO2   RMSE    4.84 PASS     MAE   3.63 PASS     R2 -0.067 FAIL     bias   -0.43 PASS     n=32762  -> F
+Wazirpur               PM2.5 RMSE   27.53 FAIL     MAE  19.80 FAIL     R2 +0.193 FAIL     bias   -1.51 PASS     n=31109  -> F/F/F
+Wazirpur               PM10  RMSE  101.65 FAIL     MAE  64.39 FAIL     R2 +0.356 FAIL     bias  -10.89 FAIL     n=32953  -> F/F/F/F
+Wazirpur               NO2   RMSE   12.38 PASS     MAE   7.97 PASS     R2 +0.437 FAIL     bias   +1.61 PASS     n=31862  -> F
+Wazirpur               O3    RMSE    9.20 PASS     MAE   7.08 PASS     R2 +0.309 FAIL     bias   +4.23 PASS     n=33306  -> F
+Wazirpur               SO2   RMSE    3.48 PASS     MAE   2.25 PASS     R2 +0.639 MARGINAL bias   +0.04 PASS     n=32763  -> M
+
+### ROLLING FOLDS (R2 per fold; stubble fold = Oct-Nov 2025) — variance across seasons
+stations with >=2 folds: 199; median |stubble-RMSE - holdout-RMSE| = 9.53
+  Alipur                 NO2   {'holdout_120d': 0.42, 'fold_3': 0.53, 'fold_2': 0.61, 'fold_1_stubble_oct_nov_2025': 0.57}  stubbleRMSE=18.5 holdRMSE=13.1
+  Alipur                 O3    {'holdout_120d': 0.72, 'fold_3': 0.76, 'fold_2': 0.83, 'fold_1_stubble_oct_nov_2025': 0.84}  stubbleRMSE=9.8 holdRMSE=5.3
+  Alipur                 PM10  {'holdout_120d': 0.3, 'fold_3': 0.63, 'fold_2': 0.69, 'fold_1_stubble_oct_nov_2025': 0.7}  stubbleRMSE=98.1 holdRMSE=92.2
+  Alipur                 PM2.5 {'holdout_120d': 0.39, 'fold_3': 0.62, 'fold_2': 0.72, 'fold_1_stubble_oct_nov_2025': 0.7}  stubbleRMSE=63.9 holdRMSE=21.5
+  Alipur                 SO2   {'holdout_120d': 0.48, 'fold_3': 0.43, 'fold_2': 0.6, 'fold_1_stubble_oct_nov_2025': 0.62}  stubbleRMSE=4.4 holdRMSE=3.7
+  Anand Vihar            NO2   {'holdout_120d': 0.35, 'fold_3': 0.54, 'fold_2': 0.82, 'fold_1_stubble_oct_nov_2025': 0.82}  stubbleRMSE=20.6 holdRMSE=18.7
+  Anand Vihar            O3    {'holdout_120d': 0.53, 'fold_3': 0.32, 'fold_2': 0.35, 'fold_1_stubble_oct_nov_2025': 0.43}  stubbleRMSE=10.7 holdRMSE=8.1
+  Anand Vihar            PM10  {'holdout_120d': 0.37, 'fold_3': 0.47, 'fold_2': 0.59, 'fold_1_stubble_oct_nov_2025': 0.59}  stubbleRMSE=148.0 holdRMSE=128.4
+  Anand Vihar            PM2.5 {'holdout_120d': 0.2, 'fold_3': 0.53, 'fold_2': 0.72, 'fold_1_stubble_oct_nov_2025': 0.7}  stubbleRMSE=73.1 holdRMSE=30.4
+  Anand Vihar            SO2   {'holdout_120d': 0.15, 'fold_3': 0.07, 'fold_2': 0.32, 'fold_1_stubble_oct_nov_2025': 0.29}  stubbleRMSE=20.1 holdRMSE=8.5
+  Ashok Vihar            NO2   {'holdout_120d': 0.36, 'fold_3': 0.71, 'fold_2': 0.74, 'fold_1_stubble_oct_nov_2025': 0.76}  stubbleRMSE=19.1 holdRMSE=12.0
+  Ashok Vihar            O3    {'holdout_120d': 0.67, 'fold_3': 0.79, 'fold_2': 0.86, 'fold_1_stubble_oct_nov_2025': 0.88}  stubbleRMSE=15.8 holdRMSE=8.0
+  Ashok Vihar            PM10  {'holdout_120d': 0.41, 'fold_3': 0.58, 'fold_2': 0.7, 'fold_1_stubble_oct_nov_2025': 0.67}  stubbleRMSE=105.1 holdRMSE=68.1
+  Ashok Vihar            PM2.5 {'holdout_120d': 0.17, 'fold_3': 0.66, 'fold_2': 0.77, 'fold_1_stubble_oct_nov_2025': 0.74}  stubbleRMSE=63.1 holdRMSE=21.0
+  Ashok Vihar            SO2   {'holdout_120d': 0.58, 'fold_3': 0.39, 'fold_2': 0.31, 'fold_1_stubble_oct_nov_2025': 0.25}  stubbleRMSE=10.8 holdRMSE=5.0
+  Bawana                 NO2   {'holdout_120d': 0.52, 'fold_3': 0.48, 'fold_2': 0.63, 'fold_1_stubble_oct_nov_2025': 0.68}  stubbleRMSE=12.1 holdRMSE=5.9
+  Bawana                 O3    {'holdout_120d': 0.5, 'fold_3': 0.74, 'fold_2': 0.84, 'fold_1_stubble_oct_nov_2025': 0.85}  stubbleRMSE=18.0 holdRMSE=6.9
+  Bawana                 PM10  {'holdout_120d': 0.32, 'fold_3': 0.44, 'fold_2': 0.7, 'fold_1_stubble_oct_nov_2025': 0.73}  stubbleRMSE=86.8 holdRMSE=84.8
+  Bawana                 PM2.5 {'holdout_120d': 0.29, 'fold_3': 0.62, 'fold_2': 0.76, 'fold_1_stubble_oct_nov_2025': 0.77}  stubbleRMSE=67.4 holdRMSE=31.9
+  Bawana                 SO2   {'holdout_120d': 0.5, 'fold_3': 0.43, 'fold_2': 0.26, 'fold_1_stubble_oct_nov_2025': 0.23}  stubbleRMSE=10.5 holdRMSE=5.6
+  Burari Crossing        NO2   {'holdout_120d': 0.13, 'fold_3': 0.78, 'fold_2': 0.58, 'fold_1_stubble_oct_nov_2025': 0.61}  stubbleRMSE=24.9 holdRMSE=13.1
+  Burari Crossing        O3    {'holdout_120d': 0.51, 'fold_3': 0.8, 'fold_2': 0.83, 'fold_1_stubble_oct_nov_2025': 0.87}  stubbleRMSE=20.3 holdRMSE=24.0
+  Burari Crossing        PM10  {'holdout_120d': 0.47, 'fold_3': 0.46, 'fold_2': 0.64, 'fold_1_stubble_oct_nov_2025': 0.68}  stubbleRMSE=88.9 holdRMSE=65.3
+  Burari Crossing        PM2.5 {'holdout_120d': 0.24, 'fold_3': 0.58, 'fold_2': 0.68, 'fold_1_stubble_oct_nov_2025': 0.74}  stubbleRMSE=60.7 holdRMSE=22.1
+  CRRI Mathura Road      NO2   {'holdout_120d': 0.32, 'fold_3': 0.34, 'fold_2': 0.09, 'fold_1_stubble_oct_nov_2025': 0.12}  stubbleRMSE=19.6 holdRMSE=14.6
+  CRRI Mathura Road      O3    {'holdout_120d': 0.46, 'fold_3': 0.76, 'fold_2': 0.77, 'fold_1_stubble_oct_nov_2025': 0.77}  stubbleRMSE=22.3 holdRMSE=16.5
+  CRRI Mathura Road      PM10  {'holdout_120d': 0.45, 'fold_3': 0.45, 'fold_2': 0.64, 'fold_1_stubble_oct_nov_2025': 0.62}  stubbleRMSE=103.3 holdRMSE=65.1
+  CRRI Mathura Road      PM2.5 {'holdout_120d': 0.34, 'fold_3': 0.54, 'fold_2': 0.73, 'fold_1_stubble_oct_nov_2025': 0.73}  stubbleRMSE=65.6 holdRMSE=17.0
+  DTU                    NO2   {'holdout_120d': -0.15, 'fold_3': -0.24, 'fold_2': -0.2, 'fold_1_stubble_oct_nov_2025': -0.33}  stubbleRMSE=15.9 holdRMSE=9.7
+  DTU                    O3    {'holdout_120d': 0.29, 'fold_3': 0.28, 'fold_2': 0.02, 'fold_1_stubble_oct_nov_2025': 0.01}  stubbleRMSE=20.6 holdRMSE=9.5
+  DTU                    PM10  {'holdout_120d': 0.28, 'fold_3': 0.32, 'fold_2': 0.61, 'fold_1_stubble_oct_nov_2025': 0.6}  stubbleRMSE=94.9 holdRMSE=69.2
+  DTU                    PM2.5 {'holdout_120d': 0.24, 'fold_3': 0.63, 'fold_2': 0.76, 'fold_1_stubble_oct_nov_2025': 0.72}  stubbleRMSE=64.2 holdRMSE=25.0
+  DTU                    SO2   {'holdout_120d': 0.08, 'fold_3': -0.16, 'fold_2': 0.06, 'fold_1_stubble_oct_nov_2025': 0.07}  stubbleRMSE=8.0 holdRMSE=3.8
+  Dr. Karni Singh Shooting Range NO2   {'holdout_120d': 0.44, 'fold_3': 0.55, 'fold_2': 0.64, 'fold_1_stubble_oct_nov_2025': 0.63}  stubbleRMSE=16.4 holdRMSE=10.3
+  Dr. Karni Singh Shooting Range O3    {'holdout_120d': 0.72, 'fold_3': 0.81, 'fold_2': 0.7, 'fold_1_stubble_oct_nov_2025': 0.8}  stubbleRMSE=17.2 holdRMSE=9.3
+  Dr. Karni Singh Shooting Range PM10  {'holdout_120d': 0.43, 'fold_3': 0.54, 'fold_2': 0.67, 'fold_1_stubble_oct_nov_2025': 0.67}  stubbleRMSE=77.9 holdRMSE=74.0
+  Dr. Karni Singh Shooting Range PM2.5 {'holdout_120d': 0.16, 'fold_3': 0.64, 'fold_2': 0.77, 'fold_1_stubble_oct_nov_2025': 0.77}  stubbleRMSE=52.3 holdRMSE=18.8
+  Dr. Karni Singh Shooting Range SO2   {'holdout_120d': 0.57, 'fold_3': 0.31, 'fold_2': 0.45, 'fold_1_stubble_oct_nov_2025': 0.39}  stubbleRMSE=8.3 holdRMSE=3.3
+  Dwarka Sector 8        NO2   {'holdout_120d': 0.51, 'fold_3': 0.58, 'fold_2': 0.7, 'fold_1_stubble_oct_nov_2025': 0.68}  stubbleRMSE=18.5 holdRMSE=13.6
+  Dwarka Sector 8        O3    {'holdout_120d': 0.61, 'fold_3': 0.78, 'fold_2': 0.79, 'fold_1_stubble_oct_nov_2025': 0.82}  stubbleRMSE=19.9 holdRMSE=9.7
+  Dwarka Sector 8        PM10  {'holdout_120d': 0.33, 'fold_3': 0.47, 'fold_2': 0.55, 'fold_1_stubble_oct_nov_2025': 0.51}  stubbleRMSE=122.5 holdRMSE=104.4
+  Dwarka Sector 8        PM2.5 {'holdout_120d': 0.29, 'fold_3': 0.58, 'fold_2': 0.74, 'fold_1_stubble_oct_nov_2025': 0.67}  stubbleRMSE=55.0 holdRMSE=20.0
+  Dwarka Sector 8        SO2   {'holdout_120d': 0.03, 'fold_3': 0.31, 'fold_2': 0.2, 'fold_1_stubble_oct_nov_2025': 0.17}  stubbleRMSE=15.6 holdRMSE=8.6
+  Faridabad (Sector 11)  NO2   {'holdout_120d': -8.68, 'fold_3': -1.79, 'fold_2': 0.25, 'fold_1_stubble_oct_nov_2025': 0.21}  stubbleRMSE=11.7 holdRMSE=2.1
+  Faridabad (Sector 11)  O3    {'holdout_120d': -0.29, 'fold_3': -2.89, 'fold_2': 0.8, 'fold_1_stubble_oct_nov_2025': 0.8}  stubbleRMSE=14.1 holdRMSE=4.1
+  Faridabad (Sector 11)  PM10  {'holdout_120d': 0.11, 'fold_3': 0.32, 'fold_2': 0.16, 'fold_1_stubble_oct_nov_2025': -0.22}  stubbleRMSE=99.1 holdRMSE=95.5
+  Faridabad (Sector 11)  PM2.5 {'holdout_120d': 0.05, 'fold_3': 0.36, 'fold_2': 0.18, 'fold_1_stubble_oct_nov_2025': 0.07}  stubbleRMSE=95.5 holdRMSE=61.3
+  Faridabad (Sector 11)  SO2   {'holdout_120d': -0.21, 'fold_3': -0.0, 'fold_2': 0.21, 'fold_1_stubble_oct_nov_2025': 0.28}  stubbleRMSE=22.0 holdRMSE=2.3
+  Ghaziabad (Indirapuram) NO2   {'holdout_120d': 0.35, 'fold_3': 0.44, 'fold_2': 0.6, 'fold_1_stubble_oct_nov_2025': 0.55}  stubbleRMSE=23.8 holdRMSE=14.5
+  Ghaziabad (Indirapuram) O3    {'holdout_120d': 0.49, 'fold_3': 0.55, 'fold_2': 0.7, 'fold_1_stubble_oct_nov_2025': 0.65}  stubbleRMSE=25.1 holdRMSE=8.8
+  Ghaziabad (Indirapuram) PM10  {'holdout_120d': 0.41, 'fold_3': 0.57, 'fold_2': 0.64, 'fold_1_stubble_oct_nov_2025': 0.57}  stubbleRMSE=136.6 holdRMSE=88.8
+  Ghaziabad (Indirapuram) PM2.5 {'holdout_120d': 0.3, 'fold_3': 0.66, 'fold_2': 0.49, 'fold_1_stubble_oct_nov_2025': 0.4}  stubbleRMSE=89.7 holdRMSE=21.7
+  Ghaziabad (Indirapuram) SO2   {'holdout_120d': -0.09, 'fold_3': 0.32, 'fold_2': 0.33, 'fold_1_stubble_oct_nov_2025': 0.16}  stubbleRMSE=12.6 holdRMSE=3.6
+  Ghaziabad (Loni)       NO2   {'holdout_120d': 0.6, 'fold_3': 0.54, 'fold_2': 0.66, 'fold_1_stubble_oct_nov_2025': 0.68}  stubbleRMSE=22.9 holdRMSE=11.0
+  Ghaziabad (Loni)       O3    {'holdout_120d': 0.66, 'fold_3': 0.77, 'fold_2': 0.75, 'fold_1_stubble_oct_nov_2025': 0.76}  stubbleRMSE=13.0 holdRMSE=13.7
+  Ghaziabad (Loni)       PM10  {'holdout_120d': 0.62, 'fold_3': 0.47, 'fold_2': 0.69, 'fold_1_stubble_oct_nov_2025': 0.71}  stubbleRMSE=103.4 holdRMSE=84.1
+  Ghaziabad (Loni)       PM2.5 {'holdout_120d': 0.38, 'fold_3': 0.55, 'fold_2': 0.7, 'fold_1_stubble_oct_nov_2025': 0.71}  stubbleRMSE=75.1 holdRMSE=31.9
+  Ghaziabad (Loni)       SO2   {'holdout_120d': 0.02, 'fold_3': -0.03, 'fold_2': 0.23, 'fold_1_stubble_oct_nov_2025': 0.12}  stubbleRMSE=7.7 holdRMSE=7.3
+  Ghaziabad (Sanjay Nagar) NO2   {'holdout_120d': 0.16, 'fold_3': 0.44, 'fold_2': 0.57, 'fold_1_stubble_oct_nov_2025': 0.49}  stubbleRMSE=24.3 holdRMSE=14.9
+  Ghaziabad (Sanjay Nagar) O3    {'holdout_120d': 0.55, 'fold_3': 0.74, 'fold_2': 0.7, 'fold_1_stubble_oct_nov_2025': 0.72}  stubbleRMSE=17.1 holdRMSE=17.8
+  Ghaziabad (Sanjay Nagar) PM10  {'holdout_120d': 0.53, 'fold_3': 0.49, 'fold_2': 0.63, 'fold_1_stubble_oct_nov_2025': 0.6}  stubbleRMSE=91.5 holdRMSE=77.4
+  Ghaziabad (Sanjay Nagar) PM2.5 {'holdout_120d': 0.35, 'fold_3': 0.24, 'fold_2': 0.48, 'fold_1_stubble_oct_nov_2025': 0.69}  stubbleRMSE=60.7 holdRMSE=19.3
+  Ghaziabad (Sanjay Nagar) SO2   {'holdout_120d': 0.44, 'fold_3': 0.36, 'fold_2': 0.31, 'fold_1_stubble_oct_nov_2025': 0.28}  stubbleRMSE=5.9 holdRMSE=4.9
+  Ghaziabad (Vasundhara) NO2   {'holdout_120d': 0.32, 'fold_3': 0.59, 'fold_2': 0.74, 'fold_1_stubble_oct_nov_2025': 0.74}  stubbleRMSE=25.1 holdRMSE=12.9
+  Ghaziabad (Vasundhara) O3    {'holdout_120d': 0.57, 'fold_3': 0.75, 'fold_2': 0.7, 'fold_1_stubble_oct_nov_2025': 0.73}  stubbleRMSE=21.7 holdRMSE=17.2
+  Ghaziabad (Vasundhara) PM10  {'holdout_120d': 0.39, 'fold_3': 0.51, 'fold_2': 0.58, 'fold_1_stubble_oct_nov_2025': 0.53}  stubbleRMSE=115.9 holdRMSE=76.1
+  Ghaziabad (Vasundhara) PM2.5 {'holdout_120d': 0.05, 'fold_3': 0.64, 'fold_2': 0.68, 'fold_1_stubble_oct_nov_2025': 0.59}  stubbleRMSE=69.7 holdRMSE=23.7
+  Ghaziabad (Vasundhara) SO2   {'holdout_120d': -0.7, 'fold_3': 0.05, 'fold_2': 0.1, 'fold_1_stubble_oct_nov_2025': 0.09}  stubbleRMSE=31.3 holdRMSE=11.8
+  Greater Noida (Knowledge Park III) NO2   {'holdout_120d': 0.23, 'fold_3': 0.54, 'fold_2': 0.64, 'fold_1_stubble_oct_nov_2025': 0.6}  stubbleRMSE=23.0 holdRMSE=13.6
+  Greater Noida (Knowledge Park III) O3    {'holdout_120d': 0.66, 'fold_3': 0.82, 'fold_2': 0.88, 'fold_1_stubble_oct_nov_2025': 0.9}  stubbleRMSE=15.1 holdRMSE=18.2
+  Greater Noida (Knowledge Park III) PM10  {'holdout_120d': 0.49, 'fold_3': 0.52, 'fold_2': 0.65, 'fold_1_stubble_oct_nov_2025': 0.66}  stubbleRMSE=86.7 holdRMSE=91.5
+  Greater Noida (Knowledge Park III) PM2.5 {'holdout_120d': 0.2, 'fold_3': 0.55, 'fold_2': 0.66, 'fold_1_stubble_oct_nov_2025': 0.63}  stubbleRMSE=57.3 holdRMSE=36.4
+  Greater Noida (Knowledge Park III) SO2   {'holdout_120d': 0.04, 'fold_3': 0.07, 'fold_2': 0.31, 'fold_1_stubble_oct_nov_2025': 0.41}  stubbleRMSE=7.0 holdRMSE=4.4
+  Gurugram (Sector 51)   NO2   {'holdout_120d': 0.54, 'fold_3': -1.79, 'fold_2': -0.44, 'fold_1_stubble_oct_nov_2025': -0.28}  stubbleRMSE=5.8 holdRMSE=9.1
+  Gurugram (Sector 51)   O3    {'holdout_120d': 0.61, 'fold_3': 0.72, 'fold_2': 0.16, 'fold_1_stubble_oct_nov_2025': -0.01}  stubbleRMSE=17.1 holdRMSE=11.7
+  Gurugram (Sector 51)   PM10  {'holdout_120d': 0.37, 'fold_3': 0.46, 'fold_2': 0.45, 'fold_1_stubble_oct_nov_2025': 0.52}  stubbleRMSE=148.1 holdRMSE=79.2
+  Gurugram (Sector 51)   PM2.5 {'holdout_120d': 0.2, 'fold_3': 0.33, 'fold_2': 0.42, 'fold_1_stubble_oct_nov_2025': 0.51}  stubbleRMSE=90.7 holdRMSE=54.4
+  Gurugram (Sector 51)   SO2   {'holdout_120d': -2.33, 'fold_3': 0.01, 'fold_2': 0.09, 'fold_1_stubble_oct_nov_2025': 0.06}  stubbleRMSE=8.9 holdRMSE=5.1
+  Gurugram (Teri Gram)   NO2   {'holdout_120d': 0.44, 'fold_3': -0.31, 'fold_2': 0.22, 'fold_1_stubble_oct_nov_2025': 0.29}  stubbleRMSE=15.0 holdRMSE=8.9
+  Gurugram (Teri Gram)   O3    {'holdout_120d': 0.64, 'fold_3': 0.58, 'fold_2': 0.81, 'fold_1_stubble_oct_nov_2025': 0.83}  stubbleRMSE=12.6 holdRMSE=8.9
+
+### HORIZON BANDS (median across stations; model artifact = overall/bands_*)
+  PM2.5    1-6h: RMSE  20.89 R2 +0.34 (n=45)  |      24h: RMSE  22.84 R2 +0.20 (n=45)  |   48-72h: RMSE  23.93 R2 +0.14 (n=45)
+  PM10     1-6h: RMSE  65.02 R2 +0.50 (n=45)  |      24h: RMSE  73.81 R2 +0.38 (n=45)  |   48-72h: RMSE  79.54 R2 +0.30 (n=45)
+  NO2      1-6h: RMSE  10.34 R2 +0.51 (n=45)  |      24h: RMSE  12.06 R2 +0.39 (n=45)  |   48-72h: RMSE  12.48 R2 +0.29 (n=45)
+  O3       1-6h: RMSE  11.93 R2 +0.62 (n=45)  |      24h: RMSE  13.15 R2 +0.53 (n=45)  |   48-72h: RMSE  13.82 R2 +0.44 (n=45)
+  SO2      1-6h: RMSE   4.76 R2 +0.39 (n=38)  |      24h: RMSE   5.26 R2 +0.13 (n=38)  |   48-72h: RMSE   5.93 R2 +0.00 (n=38)
