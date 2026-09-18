@@ -8,7 +8,8 @@ Output: llm/model/station_models/STATION_METRICS.xlsx
     them.  Data cells are literals anyway (the workbook is a report, not a
     model).  The script verifies itself by re-opening the file with openpyxl
     and printing the baked median rows.
-  - "Horizon Detail" sheet: RMSE/MAE/R2 at +1-6h / +24h / +48-72h bands per
+  - "Horizon Detail" sheet: RMSE/MAE/R2 at +1-6h / +24h / +48-72h / +96h /
+    +120h / +144-168h bands per station (PM2.5/PM10)
     station for PM2.5 & PM10.
 """
 from __future__ import annotations
@@ -101,9 +102,9 @@ def main() -> None:
     ws2["A1"] = "Error growth by horizon band (RMSE/MAE/R²; blended artifact where it wins, else model-only)"
     ws2["A1"].font = TITLE_FONT
     headers2 = ["Station", "Pollutant",
-                "1-6h RMSE", "24h RMSE", "48-72h RMSE",
-                "1-6h MAE", "24h MAE", "48-72h MAE",
-                "1-6h R²", "24h R²", "48-72h R²"]
+                "1-6h RMSE", "24h RMSE", "48-72h RMSE", "96h RMSE", "120h RMSE", "144-168h RMSE",
+                "1-6h MAE", "24h MAE", "48-72h MAE", "96h MAE", "120h MAE", "144-168h MAE",
+                "1-6h R²", "24h R²", "48-72h R²", "96h R²", "120h R²", "144-168h R²"]
     for c, h in enumerate(headers2, 1):
         cell = ws2.cell(row=3, column=c, value=h)
         cell.fill, cell.font = HEADER_FILL, HEADER_FONT
@@ -120,7 +121,7 @@ def main() -> None:
                 continue
             vals = [st.get("name"), label]
             for stat in ("rmse", "mae", "r2"):
-                for band in ("1-6h", "24h", "48-72h"):
+                for band in ("1-6h", "24h", "48-72h", "96h", "120h", "144-168h"):
                     m = bands.get(band)
                     vals.append(m[stat] if m else None)
             for c, v in enumerate(vals, 1):
@@ -129,7 +130,7 @@ def main() -> None:
                 if c >= 3:
                     cell.number_format = "0.000"
             r2 += 1
-    for c in range(1, 12):
+    for c in range(1, 21):
         ws2.column_dimensions[get_column_letter(c)].width = 12
     ws2.column_dimensions["A"].width = 26
     ws2.freeze_panes = "C4"

@@ -42,8 +42,66 @@ OBS_ROLLS = [6, 24, 72, 168]
 
 CAPS = {"pm25": 1500, "pm10": 2000, "no2": 400, "o3": 400, "so2": 500}
 
-# horizon bands for reporting: near-term / day-ahead / long-lead
-HORIZON_BANDS = {"1-6h": range(1, 7), "24h": range(22, 27), "48-72h": range(48, 73)}
+MAX_HORIZON = 168
+CAMS_MAX_LEAD_HOURS = 96   # live CAMS AQ forecast verified to +102h, hard nulls past it
+DOY_BIN = 15               # climatology day-of-year bin width (24 bins/year)
+
+# horizon bands for reporting: near-term / day-ahead / long-lead / days 4-7
+# (96h band covers 90-102: the last hours reachable with live CAMS AQ data;
+#  120h and 144-168h run on the explicit climatology+weather fallback)
+HORIZON_BANDS = {"1-6h": range(1, 7), "24h": range(22, 27), "48-72h": range(48, 73),
+                 "96h": range(90, 103), "120h": range(118, 131),
+                 "144-168h": range(144, 169)}
+
+# month x hour weather normals for the >CAMS fallback (weather-only: no target
+# leakage, so a single all-history table is safe); ventilation proxy = BLH x wind
+def _weather_normals(merged: pd.DataFrame) -> dict:
+    idx = merged.index
+    mh = (idx.month * 100 + idx.hour).astype(int)
+    out = {"month_hour": {}, "doy_bin_days": DOY_BIN}
+    for wc in ("boundary_layer_height", "wind_speed_10m"):
+        if wc not in merged.columns:
+            continue
+        s = pd.to_numeric(merged[wc], errors="coerce")
+        cl = s.groupby(mh).mean()
+        out["month_hour"][wc] = [round(float(v), 3) for v in
+                                 cl.reindex(range(1, 2401)).fillna(cl.mean()).values]
+    return out
+
+
+def climatology_tables(merged: pd.DataFrame) -> dict:
+    """Per-source-year climatology for the >CAMS fallback.
+
+    A sample whose TARGET hour falls in year Y is evaluated through year Y-1's
+    table — always strictly past data, on both training and serving (serving's
+    2026 targets read the 2025 table).  The serving side (12-day live history)
+    could never build these tables itself, so they are frozen into meta.json.
+    """
+    idx_all = merged.index
+    years = {
+        y: merged.loc[idx_all.year == y]
+        for y in sorted(idx_all.year.unique())
+        if (idx_all.year == y).sum() >= 1500
+    }
+    tables: dict = {"years": {}, "wx": _weather_normals(merged),
+                    "doy_bin_days": DOY_BIN}
+    for y, sub in years.items():
+        idx = sub.index
+        mh = (idx.month * 100 + idx.hour).astype(int)
+        doy_bin = np.clip(((idx.dayofyear - 1) // DOY_BIN).astype(int), 0, 23)
+        t: dict = {"month_hour": {}, "doy": {}}
+        for col in TARGETS:
+            s = pd.to_numeric(sub[col], errors="coerce")
+            if s.notna().sum() < 800:
+                continue
+            cl = s.groupby(mh).mean()
+            t["month_hour"][col] = [round(float(v), 3) for v in
+                                    cl.reindex(range(1, 2401)).fillna(cl.mean()).values]
+            dv = s.groupby(doy_bin).mean()
+            t["doy"][col] = [round(float(v), 3) for v in dv.reindex(range(24)).fillna(s.mean()).values]
+        if t["month_hour"]:
+            tables["years"][str(y)] = t
+    return tables
 
 
 def horizon_band(h: int) -> str:
@@ -173,10 +231,14 @@ def _mix(pred: np.ndarray, now: np.ndarray, clim: np.ndarray,
 class StationFeatureSpace:
     """Base (issue-time) features for one station, reusable across all 72 horizons."""
 
-    def __init__(self, merged: pd.DataFrame, fire_daily: pd.DataFrame | None = None):
+    def __init__(self, merged: pd.DataFrame, fire_daily: pd.DataFrame | None = None,
+                 clim_tables: dict | None = None):
         self.df = merged
         self.index = merged.index
         self.n = len(merged)
+        # fallback climatology (frozen tables; serving passes the meta.json copy
+        # so train and serve substitute through byte-identical values)
+        self.clim = clim_tables if clim_tables is not None else climatology_tables(merged)
 
         base = pd.DataFrame(index=merged.index)
 
@@ -246,12 +308,25 @@ class StationFeatureSpace:
         f["horizon"] = np.float32(h)
 
         shifted = df.shift(-h)
+        # CAMS AQ forecasts are verified live to ~+102h and null past that.  For
+        # horizons beyond the cutoff, target-hour CAMS is replaced by the
+        # EXPLICIT fallback the live service will use: station climatology
+        # (month x hour + seasonal level, year-(Y-1) table for a year-Y target)
+        # modulated by forecast-weather ventilation.  Training on the same
+        # substitute the server feeds is what keeps days 5-7 honest.
+        fallback = h > CAMS_MAX_LEAD_HOURS
+        f["cams_available_h"] = np.float32(0.0 if fallback else 1.0)
+        tgt_ts = self.index + pd.Timedelta(hours=h)
         for col, c in self.df_cams_cols.items():
-            f[f"{c}_tgt"] = shifted[c]
+            vals = shifted[c].to_numpy(dtype=np.float32, copy=True)
+            if fallback:
+                vals = self._fallback_cams(col, tgt_ts, vals, shifted)
+            f[f"{c}_tgt"] = vals
             # target-hour CAMS expressed as an anomaly vs its recent baseline at T0
             base_rmean24 = self.base.get(f"{c}_rmean24")
             if base_rmean24 is not None:
-                f[f"{c}_tgt_anom"] = shifted[c] / (base_rmean24 + 1.0)
+                anom = np.asarray(f[f"{c}_tgt"], dtype=np.float32) / (base_rmean24.to_numpy() + 1.0)
+                f[f"{c}_tgt_anom"] = anom
         for wc in HRES_COLS:
             if wc in df.columns:
                 f[f"met_tgt_{wc}"] = shifted[wc]
@@ -271,6 +346,61 @@ class StationFeatureSpace:
         f["tgt_month"] = np.asarray(tgt_index.month, dtype=np.float32)
         f["tgt_is_winter"] = np.isin(tgt_index.month, [11, 12, 1, 2]).astype(np.float32)
         return f
+
+    def _fallback_cams(self, col: str, tgt_ts: pd.DatetimeIndex, vals: np.ndarray,
+                       shifted: pd.DataFrame) -> np.ndarray:
+        """Pseudo-CAMS for target hours beyond the live CAMS AQ cutoff (+96h).
+
+        Station climatology from the year BEFORE the target year (strictly past
+        data on both train and serve) modulated by forecast-weather ventilation
+        (target-hour BLH x wind vs the month-hour normal).  Uses only
+        T0-available information: real HRES forecast weather + frozen tables.
+        """
+        n = len(vals)
+        months = np.asarray(tgt_ts.month)
+        hours = np.asarray(tgt_ts.hour)
+        years = np.asarray(tgt_ts.year)
+        doys = np.asarray(tgt_ts.dayofyear)
+
+        base = np.full(n, np.nan, dtype=np.float32)
+        for y in np.unique(years - 1):
+            t = self.clim.get("years", {}).get(str(int(y)))
+            if t is None:
+                continue
+            sel = np.where(years - 1 == y)[0]
+            mh_tab = t["month_hour"].get(col)
+            if mh_tab is not None:
+                base[sel] = np.asarray(mh_tab, dtype=np.float32)[months[sel] * 100 + hours[sel]]
+            doy_tab = t["doy"].get(col)
+            if doy_tab is not None:
+                miss = ~np.isfinite(base[sel])
+                if miss.any():
+                    bins = np.clip((doys[sel][miss] - 1) // self.clim.get("doy_bin_days", DOY_BIN), 0, 23)
+                    base[sel[miss]] = np.asarray(doy_tab, dtype=np.float32)[bins.astype(int)]
+        still = ~np.isfinite(base)
+        if still.any() and self.clim.get("years"):
+            y0 = sorted(self.clim["years"].keys())[0]
+            mh_tab = self.clim["years"][y0]["month_hour"].get(col)
+            if mh_tab is not None:
+                base[still] = np.asarray(mh_tab, dtype=np.float32)[months[still] * 100 + hours[still]]
+        base = np.where(np.isfinite(base), base, np.float32(50.0))
+
+        # ventilation modulation from REAL forecast weather at the target hour
+        norm = self.clim.get("wx", {}).get("month_hour", {})
+        blh_n = norm.get("boundary_layer_height")
+        ws_n = norm.get("wind_speed_10m")
+        if blh_n is not None and ws_n is not None and "boundary_layer_height" in shifted.columns:
+            blh_t = shifted["boundary_layer_height"].to_numpy(dtype=np.float32)
+            ws_t = (shifted["wind_speed_10m"].to_numpy(dtype=np.float32)
+                    if "wind_speed_10m" in shifted.columns else np.ones(n, dtype=np.float32))
+            keys = months * 100 + hours
+            vn = (np.asarray(blh_n, dtype=np.float32)[keys]
+                  * np.asarray(ws_n, dtype=np.float32)[keys])
+            with np.errstate(invalid="ignore", divide="ignore"):
+                ratio = np.where(vn > 0, (blh_t * ws_t) / np.maximum(vn, 1e-6), 1.0)
+            ratio = np.clip(np.where(np.isfinite(ratio), ratio, 1.0), 0.5, 2.0)
+            base = base * ratio.astype(np.float32)
+        return base.astype(np.float32)
 
     def target_and_mask(self, col: str, h: int) -> tuple[np.ndarray, np.ndarray]:
         """Target series at T0+h plus the sample-validity mask (see module docstring)."""

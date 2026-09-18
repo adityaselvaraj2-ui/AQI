@@ -39,7 +39,7 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from io_utils import atomic_write_json
-from train_all import (CAPS, FT_STRIDE, GLOBAL_DIR, HORIZON_BANDS, MODELS_DIR,
+from train_all import (CAPS, FT_STRIDE, GLOBAL_DIR, HORIZON_BANDS, MAX_HORIZON, MODELS_DIR,
                        assemble_samples, blended, load_fire_daily,
                        load_station_pair)
 from features import StationFeatureSpace
@@ -59,7 +59,7 @@ S_GRID = [1.0, 1.15, 1.3, 1.5, 1.75, 2.0, 2.5, 3.0, 3.5, 4.0]   # width multipli
 S_MAX = 4.0
 RECENT_DAYS = 21       # report window: coverage measured on these final days
 CAL_DAYS = 21          # base quantiles calibrated on the RECENT_DAYS before that
-HORIZONS = list(range(1, 73))   # all horizons: every band gets true rows
+HORIZONS = list(range(1, MAX_HORIZON + 1))   # all horizons: every band gets true rows
 
 
 def band_key(h: np.ndarray, band: str) -> np.ndarray:

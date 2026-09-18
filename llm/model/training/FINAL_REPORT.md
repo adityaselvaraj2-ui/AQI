@@ -120,3 +120,56 @@ practical frontier; the per-slice table above is what an honest contract looks l
   archive data exists to train or anchor on).
 - Monsoon-season +72 h PM remains the weakest slice everywhere; the conformal bands
   are the honest way to consume those hours.
+
+---
+
+# 168-HOUR (7-DAY) EXTENSION — 2026-09-18
+
+## CAMS data availability (measured live before any code)
+Real CAMS AQ forecast fields: **100% non-null through +96–102h, 0% past that
+(hard nulls, HTTP 400 if `end_date` > +6d)**. HRES weather: full 168h. Therefore:
+hours 1–96 train/serve on live AQ forecasts; hours 97–168 on an explicit
+fallback — station climatology (month×hour + day-of-year bins, year Y−1 tables
+frozen into meta.json) modulated by forecast-weather ventilation (BLH × wind vs
+month-hour normal). Same code path (`_fallback_cams`) in training and serving;
+`cams_available_h` feature marks the cutoff; API exposes `aq_source`,
+`cams_available`, `horizon_band` per hour.
+
+## Contract check (raw output: `contract_check_168.txt`, 218 pairs listed per station)
+**1/218 pairs pass all 4 original thresholds** (Dr. Karni Singh O3). This is on
+the standing 120-day monsoon holdout, unchanged thresholds — same verdict level
+as the 72h model (2/218); the extension did not degrade days 1–3.
+
+## Days 5–7 vs days 1–3 — the honest gap (median across 45 stations, monsoon holdout)
+
+| Pollutant | 1–6h R² | 24h | 48–72h | 96h | 120h | 144–168h |
+|---|---|---|---|---|---|---|
+| PM2.5 | 0.32 | 0.20 | 0.13 | 0.09 | 0.07 | **0.01** |
+| PM10  | 0.47 | 0.38 | 0.32 | 0.27 | 0.26 | **0.19** |
+| NO2   | 0.50 | 0.36 | 0.28 | 0.26 | 0.24 | **0.18** |
+| O3    | 0.51 | 0.43 | 0.33 | 0.30 | 0.31 | **0.29** |
+| SO2   | 0.33 | 0.15 | 0.03 | 0.01 | −0.03 | **−0.09** |
+
+**Stated plainly:** day 5–7 PM2.5 has essentially no monsoon-season skill (R²
+0.00–0.09) and SO2 goes negative; O3/PM10/NO2 retain modest but real skill
+(R² 0.18–0.31) at 168h. The days 5–7 numbers are the climatology-fallback
+regime; they are visibly worse than days 1–3 and are flagged as such in every
+API hour (`aq_source: "climatology_fallback"`) and faded in the UI (days 5–7
+show AQI ranges + reduced opacity, day cards carry dates).
+
+## Confidence bands (recalibrated for 168h)
+1,306 (station, pollutant, band) combos: **3 below 0.65 coverage (worst 0.53 —
+Sri Aurobindo Marg SO2 144-168h), zero below 0.50**. Median PM2.5 half-width
+~43 µg/m³ across all bands (honest, since monsoon PM errors are regime-bound).
+
+## Structural notes
+- Stage A memory: horizon doubling doubled the pooled matrix; rebalanced
+  GLOBAL_STRIDE 4→12, H_STEP 8→12, FT_STRIDE 2→4 (fits 16 GB RAM).
+- Stage A (168h) global R²: PM2.5 0.26, NO2 0.46, O3 0.54, SO2 0.47.
+- Serving clamps `max_h` to each station's own `model_hours` — old 72h
+  artifacts serve 72h without extrapolation.
+- UI: `getStationForecast` → `/station-168hr`; strip shows true day cards with
+  per-day bands; horizon toggle gains "7 days" (168h, 13 checkpoints).
+- API docs: `API.md` gains the `/forecast/station-168hr` section
+  (`model_hours: 168`, source table); `llm/README.md` updated. The legacy city
+  `/forecast/72hr-ml` endpoint (WeatherAPI-based, separate model) is unchanged.

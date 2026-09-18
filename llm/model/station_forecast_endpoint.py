@@ -1,9 +1,21 @@
-"""Per-station 72-hour forecast API endpoints.
+"""Per-station 168-hour (7-day) forecast API endpoints.
 
 Serves the trained per-station LightGBM models (llm/model/station_models/):
   GET /api/v1/forecast/stations          -> station registry with training status
-  GET /api/v1/forecast/station-72hr      -> 72h forecast for one station
-  GET /api/v1/forecast/station-status    -> training/metrics summary
+  GET /api/v1/forecast/station-168hr     -> 168h (7-day) forecast for one station
+  GET /api/v1/forecast/station-72hr      -> legacy path, same 168h payload
+  GET /api/v1/forecast/station-status    -> training/metrics summary (model_hours: 168)
+
+The model concentrations are converted to CPCB sub-indices with the app's own
+aqi_service, so AQI = max(sub-indices) exactly like everywhere else on the site.
+A live consensus anchor (the same snapshot that feeds the Live AQI desk) is used
+as the T0 observation when available.
+
+Honesty flags per hour: hours 1..96 are backed by live CAMS AQ forecasts
+(aq_source="cams_forecast"); hours 97..168 run on the explicit climatology +
+weather-ventilation fallback (aq_source="climatology_fallback") because the
+CAMS AQ forecast is verified only to ~+96h.  Confidence bands (conc_p10/p90,
+aqi_p10/p90) widen with horizon and each hour carries its horizon_band.
 
 The model concentrations are converted to CPCB sub-indices with the app's own
 aqi_service, so AQI = max(sub-indices) exactly like everywhere else on the site.
@@ -23,7 +35,7 @@ from fastapi import APIRouter, Query, Request
 from app.core.rate_limit import limiter
 from app.domain.species import Pollutant
 from app.services.aqi_service import _aqi_category, compute_sub_indices
-from llm.model.station_forecast_service import forecast_station_72hr
+from llm.model.station_forecast_service import forecast_station_168hr
 
 router = APIRouter()
 
@@ -103,6 +115,11 @@ def _hourly_payload(hour: dict[str, Any]) -> dict[str, Any]:
     aqi = max((s["sub_index"] for s in sub_list), default=0)
     dominant = max(sub_list, key=lambda s: s["sub_index"])["pollutant"] if sub_list else "PM2.5"
     category = _aqi_category(aqi, "instant")
+    # AQI at the 10/90 band edges — widens with horizon; days 5-7 visibly less certain
+    aqi_lo = _aqi_from_conc({k: v for k, v in hour.get("conc_p10", {}).items()
+                             if isinstance(v, (int, float))}) if hour.get("conc_p10") else None
+    aqi_hi = _aqi_from_conc({k: v for k, v in hour.get("conc_p90", {}).items()
+                             if isinstance(v, (int, float))}) if hour.get("conc_p90") else None
     return {
         "horizon": hour["horizon"],
         "timestamp": hour["timestamp"],
@@ -110,6 +127,15 @@ def _hourly_payload(hour: dict[str, Any]) -> dict[str, Any]:
         "category": category.value if hasattr(category, "value") else str(category),
         "dominant_pollutant": dominant,
         "sub_indices": sub_list,
+        # band passthrough (raw concentrations + AQI at the edges) + honesty flags
+        "conc": hour.get("conc", {}),
+        "conc_p10": hour.get("conc_p10", {}),
+        "conc_p90": hour.get("conc_p90", {}),
+        "aqi_p10": aqi_lo,
+        "aqi_p90": aqi_hi,
+        "aq_source": hour.get("aq_source"),
+        "cams_available": hour.get("cams_available"),
+        "horizon_band": hour.get("horizon_band"),
     }
 
 
@@ -134,10 +160,34 @@ async def list_stations(request: Request) -> dict[str, Any]:
     return {"stations": stations, "count": len(stations)}
 
 
+_CONC_KEY_TO_POLLUTANT = {
+    "pm25": Pollutant.PM25, "pm10": Pollutant.PM10, "no2": Pollutant.NO2,
+    "o3": Pollutant.O3, "so2": Pollutant.SO2,
+}
+
+
+def _aqi_from_conc(conc_map: dict[str, float]) -> int | None:
+    """CPCB AQI (max sub-index) for a raw concentration map, or None if empty."""
+    if not conc_map:
+        return None
+    typed = {_CONC_KEY_TO_POLLUTANT[k]: float(v) for k, v in conc_map.items()
+             if k in _CONC_KEY_TO_POLLUTANT and isinstance(v, (int, float))}
+    if not typed:
+        return None
+    subs = compute_sub_indices(typed, mode="instant")
+    return max((s["sub_index"] for s in subs), default=None)
+
+
+@router.get(
+    "/forecast/station-168hr",
+    summary="168-hour (7-day) per-station pollutant forecast from the trained module",
+    tags=["Forecast"],
+)
 @router.get(
     "/forecast/station-72hr",
-    summary="72-hour per-station pollutant forecast from the trained module",
+    summary="Legacy path — now returns the full 168-hour (7-day) forecast",
     tags=["Forecast"],
+    include_in_schema=False,
 )
 @limiter.limit("30/minute")
 async def forecast_station(
@@ -156,7 +206,7 @@ async def forecast_station(
     try:
         result = await asyncio.wait_for(
             asyncio.to_thread(
-                forecast_station_72hr,
+                forecast_station_168hr,
                 int(st["openaq_id"]),
                 st.get("registry_name") or st.get("name") or str(station_id),
                 float(st["lat"]),
@@ -194,6 +244,8 @@ async def forecast_station(
         "t0": result["t0"],
         "anchor_used": bool(anchor),
         "history_hours": result["history_hours"],
+        "model_hours": result.get("model_hours", 168),
+        "cams_max_lead_hours": result.get("cams_max_lead_hours", 96),
         "generation_ms": result["generation_ms"],
         "band_modes": result.get("band_modes"),
         "band_coverage": result.get("band_coverage"),

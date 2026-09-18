@@ -28,7 +28,7 @@ import type {
 } from "@/lib/types";
 import { useTranslation } from "@/i18n";
 
-type ViewHorizon = "24h" | "48h" | "72h";
+type ViewHorizon = "24h" | "48h" | "72h" | "168h";
 
 interface PollutantMeta {
   id: string;
@@ -178,6 +178,12 @@ export function PollutantForecasts({
     };
   }, [stationId]);
 
+  // hour index (1..168) of each entry of stationHoursForStrip (0 = the live anchor)
+  const stationHourNumbers = useMemo<number[]>(() => {
+    if (!stationForecast) return [];
+    return [0, ...stationForecast.forecast_hours.map((h) => h.horizon)];
+  }, [stationForecast]);
+
   const forecastData = forecast?.data;
   const rawHours = forecastData?.forecast_hours ?? [];
 
@@ -322,9 +328,12 @@ export function PollutantForecasts({
         checkpoints = nHours >= 25 ? [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24] : mk(2);
       } else if (horizon === "48h") {
         checkpoints = nHours >= 49 ? [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48] : mk(4);
-      } else {
+      } else if (horizon === "72h") {
         // Full 72h horizon
         checkpoints = nHours >= 72 ? [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 71] : mk(6);
+      } else {
+        // Full 7-day (168h) horizon — 13 points every 14h
+        checkpoints = nHours >= 168 ? [0, 14, 28, 42, 56, 70, 84, 98, 112, 126, 140, 154, 167] : mk(14);
       }
 
       checkpoints.forEach((hIdx) => {
@@ -657,6 +666,14 @@ export function PollutantForecasts({
             onClick={() => setHorizon("72h")}
           >
             Full 72h
+          </button>
+          <button
+            type="button"
+            className="btn btn--solid map__ctrlBtn"
+            aria-pressed={horizon === "168h"}
+            onClick={() => setHorizon("168h")}
+          >
+            7 days
           </button>
         </div>
       </div>

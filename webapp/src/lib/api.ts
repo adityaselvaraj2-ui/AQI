@@ -211,7 +211,7 @@ export function getStationRegistry(signal?: AbortSignal): Promise<StationRegistr
 
 export function getStationForecast(stationId: number, signal?: AbortSignal): Promise<StationForecastResponse> {
   return fetchJson<StationForecastResponse>(
-    `${API}/forecast/station-72hr?station_id=${encodeURIComponent(String(stationId))}`,
+    `${API}/forecast/station-168hr?station_id=${encodeURIComponent(String(stationId))}`,
     { timeoutMs: TIMEOUTS.chronos, signal },
   );
 }

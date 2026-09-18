@@ -24,6 +24,11 @@ export interface DayForecastItem {
   pm25: number;
   temp: number;
   wind: number;
+  /** hours <=96 are backed by live CAMS AQ forecasts; beyond that the
+   *  climatology+weather fallback runs and confidence is visibly lower */
+  aqSource?: string;
+  aqiRange?: [number, number];
+  confidence?: "forecast" | "fallback";
 }
 
 export function DailyForecastStrip({
@@ -40,7 +45,12 @@ export function DailyForecastStrip({
     const rawHours = forecast?.forecast_hours ?? hours;
     if (!rawHours || rawHours.length === 0) return [];
 
-    const checkpoints = [0, 6, 12, 18, 24, 36, 48, 71];
+    // true 7-day daily outlook when the module supplies 168 hours; else the
+    // legacy sub-daily checkpoints
+    const sevenDay = rawHours.length >= 167;
+    const checkpoints = sevenDay
+      ? [0, 24, 48, 72, 96, 120, 144, 167]
+      : [0, 6, 12, 18, 24, 36, 48, 71];
     const result: DayForecastItem[] = [];
     let prevAqi = rawHours[0]?.aqi ?? 0;
 
@@ -50,15 +60,25 @@ export function DailyForecastStrip({
       if (!h) continue;
 
       const isToday = i === 0;
-      const dayName = isToday ? t("dailyForecast.today") : `+${checkpoints[i]}h`;
+      const dayName = isToday
+        ? t("dailyForecast.today")
+        : sevenDay
+          ? t("dailyForecast.today") === "Today"
+            ? `Day ${i}`
+            : `+${checkpoints[i]}h`
+          : `+${checkpoints[i]}h`;
 
       let dateStr = "";
       if (h.timestamp) {
         try {
           const d = new Date(h.timestamp);
-          const hoursStr = d.getHours().toString().padStart(2, "0");
-          const minsStr = d.getMinutes().toString().padStart(2, "0");
-          dateStr = `${hoursStr}:${minsStr}`;
+          if (sevenDay && !isToday) {
+            dateStr = d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
+          } else {
+            const hoursStr = d.getHours().toString().padStart(2, "0");
+            const minsStr = d.getMinutes().toString().padStart(2, "0");
+            dateStr = `${hoursStr}:${minsStr}`;
+          }
         } catch {
           dateStr = `+${checkpoints[i]}h`;
         }
@@ -86,6 +106,19 @@ export function DailyForecastStrip({
       const cat = h.category || aqiToCategory(dayAqi);
       const col = aqiColor(dayAqi);
 
+      // confidence honesty: past the CAMS AQ cutoff (~+96h) the model runs on
+      // the climatology+weather fallback — mark those days and show the band
+      const hz = (h as { horizon?: number }).horizon ?? checkpoints[i];
+      const aqSource = (h as { aq_source?: string }).aq_source;
+      const confidence: "forecast" | "fallback" =
+        aqSource === "climatology_fallback" || (!aqSource && hz > 96) ? "fallback" : "forecast";
+      const lo = (h as { aqi_p10?: number | null }).aqi_p10;
+      const hi = (h as { aqi_p90?: number | null }).aqi_p90;
+      const aqiRange =
+        typeof lo === "number" && typeof hi === "number" && hi > lo
+          ? ([Math.round(lo), Math.round(hi)] as [number, number])
+          : undefined;
+
       result.push({
         dayIndex: checkpoints[i],
         dayLabel: dayName,
@@ -99,6 +132,9 @@ export function DailyForecastStrip({
         pm25: dayPm25,
         temp: dayTemp,
         wind: dayWind,
+        aqSource,
+        aqiRange: confidence === "fallback" ? aqiRange : undefined,
+        confidence,
       });
 
       prevAqi = dayAqi;
@@ -126,7 +162,7 @@ export function DailyForecastStrip({
   };
 
   return (
-    <div className="daily-strip-wrap" aria-label="72-Hour Prognostic Hourly Outlook">
+    <div className="daily-strip-wrap" aria-label="7-Day Prognostic Daily Outlook">
       <div className="daily-strip-head">
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <span className="daily-pulse-dot" />
@@ -169,11 +205,36 @@ export function DailyForecastStrip({
                   <span className="daily-card-date">{d.dateLabel}</span>
                 </div>
 
-                {/* Big Bold AQI Number in category color */}
+                {/* Big Bold AQI Number in category color — faded + ranged on
+                    fallback days (past the live CAMS AQ coverage) */}
                 <div className="daily-card-aqi-wrap">
-                  <span className="daily-card-aqi" style={{ color: d.color }}>
+                  <span
+                    className="daily-card-aqi"
+                    style={{
+                      color: d.color,
+                      opacity: d.confidence === "fallback" ? 0.72 : 1,
+                    }}
+                    title={
+                      d.confidence === "fallback"
+                        ? "Days 5-7 use the climatology fallback (live AQ forecast ends ~day 4) — lower confidence"
+                        : undefined
+                    }
+                  >
                     {d.aqi}
                   </span>
+                  {d.aqiRange && (
+                    <span
+                      style={{
+                        fontFamily: "var(--mono)",
+                        fontSize: "10px",
+                        color: "var(--mist)",
+                        display: "block",
+                        marginTop: "-4px",
+                      }}
+                    >
+                      ~{d.aqiRange[0]}–{d.aqiRange[1]}
+                    </span>
+                  )}
                 </div>
 
                 {/* Category Label */}

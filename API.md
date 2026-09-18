@@ -137,6 +137,73 @@ every hour and the second run is skipped.
 
 ---
 
+## GET `/api/v1/forecast/station-168hr`
+
+**`model_hours: 168`** — 7-day per-station pollutant forecast from the trained
+per-station module (LightGBM, one booster per station × pollutant). The legacy
+path `/forecast/station-72hr` is kept and returns the same 168-hour payload.
+
+### Query parameters
+
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `station_id` | int | *(required)* | OpenAQ archive station id (see `/forecast/stations`) |
+| `use_anchor` | bool | `true` | Anchor T0 with the live consensus snapshot |
+
+### Response (abridged)
+
+```json
+{
+  "station": { "station_id": 5610, "name": "Shadipur", "lat": 28.65, "lon": 77.15 },
+  "t0": "2026-09-18T09:00:00+00:00",
+  "model_hours": 168,
+  "cams_max_lead_hours": 96,
+  "band_modes": { "pm25": { "1-6h": "calibrated", "144-168h": "persistence_fallback" } },
+  "band_coverage": { "pm25": { "1-6h": 0.86, "144-168h": 0.81 } },
+  "forecast_hours": [
+    {
+      "horizon": 120,
+      "timestamp": "2026-09-23T09:00:00+00:00",
+      "aqi": 152,
+      "category": "Poor",
+      "dominant_pollutant": "PM2.5",
+      "conc":      { "pm25": 68.4, "pm10": 151.2 },
+      "conc_p10": { "pm25": 22.1, "pm10": 63.0 },
+      "conc_p90": { "pm25": 148.3, "pm10": 305.7 },
+      "aqi_p10": 88,
+      "aqi_p90": 221,
+      "aq_source": "climatology_fallback",
+      "cams_available": false,
+      "horizon_band": "120h",
+      "sub_indices": [ /* CPCB sub-indices as elsewhere */ ]
+    }
+  ]
+}
+```
+
+### Data-source honesty (days 5–7)
+
+| Hours | `aq_source` | Backing data |
+|---|---|---|
+| 1–96 | `cams_forecast` | Live CAMS AQ forecast fields (verified coverage ~+96h) |
+| 97–168 | `climatology_fallback` | Station climatology (month × hour, frozen per-year tables) modulated by forecast-weather ventilation (BLH × wind) |
+
+Days 5–7 are measurably less accurate (see the per-band metrics in
+`llm/model/station_models/METRICS.md`); the confidence band widens with horizon
+and `aq_source` / `cams_available` let the UI label the fallback days instead of
+presenting them as equally reliable.
+
+### Errors
+
+| Code | Condition |
+|------|-----------|
+| `404` | Unknown `station_id` |
+| `429` | Rate limit exceeded |
+| `503` | Station model not trained |
+| `502` / `504` | Forecast generation failed / timed out |
+
+---
+
 ## GET `/api/v1/inversion/status`
 
 72-hour inversion diagnostics. No parameters.

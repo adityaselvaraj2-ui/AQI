@@ -46,6 +46,8 @@ from features import (  # noqa: E402
     TARGETS,
     CAPS,
     HORIZON_BANDS,
+    MAX_HORIZON,
+    CAMS_MAX_LEAD_HOURS,
     StationFeatureSpace,
     blended,
     horizon_band,
@@ -53,7 +55,7 @@ from features import (  # noqa: E402
     load_wx_csv,
     prepare_merged,
 )
-from train import PARAMS, TEST_DAYS, MIN_TEST_ROWS, HORIZONS, metrics  # noqa: E402
+from train import PARAMS, TEST_DAYS, MIN_TEST_ROWS, metrics  # noqa: E402
 from io_utils import atomic_write_json, merge_json_entries, ensure_disk_free  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -67,9 +69,10 @@ HPO_PATH = os.path.join(HERE, "hpo_params.json")
 GLOBAL_PARAMS = dict(PARAMS, learning_rate=0.06, num_leaves=80, min_data_in_leaf=200)
 GLOBAL_MAX_ROUNDS = 900
 GLOBAL_ES_ROUNDS = 60
-GLOBAL_STRIDE = 4            # thin issue times 4x in the pooled set
-GLOBAL_H_STEP = 8            # train global on horizons 1,9,17,...,73->1..72 step 8
-FT_STRIDE = 2                # thin issue times 2x per station fine-tune
+GLOBAL_STRIDE = 12           # thin issue times 12x in the pooled set (168h doubles the
+                             # horizon count; this holds the pooled matrix ~4 GB on 16 GB RAM)
+GLOBAL_H_STEP = 12           # train global on horizons 1,13,25,...,157->1..168 step 12
+FT_STRIDE = 4                # thin issue times 4x per station fine-tune (168h doubles horizon count)
 FT_LR = 0.03
 FT_ES_ROUNDS = 45
 FT_MIN_ROUNDS = 120          # scaled fine-tune budget (see ft_rounds)
@@ -221,7 +224,7 @@ def coverage_of(bands: dict, y: np.ndarray, pred: np.ndarray, hh: np.ndarray) ->
 # ── Stage A: pooled global pretrain ─────────────────────────────────────────
 
 def collect_pooled(manifest: dict, data_dir: str, stride: int, h_step: int):
-    horizons = list(range(1, 73, h_step))
+    horizons = list(range(1, MAX_HORIZON + 1, h_step))
     Xs: list[np.ndarray] = []
     cols: list[str] | None = None
     t0s: list[np.ndarray] = []
@@ -329,9 +332,11 @@ def finetune_station(sid: int, name: str, data_dir: str, hpo: dict[str, dict]) -
         return {"station_id": sid, "name": name, "status": "no_global_model"}
 
     space = StationFeatureSpace(merged, load_fire_daily(sid))
+    space_clim = space.clim   # freeze BEFORE del space (fallback tables for meta.json)
     # step-2 horizons: the single horizon-feature model interpolates across h,
-    # so training on 36 of 72 horizons halves cost with no serving difference
-    horizons = list(range(1, 73, 2))
+    # so training on 84 of 168 horizons keeps cost bounded (FT_STRIDE thins
+    # issue times to compensate for the 2.3x horizon growth vs the 72h model)
+    horizons = list(range(1, MAX_HORIZON + 1, 2))
     X, cols, t0_ns, hh, y, mask = assemble_samples(space, horizons, FT_STRIDE)
     del space, merged
 
@@ -453,6 +458,12 @@ def finetune_station(sid: int, name: str, data_dir: str, hpo: dict[str, dict]) -
                       {"station_id": sid, "name": name, "trained_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
                        "test_days": TEST_DAYS, "split_time": str(pd.Timestamp(holdout_ns)),
                        "stride": FT_STRIDE, "init_model": "global",
+                       "model_hours": MAX_HORIZON,
+                       "cams_max_lead_hours": CAMS_MAX_LEAD_HOURS,
+                       # frozen >CAMS-cutoff fallback tables — serving passes this exact
+                       # dict into StationFeatureSpace so train/serve substitute the
+                       # same pseudo-CAMS values (a 12-day live history cannot rebuild them)
+                       "climatology": space_clim,
                        "folds": [w["name"] for w in windows],
                        "pollutants": result["pollutants"]})
     return result
@@ -467,6 +478,9 @@ def main() -> None:
                     help="re-fine-tune stations that already have a checkpoint")
     ap.add_argument("--only", default="",
                     help="comma-separated station ids to fine-tune (default: all)")
+    ap.add_argument("--redo-if-72h", action="store_true",
+                    help="re-fine-tune stations whose checkpoint predates the 168h model "
+                         "(meta has no model_hours) even without --force")
     ap.add_argument("--data-dir", default=MERGED_DIR)
     args = ap.parse_args()
 
@@ -504,9 +518,11 @@ def main() -> None:
     for st in stations:
         sid, name = int(st["openaq_id"]), st["registry_name"]
         done_marker = os.path.join(MODELS_DIR, str(sid), "meta.json")
-        if not args.force and os.path.exists(done_marker):
-            print(f"=== skip {sid} {name} (checkpoint exists; --force to redo) ===", flush=True)
-            continue
+        if os.path.exists(done_marker):
+            stale = args.redo_if_72h and "model_hours" not in json.load(open(done_marker, encoding="utf-8"))
+            if not args.force and not stale:
+                print(f"=== skip {sid} {name} (checkpoint exists; --force/--redo-if-72h to redo) ===", flush=True)
+                continue
         print(f"=== fine-tune {sid} {name} ===", flush=True)
         res = finetune_station(sid, name, args.data_dir, hpo)
         # keyed read-modify-write: never clobbers other stations' entries

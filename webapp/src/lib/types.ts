@@ -319,7 +319,7 @@ export interface ExposureRequest {
   forecast_72h?: Array<Record<string, any>>;
 }
 
-// ── Per-station 72h forecast (llm/ trained module) ───────────────────────
+// ── Per-station 168h (7-day) forecast (llm/ trained module) ───────────────
 export interface StationForecastHour {
   horizon: number;
   timestamp: string;
@@ -332,6 +332,16 @@ export interface StationForecastHour {
     sub_index: number;
     category: string;
   }>;
+  /** raw concentrations + 10/90 band edges (µg/m³) — widen with horizon */
+  conc?: Record<string, number>;
+  conc_p10?: Record<string, number>;
+  conc_p90?: Record<string, number>;
+  aqi_p10?: number | null;
+  aqi_p90?: number | null;
+  /** "cams_forecast" (h≤96) vs "climatology_fallback" (h>96) */
+  aq_source?: string;
+  cams_available?: boolean;
+  horizon_band?: string;
 }
 
 export interface StationForecastResponse {
@@ -341,6 +351,12 @@ export interface StationForecastResponse {
   anchor_used: boolean;
   history_hours: number;
   generation_ms: number;
+  /** 168 since the 7-day extension */
+  model_hours?: number;
+  /** live CAMS AQ forecast verified to this hour (96) */
+  cams_max_lead_hours?: number;
+  band_modes?: Record<string, Record<string, string>>;
+  band_coverage?: Record<string, Record<string, number>>;
   forecast_hours: StationForecastHour[];
 }
 

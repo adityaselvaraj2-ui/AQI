@@ -149,18 +149,21 @@ def main() -> None:
                     or m.get("bands_model") or m.get("bands_blended") or {}
             for band, met in bands.items():
                 bands_med.setdefault((poll, band), []).append((met["rmse"], met["mae"], met["r2"]))
+    BAND_ORDER = ("1-6h", "24h", "48-72h", "96h", "120h", "144-168h")
     for poll in POLL_ORDER:
         cells = []
-        for band in ("1-6h", "24h", "48-72h"):
+        for band in BAND_ORDER:
             vals = bands_med.get((poll, band))
             if not vals:
-                cells.append(f"{band:>7}: --")
+                cells.append(f"{band:>8}: --")
                 continue
             r = _st.median(v[0] for v in vals)
             q = _st.median(v[2] for v in vals)
-            cells.append(f"{band:>7}: RMSE {r:6.2f} R2 {q:+.2f} (n={len(vals)})")
+            cells.append(f"{band:>8}: RMSE {r:6.2f} R2 {q:+.2f} (n={len(vals)})")
         if cells:
             print(f"  {POLL_LABEL[poll]:<5} " + "  |  ".join(cells))
+    print("  (96h = last band with live CAMS AQ input; 120h and 144-168h run on the "
+          "climatology+weather fallback — expect visibly weaker R2 there)")
 
 
 if __name__ == "__main__":

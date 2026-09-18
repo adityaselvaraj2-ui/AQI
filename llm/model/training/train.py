@@ -1,10 +1,11 @@
 """Train one LightGBM model per (station, pollutant) on 4 years of hourly data.
 
 Design (leakage-free, horizon-conditioned):
-  - every training sample = (issue_time T0, horizon h in 1..72); target = observation at T0+h
+  - every training sample = (issue_time T0, horizon h in 1..MAX_HORIZON); target = observation at T0+h
   - features use ONLY data available at T0 (station memory, CAMS level, weather analysis)
-    plus CAMS/HRES fields AT the target hour (legitimately available as +72h forecasts)
-  - `horizon` is itself a feature, so one model per (station, pollutant) serves all 72 hours
+    plus CAMS/HRES fields AT the target hour (legitimately available as forecasts;
+    CAMS AQ capped at its +96h live cutoff — see features.CAMS_MAX_LEAD_HOURS)
+  - `horizon` is itself a feature, so one model per (station, pollutant) serves all horizons
   - chronological split: train = issues before the last TEST_DAYS days; test = last TEST_DAYS
   - holdout metrics MSE/RMSE/MAE/R2/bias, overall and per horizon
 
@@ -27,6 +28,7 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from features import (  # noqa: E402
     TARGETS,
+    MAX_HORIZON,
     build_issue_features,
     load_station_csv,
     load_wx_csv,
@@ -53,7 +55,7 @@ TEST_DAYS = 120
 EARLY_STOP_ROUNDS = 120
 MAX_ROUNDS = 2000
 MIN_TEST_ROWS = 3000
-HORIZONS = list(range(1, 73))
+HORIZONS = list(range(1, MAX_HORIZON + 1))
 CAPS = {"pm25": 1500, "pm10": 2000, "no2": 400, "o3": 400, "so2": 500}
 
 
@@ -180,7 +182,7 @@ def train_station(station_id: int, name: str, data_dir: str,
             m = te_h == h
             if m.sum() >= 50:
                 per_h[str(h)] = metrics(y_te[m].values, pred[m])
-        marks = {h: per_h[h] for h in ("1", "6", "12", "24", "48", "72") if h in per_h}
+        marks = {h: per_h[h] for h in ("1", "6", "12", "24", "48", "72", "96", "120", "168") if h in per_h}
 
         model.save_model(os.path.join(out_dir, f"{col}.txt"))
         result["pollutants"][col] = {

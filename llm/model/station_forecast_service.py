@@ -1,4 +1,4 @@
-"""Per-station 72-hour pollutant forecast service.
+"""Per-station 168-hour (7-day) pollutant forecast service.
 
 Serves the trained per-station LightGBM models (llm/model/station_models/).
 The feature space is built with the SAME StationFeatureSpace class used in
@@ -8,8 +8,9 @@ drift apart.
 Live data flow per request:
   1. station observations, last ~10 days  -> OpenAQ public S3 archive (keyless)
   2. live anchor at T0                    -> consensus snapshot (injected)
-  3. CAMS + HRES hourly fields T0-48..T0+72 -> Open-Meteo forecast APIs (keyless)
-  4. LightGBM (station, pollutant) x horizons 1..72 with horizon feature
+  3. CAMS + HRES hourly fields T0-48..T0+168 -> Open-Meteo forecast APIs (keyless;
+     CAMS AQ verified only to ~+96h — later hours use the climatology fallback)
+  4. LightGBM (station, pollutant) x horizons 1..168 with horizon feature
   5. CPCB sub-indices via the app's own aqi_service -> AQI = max(sub-indices)
 
 CO is deliberately excluded (per project decision): not trained, not forecast.
@@ -38,7 +39,8 @@ if TRAINING_DIR not in sys.path:
     sys.path.insert(0, TRAINING_DIR)
 
 from features import (  # noqa: E402
-    TARGETS, CAPS, StationFeatureSpace, prepare_merged, load_wx_csv, blended, horizon_band,
+    TARGETS, CAPS, CAMS_MAX_LEAD_HOURS, StationFeatureSpace, prepare_merged,
+    load_wx_csv, blended, horizon_band,
 )
 
 FIRE_DIR = os.path.join(TRAINING_DIR, "data", "fire")
@@ -167,7 +169,12 @@ def fetch_recent_history(location_id: int, days: int = 12) -> pd.DataFrame:
 # ── covariates: CAMS (past+future) + HRES weather (past+future) ─────────────
 
 def fetch_covariates(lat: float, lon: float) -> pd.DataFrame:
-    """CAMS (-48h..+72h) + HRES weather (-48h..+72h) on a UTC hourly index."""
+    """CAMS (-48h..+96h) + HRES weather (-48h..+168h) on a UTC hourly index.
+
+    CAMS AQ is requested to its +96h data edge (verified: hard nulls beyond);
+    HRES covers the full 168h horizon.  Horizons past the CAMS cutoff run on
+    the explicit climatology+weather fallback inside frame_for_horizon.
+    """
     key = (round(lat, 3), round(lon, 3))
     now = time.time()
     hit = WX_CACHE.get(key)
@@ -177,15 +184,17 @@ def fetch_covariates(lat: float, lon: float) -> pd.DataFrame:
     today = pd.Timestamp.utcnow().tz_localize(None).strftime("%Y-%m-%d")
     start = (pd.Timestamp.utcnow().tz_localize(None) - pd.Timedelta(days=3)).strftime("%Y-%m-%d")
     end = (pd.Timestamp.utcnow().tz_localize(None) + pd.Timedelta(days=4)).strftime("%Y-%m-%d")
-    # end_date extends +4 days so the CAMS *forecast* fields cover every target
-    # hour T0+1..T0+72 (the same covariates the model trained on)
+    end7 = (pd.Timestamp.utcnow().tz_localize(None) + pd.Timedelta(days=7)).strftime("%Y-%m-%d")
+    # CAMS: end_date +4d reaches its ~+96h data edge; requesting further
+    # returns HTTP 400, and slots past the run edge are hard nulls anyway
     cams = _http_json(
         f"{CAMS_URL}?latitude={lat:.4f}&longitude={lon:.4f}&hourly={CAMS_HOURLY}"
         f"&start_date={start}&end_date={end}&timezone=UTC"
     )
+    # HRES weather: 7 forecast days covers the full 168h horizon
     fcst = _http_json(
         f"{FCST_URL}?latitude={lat:.4f}&longitude={lon:.4f}&hourly={FCST_HOURLY}"
-        f"&forecast_days=4&past_days=3&timezone=UTC"
+        f"&forecast_days=7&past_days=3&timezone=UTC"
     )
     if "hourly" not in cams or "hourly" not in fcst:
         raise RuntimeError("covariate fetch failed")
@@ -288,12 +297,19 @@ def build_issue_frame(bundle: dict, history: pd.DataFrame, wx: pd.DataFrame,
 
     merged = prepare_merged(station, wx)
     fire = fetch_fire_daily(bundle["station_id"]) if bundle.get("has_fire") else None
-    space = StationFeatureSpace(merged, fire)
+    # pass the FROZEN climatology from meta.json so the >CAMS-cutoff pseudo-CAMS
+    # is byte-identical between training and serving (a 12-day live history
+    # could never rebuild these tables)
+    space = StationFeatureSpace(merged, fire,
+                                clim_tables=(bundle.get("meta") or {}).get("climatology"))
     t0 = now_hour
     if t0 not in space.index:
         t0 = space.index[space.index.get_indexer([t0], method="nearest")[0]]
+    # serve exactly the hours this station's artifact was trained for (168h for
+    # the new models; pre-extension artifacts serve 72h without extrapolation)
+    max_h = int((bundle.get("meta") or {}).get("model_hours") or 72)
     frames = []
-    for h in range(1, 73):
+    for h in range(1, max_h + 1):
         # select the issue row BY LABEL: the merged grid extends to +72h (future
         # covariates), so tail(1) would grab a future row with NaN station lags
         f = space.frame_for_horizon(h).loc[[t0]].copy()
@@ -329,9 +345,9 @@ def predict_station(bundle: dict, history: pd.DataFrame, wx: pd.DataFrame,
     return preds, t0
 
 
-def forecast_station_72hr(station_id: int, name: str, lat: float, lon: float,
-                          anchor: dict[str, float] | None = None) -> dict:
-    """Top-level entry: live per-station 72h forecast used by the API endpoint."""
+def forecast_station_168hr(station_id: int, name: str, lat: float, lon: float,
+                           anchor: dict[str, float] | None = None) -> dict:
+    """Top-level entry: live per-station 168h (7-day) forecast used by the API."""
     t_start = time.time()
     history = fetch_recent_history(station_id, days=12)
     wx = fetch_covariates(lat, lon)
@@ -354,7 +370,8 @@ def forecast_station_72hr(station_id: int, name: str, lat: float, lon: float,
         if cov:
             band_cov[col] = cov
     hours_out = []
-    for h in range(1, 73):
+    max_h = int((bundle.get("meta") or {}).get("model_hours") or 72)
+    for h in range(1, max_h + 1):
         ts = t0 + pd.Timedelta(hours=h)
         bname = horizon_band(h)
         conc, p10, p90 = {}, {}, {}
@@ -369,6 +386,12 @@ def forecast_station_72hr(station_id: int, name: str, lat: float, lon: float,
         hours_out.append({
             "horizon": h,
             "timestamp": ts.isoformat(),
+            # data-source honesty: hours within the verified CAMS AQ coverage
+            # are backed by live AQ forecasts; beyond the cutoff the model runs
+            # on the explicit climatology+weather fallback
+            "aq_source": "cams_forecast" if h <= CAMS_MAX_LEAD_HOURS else "climatology_fallback",
+            "cams_available": h <= CAMS_MAX_LEAD_HOURS,
+            "horizon_band": bname,
             "conc": conc,
             "conc_p10": p10,
             "conc_p90": p90,
@@ -381,9 +404,14 @@ def forecast_station_72hr(station_id: int, name: str, lat: float, lon: float,
         "t0": t0.isoformat(),
         "anchor_used": bool(anchor),
         "history_hours": int(len(history)),
-        "model_hours": 72,
+        "model_hours": int((bundle.get("meta") or {}).get("model_hours") or 72),
+        "cams_max_lead_hours": CAMS_MAX_LEAD_HOURS,
         "band_modes": band_modes,
         "band_coverage": band_cov,
         "generation_ms": int((time.time() - t_start) * 1000),
         "hours": hours_out,
     }
+
+
+# backward-compatible alias: the entry now returns 168 hours
+forecast_station_72hr = forecast_station_168hr
