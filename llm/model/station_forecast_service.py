@@ -254,14 +254,21 @@ def build_issue_frame(bundle: dict, history: pd.DataFrame, wx: pd.DataFrame,
     (mean of the last 24 offset samples), then the live consensus anchor is placed
     at T0.  Features remain issue-anchored, identical to training.
     """
-    station = history[TARGETS].copy()
+    # stations without an instrument for a pollutant (e.g. 7 stations with no
+    # SO2 monitor) simply lack the column — tolerate its absence; only the
+    # trained pollutants of that station are forecast anyway
+    present = [c for c in TARGETS if c in history.columns]
+    station = history[present].copy()
+    for c in TARGETS:
+        if c not in station.columns:
+            station[c] = np.nan
     now_hour = pd.Timestamp.utcnow().tz_convert("UTC").floor("h")
     last_obs = station.index.max() if len(station) else now_hour - pd.Timedelta(hours=48)
     if now_hour > last_obs:
         gap = pd.date_range(last_obs + pd.Timedelta(hours=1), now_hour, freq="h")
         ext = pd.DataFrame(index=gap, columns=TARGETS, dtype=float)
         # CAMS as the gap prior (converted to station scale by the last known offset)
-        for col in TARGETS:
+        for col in present:
             cams = wx.get(f"cams_{col}")
             if cams is not None:
                 aligned = cams.reindex(gap)
@@ -337,6 +344,15 @@ def forecast_station_72hr(station_id: int, name: str, lat: float, lon: float,
 
     # assemble per-hour outputs (t0 = the current UTC hour used as issue time)
     meta_p = (bundle.get("meta") or {}).get("pollutants") or {}
+    band_modes: dict = {}   # col -> band -> calibration mode (calibrated | symmetric |
+    band_cov: dict = {}     # col -> band -> measured holdout coverage   persistence_fallback)
+    for col, pm in meta_p.items():
+        for b, q in (pm.get("bands_10_90") or {}).items():
+            if isinstance(q, dict):
+                band_modes.setdefault(col, {})[b] = q.get("mode", "calibrated")
+        cov = pm.get("coverage_10_90")
+        if cov:
+            band_cov[col] = cov
     hours_out = []
     for h in range(1, 73):
         ts = t0 + pd.Timedelta(hours=h)
@@ -347,8 +363,9 @@ def forecast_station_72hr(station_id: int, name: str, lat: float, lon: float,
             conc[col] = v
             q = (meta_p.get(col) or {}).get("bands_10_90", {}).get(bname)
             if q:
-                p10[col] = round(max(0.0, v + q["q10"]), 2)
-                p90[col] = round(max(0.0, v + q["q90"]), 2)
+                s = float(q.get("s", 1.0))   # inflation multiplier tuned in training
+                p10[col] = round(max(0.0, v + s * q["q10"]), 2)
+                p90[col] = round(max(0.0, v + s * q["q90"]), 2)
         hours_out.append({
             "horizon": h,
             "timestamp": ts.isoformat(),
@@ -365,6 +382,8 @@ def forecast_station_72hr(station_id: int, name: str, lat: float, lon: float,
         "anchor_used": bool(anchor),
         "history_hours": int(len(history)),
         "model_hours": 72,
+        "band_modes": band_modes,
+        "band_coverage": band_cov,
         "generation_ms": int((time.time() - t_start) * 1000),
         "hours": hours_out,
     }

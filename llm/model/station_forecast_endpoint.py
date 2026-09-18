@@ -195,6 +195,8 @@ async def forecast_station(
         "anchor_used": bool(anchor),
         "history_hours": result["history_hours"],
         "generation_ms": result["generation_ms"],
+        "band_modes": result.get("band_modes"),
+        "band_coverage": result.get("band_coverage"),
         "forecast_hours": hours,
     }
 
