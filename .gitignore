@@ -27,12 +27,11 @@ cit.json
 .freebuff/
 
 # Local signing material
-backend/app/artifacts/jwt_secret.key
-
-# IDE
+backend/app/artifacts/jwt_secret.key# IDE
 .vscode/
 .idea/
-*.swp
+.claude/
+*.swp
 
 # OS
 .DS_Store
