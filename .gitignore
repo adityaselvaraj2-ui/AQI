@@ -56,14 +56,13 @@ htmlcov/
 *.zip
 
 # Temporary probe exports
-*.csv.gz
-
-# Data / model artefacts
+*.csv.gz# Data / model artefacts
 data/raw/
+model_backups/
 *.pkl
 *.h5
 *.nc
-*.db
+*.db
 
 .vercel
 
