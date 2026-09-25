@@ -236,17 +236,17 @@ export function PollutantCardStackSection({
           <div className="mt-4 flex items-center gap-4 text-xs font-mono text-[var(--mist-dim)]">
             <span className="inline-flex items-center gap-1.5">
               <Layers size={13} className="text-[var(--live)]" />
-              <span>6 Species Stack</span>
+              <span>{t("cardstack.speciesStack")}</span>
             </span>
             <span>•</span>
             <span className="inline-flex items-center gap-1.5">
               <Activity size={13} className="text-green-400" />
-              <span>43 Telemetry Stations</span>
+              <span>{t("cardstack.telemetryStations")}</span>
             </span>
             <span>•</span>
             <span className="inline-flex items-center gap-1.5">
               <Wind size={13} className="text-cyan-400" />
-              <span>Interactive 3D Carousel</span>
+              <span>{t("cardstack.carousel3d")}</span>
             </span>
           </div>
         </div>

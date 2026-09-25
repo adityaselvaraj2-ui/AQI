@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Megaphone, ShieldCheck, Send, Loader2, Trash2, Info, AlertTriangle, Siren } from "lucide-react";
 import { getAuthToken, type AuthUser } from "@/lib/auth";
+import { useTranslation } from "@/i18n";
 
 interface Advisory {
   id: string;
@@ -27,6 +28,7 @@ const SEVERITY_META: Record<
 };
 
 export function AdvisoryBar({ user, onAuthRequired }: AdvisoryBarProps) {
+  const { t } = useTranslation();
   const [advisories, setAdvisories] = useState<Advisory[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
@@ -175,7 +177,7 @@ export function AdvisoryBar({ user, onAuthRequired }: AdvisoryBarProps) {
                 fontSize: "10.5px",
                 color: "rgba(255,255,255,0.45)",
               }}
-              title="Advisory publishing is restricted to authority accounts. Click your name chip (top right) to redeem an invite code."
+              title={t("pages.advisory.restrictedTip")}
             >
               Publishing is restricted to authority accounts
             </span>
@@ -196,7 +198,7 @@ export function AdvisoryBar({ user, onAuthRequired }: AdvisoryBarProps) {
                 fontSize: "11px",
                 cursor: "pointer",
               }}
-              title="Government officials sign in with an invite code to publish here"
+              title={t("pages.advisory.officialTip")}
             >
               <ShieldCheck size={12} style={{ color: "var(--cyan)" }} />
               Authority? Sign in to publish
@@ -405,8 +407,8 @@ export function AdvisoryBar({ user, onAuthRequired }: AdvisoryBarProps) {
                     <button
                       type="button"
                       onClick={() => retract(a.id)}
-                      aria-label="Retract advisory"
-                      title="Retract"
+                      aria-label={t("pages.advisory.retractAria")}
+                      title={t("pages.advisory.retract")}
                       style={{
                         background: "transparent",
                         border: "none",

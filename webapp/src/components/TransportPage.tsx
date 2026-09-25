@@ -1,4 +1,5 @@
 import { Truck } from "lucide-react";
+import { useTranslation } from "@/i18n";
 import { SourceApportionment } from "@/components/SourceApportionment";
 import type { CityAggregateResponse, ConsensusResponse, HourlyForecast } from "@/lib/types";
 
@@ -18,6 +19,7 @@ export function TransportPage({
   consensus,
   cityAggregate,
 }: TransportPageProps) {
+  const { t } = useTranslation();
   const pm25Val =
     currentPm25 ??
     (cityAggregate?.sub_indices?.["PM2.5"]?.conc ??
@@ -79,7 +81,7 @@ export function TransportPage({
             }}
           >
             <Truck size={28} style={{ color: "#38bdf8" }} />
-            <span>Transports & Fleet Source Apportionment</span>
+            <span>{t("pages.transport.title")}</span>
           </h1>
           <p style={{ margin: "0.5rem 0 0", color: "#94a3b8", fontSize: "14px", maxWidth: "720px", lineHeight: 1.5 }}>
             Dynamic chemical mass-balance tracking of vehicular exhaust, diesel freight corridors, road resuspension dust, and 72-hour sector predictive simulations across Delhi-NCR.
@@ -110,7 +112,7 @@ export function TransportPage({
             <div style={{ fontSize: "28px", fontWeight: 700, fontFamily: "var(--mono)", color: "#38bdf8" }}>
               ~38.4%
             </div>
-            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>Primary vehicular aerosol share</div>
+            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>{t("pages.transport.d1")}</div>
           </div>
 
           <div
@@ -128,7 +130,7 @@ export function TransportPage({
             <div style={{ fontSize: "28px", fontWeight: 700, fontFamily: "var(--mono)", color: "#f43f5e" }}>
               52.1%
             </div>
-            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>Share of total fleet PM mass</div>
+            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>{t("pages.transport.d2")}</div>
           </div>
 
           <div
@@ -146,7 +148,7 @@ export function TransportPage({
             <div style={{ fontSize: "28px", fontWeight: 700, fontFamily: "var(--mono)", color: "#facc15" }}>
               {no2Val} µg/m³
             </div>
-            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>Diesel combustion tracer marker</div>
+            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>{t("pages.transport.d3")}</div>
           </div>
 
           <div
@@ -164,7 +166,7 @@ export function TransportPage({
             <div style={{ fontSize: "20px", fontWeight: 700, fontFamily: "var(--mono)", color: "#22c55e", marginTop: "4px" }}>
               STAGE III/IV RESTRICTED
             </div>
-            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>Non-essential trucks diverted</div>
+            <div style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>{t("pages.transport.d4")}</div>
           </div>
         </div>
 

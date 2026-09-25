@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Eye, Loader2, AlertTriangle, Landmark, RefreshCw } from "lucide-react";
+import { useTranslation } from "@/i18n";
 
 import { getAuthToken } from "@/lib/auth";
 import { getStationRegistry } from "@/lib/api";
@@ -83,6 +84,7 @@ function num(v: number | null | undefined): string {
 }
 
 export function ModelTransparencyPage({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation();
   const [registry, setRegistry] = useState<StationRegistryResponse | null>(null);
   const [stationId, setStationId] = useState<number | null>(null);
   const [poll, setPoll] = useState<(typeof POLLS)[number]>("pm25");
@@ -242,11 +244,11 @@ export function ModelTransparencyPage({ onBack }: { onBack: () => void }) {
         <table className="w-full text-xs">
           <thead className="bg-slate-900/80 text-slate-400">
             <tr>
-              <th className="px-3 py-2 text-left font-medium">Hour (UTC)</th>
+              <th className="px-3 py-2 text-left font-medium">{t("pages.transparency.thHour")}</th>
               <th className="px-3 py-2 text-right font-medium text-emerald-400">Sensor ({POLL_LABEL[poll]})</th>
-              <th className="px-3 py-2 text-right font-medium text-sky-400">Model forecast</th>
-              <th className="px-3 py-2 text-right font-medium text-fuchsia-400">Raw CAMS cell</th>
-              <th className="px-3 py-2 text-left font-medium">Model source</th>
+              <th className="px-3 py-2 text-right font-medium text-sky-400">{t("pages.transparency.thModel")}</th>
+              <th className="px-3 py-2 text-right font-medium text-fuchsia-400">{t("pages.transparency.thCams")}</th>
+              <th className="px-3 py-2 text-left font-medium">{t("pages.transparency.thSource")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/70">
@@ -274,7 +276,7 @@ export function ModelTransparencyPage({ onBack }: { onBack: () => void }) {
               );
             })}
             {!loading && !shown.length && (
-              <tr><td colSpan={5} className="px-3 py-6 text-center text-slate-500">No aligned sensor/CAMS hours in the shared window.</td></tr>
+              <tr><td colSpan={5} className="px-3 py-6 text-center text-slate-500">{t("pages.transparency.noAligned")}</td></tr>
             )}
           </tbody>
         </table>

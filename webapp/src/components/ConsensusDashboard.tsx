@@ -318,15 +318,18 @@ export function ConsensusDashboard({
       <div className="consensus-head">
         <div>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[var(--bone)] font-sans">
-            {horizonNumber}-hour {useStationSeries ? "station" : "consensus"} forecast
+            {t("consensus.forecastTitle", {
+              h: horizonNumber,
+              kind: useStationSeries ? t("consensus.kindStation") : t("consensus.kindConsensus"),
+            })}
           </h2>
           <p className="text-[11px] font-mono text-[var(--mist-dim)] mt-1 flex items-center gap-1.5 flex-wrap">
             <MapPin size={11} style={{ flexShrink: 0 }} />
             {useStationSeries
-              ? `${stationName ?? "selected station"} · trained per-station model`
+              ? `${stationName ?? t("consensus.selectedStation")} · ${t("consensus.trainedStationModel")}`
               : selectedStationLive
-              ? `${selectedStationLive.name} · station view off — city-wide physics shown`
-              : "city-wide · coupled physics model · pick a station to switch"}
+              ? `${selectedStationLive.name} · ${t("consensus.stationViewOff")}`
+              : t("consensus.cityWide")}
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
@@ -379,7 +382,7 @@ export function ConsensusDashboard({
                 onChange={(e) => onStationViewToggle?.(e.target.checked)}
                 className="accent-sky-500 w-3.5 h-3.5 cursor-pointer"
               />
-              <span className="text-[11px] font-mono font-semibold text-[var(--mist)]">Station model view</span>
+              <span className="text-[11px] font-mono font-semibold text-[var(--mist)]">{t("consensus.stationModelView")}</span>
             </label>
           </div>
           {!useStationSeries && (

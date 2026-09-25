@@ -277,17 +277,17 @@ export function AqiReportPage({
             {isGeneratingPdf ? (
               <>
                 <RotateCw size={16} className="animate-spin" />
-                <span>GENERATING REPORT...</span>
+                <span>{t("pages.report.generating")}</span>
               </>
             ) : downloadSuccess ? (
               <>
                 <CheckCircle2 size={16} />
-                <span>REPORT DOWNLOADED ✓</span>
+                <span>{t("pages.report.downloaded")}</span>
               </>
             ) : (
               <>
                 <Download size={16} />
-                <span>DOWNLOAD PDF</span>
+                <span>{t("pages.report.downloadPdf")}</span>
               </>
             )}
           </button>
@@ -376,15 +376,15 @@ export function AqiReportPage({
           >
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#94a3b8" }}>
               <MapPin size={14} style={{ color: "#38bdf8" }} />
-              <span>Location: <strong>Delhi-NCR (28.61°N, 77.21°E)</strong></span>
+              <span>{t("pages.report.location")} <strong>Delhi-NCR (28.61°N, 77.21°E)</strong></span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#94a3b8" }}>
               <Building2 size={14} style={{ color: "#38bdf8" }} />
-              <span>Sensors: <strong>{activeStationsCount} CAAQMS Stations</strong></span>
+              <span>{t("pages.report.sensors")} <strong>{activeStationsCount} {t("pages.report.stationsCount")}</strong></span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#94a3b8" }}>
               <Activity size={14} style={{ color: "#38bdf8" }} />
-              <span>Methodology: <strong>CPCB INAQI Multi-Criteria</strong></span>
+              <span>{t("pages.report.methodology")} <strong>{t("pages.report.cpcbMethod")}</strong></span>
             </div>
           </div>
         </div>
@@ -459,23 +459,23 @@ export function AqiReportPage({
             {/* Right Metric Summary */}
             <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "0.8rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", borderBottom: "1px solid rgba(255, 255, 255, 0.06)", fontSize: "13px" }}>
-                <span style={{ color: "#94a3b8" }}>Primary Trigger Pollutant:</span>
+                <span style={{ color: "#94a3b8" }}>{t("pages.report.primaryTrigger")}</span>
                 <span style={{ fontWeight: 700, color: "#FFFFFF" }}>{dominantPollutant}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", borderBottom: "1px solid rgba(255, 255, 255, 0.06)", fontSize: "13px" }}>
-                <span style={{ color: "#94a3b8" }}>Fine Particulate (PM2.5):</span>
+                <span style={{ color: "#94a3b8" }}>{t("pages.report.pm25Label")}</span>
                 <span style={{ fontWeight: 700, color: "#f87171" }}>{pm25} µg/m³</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", borderBottom: "1px solid rgba(255, 255, 255, 0.06)", fontSize: "13px" }}>
-                <span style={{ color: "#94a3b8" }}>Coarse Particulate (PM10):</span>
+                <span style={{ color: "#94a3b8" }}>{t("pages.report.pm10Label")}</span>
                 <span style={{ fontWeight: 700, color: "#fb923c" }}>{pm10} µg/m³</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", borderBottom: "1px solid rgba(255, 255, 255, 0.06)", fontSize: "13px" }}>
-                <span style={{ color: "#94a3b8" }}>Boundary Layer Height (PBL):</span>
+                <span style={{ color: "#94a3b8" }}>{t("pages.report.pblLabel")}</span>
                 <span style={{ fontWeight: 700, color: "#38bdf8" }}>{pblHeight} m</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0", fontSize: "13px" }}>
-                <span style={{ color: "#94a3b8" }}>Thermal Inversion Strength:</span>
+                <span style={{ color: "#94a3b8" }}>{t("pages.report.inversionLabel")}</span>
                 <span style={{ fontWeight: 700, color: "#fbbf24" }}>+{invDeltaT}°C</span>
               </div>
             </div>

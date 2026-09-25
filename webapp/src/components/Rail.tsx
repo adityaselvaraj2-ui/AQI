@@ -278,7 +278,7 @@ export function Rail({
       }}
     >
       {/* Left: Brand Capsule & Download Report Pill (Horizontal Unified Row) */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", zIndex: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", zIndex: 10, flex: "1 1 0", minWidth: 0 }}>
         {/* Brand Capsule */}
         <div
           onClick={() => handleSelectPage("overview")}
@@ -405,15 +405,13 @@ export function Rail({
       {onPageChange && (
         <div
           style={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            transform: "translate(-50%, -50%)",
+            position: "relative",
             zIndex: 50,
             pointerEvents: "auto",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            flexShrink: 0,
           }}
         >
           {/* Primary Top Bar: Authority & Citizen Animated Circular Menus */}
@@ -493,8 +491,11 @@ export function Rail({
           marginLeft: "auto",
           display: "flex",
           alignItems: "center",
-          gap: "0.55rem",
+          justifyContent: "flex-end",
+          gap: "0.9rem",
+          paddingLeft: "0.75rem",
           zIndex: 10,
+          flex: "0 0 auto",
         }}
       >
         {/* Operator console (invite-code management) — discreet key button */}
@@ -654,6 +655,14 @@ export function Rail({
             }}
           />
 
+          <span
+            style={{
+              width: "1px",
+              height: "14px",
+              background: isLight ? "rgba(15, 23, 42, 0.14)" : "rgba(255, 255, 255, 0.15)",
+            }}
+          />
+
           <button
             type="button"
             onClick={onRefresh}
@@ -672,6 +681,8 @@ export function Rail({
               fontWeight: 600,
               cursor: "pointer",
               transition: "all 0.18s ease",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = isLight ? "rgba(15, 23, 42, 0.06)" : "rgba(255, 255, 255, 0.12)";

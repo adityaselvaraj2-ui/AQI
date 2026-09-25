@@ -96,3 +96,6 @@ llm/model/training/data/hpo_pool.npz
 *.p12
 package_project.bat
 project_summary.txt
+
+# SIH submission documents (kept local-only, never pushed)
+airlens_submission/

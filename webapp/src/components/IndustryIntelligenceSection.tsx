@@ -20,6 +20,7 @@ import {
   haversineDistanceKm,
   type SupabaseIndustryRecord,
 } from "@/lib/industrySupabase";
+import { useTranslation } from "@/i18n";
 import "@/styles/industry-intelligence.css";
 
 export interface IndustryIntelligenceSectionProps {
@@ -39,6 +40,7 @@ export function IndustryIntelligenceSection({
   activeIndustries = [],
   windSpeedKmh = 12.0,
 }: IndustryIntelligenceSectionProps) {
+  const { t } = useTranslation();
   // Default mock plant if none clicked yet
   const displayIndustry: SupabaseIndustryRecord = selectedIndustry || {
     id: 136258,
@@ -249,7 +251,7 @@ export function IndustryIntelligenceSection({
         <div>
           <div className="flex items-center gap-2 text-[var(--accent-cyan)] font-mono text-xs uppercase tracking-wider">
             <Cpu className="w-4 h-4 text-[var(--accent-cyan)] animate-pulse" />
-            <span>Industrial Point-Source Modeling · Digital Twin</span>
+            <span>{t("pages.industry.digitalTwin")}</span>
           </div>
           <h2 className="text-2xl font-bold text-white mt-1 font-sans">
             Stack Emission Intelligence & Downwind Dispersion
@@ -270,7 +272,7 @@ export function IndustryIntelligenceSection({
             rel="noopener noreferrer"
             className="cyber-btn text-xs"
           >
-            <span>Full Plant Deep Intelligence</span>
+            <span>{t("pages.industry.deepIntel")}</span>
             <ExternalLink className="w-3.5 h-3.5 ml-1" />
           </a>
         </div>
@@ -364,21 +366,21 @@ export function IndustryIntelligenceSection({
               <div className="text-lg font-bold font-mono text-[var(--accent-teal)] mt-0.5">
                 {displayIndustry.estimatedEmissions.stack_temp_c}°C
               </div>
-              <span className="text-[9px] text-slate-500 font-mono">Superheated</span>
+              <span className="text-[9px] text-slate-500 font-mono">{t("pages.industry.superheated")}</span>
             </div>
           </div>
 
           {/* Full Pollutant Speciation Spectrum */}
           <div className="glass-panel-sub p-4 space-y-3">
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-300 font-semibold">Continuous Flue Gas Speciation Output</span>
-              <span className="text-slate-400 text-[10px]">CEMS Sensor Sim · 24h Baseline</span>
+              <span className="text-slate-300 font-semibold">{t("pages.industry.cemsTitle")}</span>
+              <span className="text-slate-400 text-[10px]">{t("pages.industry.cemsSub")}</span>
             </div>
 
             <div className="space-y-2">
               <div>
                 <div className="flex justify-between text-xs text-slate-300 mb-1 font-mono">
-                  <span>Sulphur Dioxide (SO2)</span>
+                  <span>{t("pages.industry.so2")}</span>
                   <span className="text-[#ff9f1c] font-bold">
                     {displayIndustry.estimatedEmissions.so2_kg_day} kg/day
                   </span>
@@ -398,7 +400,7 @@ export function IndustryIntelligenceSection({
 
               <div>
                 <div className="flex justify-between text-xs text-slate-300 mb-1 font-mono">
-                  <span>Nitrogen Oxides (NOx)</span>
+                  <span>{t("pages.industry.nox")}</span>
                   <span className="text-[var(--accent-teal)] font-bold">
                     {displayIndustry.estimatedEmissions.no2_kg_day} kg/day
                   </span>
@@ -418,7 +420,7 @@ export function IndustryIntelligenceSection({
 
               <div>
                 <div className="flex justify-between text-xs text-slate-300 mb-1 font-mono">
-                  <span>Carbon Monoxide & VOCs</span>
+                  <span>{t("pages.industry.coVoc")}</span>
                   <span className="text-slate-200 font-bold">
                     {displayIndustry.estimatedEmissions.co_kg_day +
                       displayIndustry.estimatedEmissions.voc_kg_day}{" "}
@@ -481,8 +483,8 @@ export function IndustryIntelligenceSection({
           {/* Discrete Concentration Falloff Chart */}
           <div className="space-y-2">
             <div className="text-[11px] font-mono text-slate-400 flex justify-between">
-              <span>Downwind Distance</span>
-              <span>Ground PM2.5 Surge (µg/m³)</span>
+              <span>{t("pages.industry.downwind")}</span>
+              <span>{t("pages.industry.pmSurge")}</span>
             </div>
 
             <div className="grid grid-cols-4 gap-2 text-center font-mono text-xs">
@@ -541,13 +543,13 @@ export function IndustryIntelligenceSection({
           <table className="w-full text-left text-xs font-sans">
             <thead>
               <tr className="border-b border-[rgba(56,180,255,0.12)] text-slate-400 font-mono text-[11px]">
-                <th className="pb-2.5 font-normal">FACILITY NAME</th>
-                <th className="pb-2.5 font-normal">SECTOR / CATEGORY</th>
-                <th className="pb-2.5 font-normal text-center">SEVERITY</th>
-                <th className="pb-2.5 font-normal text-right">DISTANCE</th>
-                <th className="pb-2.5 font-normal text-right">PRIMARY EMISSIONS</th>
-                <th className="pb-2.5 font-normal text-right">EST. LOCAL IMPACT</th>
-                <th className="pb-2.5 font-normal text-center">ACTION</th>
+                <th className="pb-2.5 font-normal">{t("pages.industry.thName")}</th>
+                <th className="pb-2.5 font-normal">{t("pages.industry.thSector")}</th>
+                <th className="pb-2.5 font-normal text-center">{t("pages.industry.thSeverity")}</th>
+                <th className="pb-2.5 font-normal text-right">{t("pages.industry.thDistance")}</th>
+                <th className="pb-2.5 font-normal text-right">{t("pages.industry.thEmissions")}</th>
+                <th className="pb-2.5 font-normal text-right">{t("pages.industry.thImpact")}</th>
+                <th className="pb-2.5 font-normal text-center">{t("pages.industry.thAction")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(56,180,255,0.06)]">
@@ -602,7 +604,7 @@ export function IndustryIntelligenceSection({
                       onClick={(e) => e.stopPropagation()}
                       className="px-2.5 py-1 rounded bg-[rgba(56,180,255,0.15)] hover:bg-[rgba(56,180,255,0.3)] text-[var(--accent-cyan)] font-mono text-[10px] inline-flex items-center gap-1 transition-colors"
                     >
-                      <span>Deep Profile</span>
+                      <span>{t("pages.industry.deepProfile")}</span>
                       <ArrowUpRight className="w-3 h-3" />
                     </a>
                   </td>

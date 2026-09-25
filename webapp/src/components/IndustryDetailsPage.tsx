@@ -8,6 +8,7 @@ import {
   MapPin,
   ShieldCheck,
 } from "lucide-react";
+import { useTranslation } from "@/i18n";
 import { Circle, MapContainer, Marker, TileLayer } from "react-leaflet";
 import L from "leaflet";
 
@@ -35,6 +36,7 @@ export function IndustryDetailsPage({
   onBack,
 }: IndustryDetailsPageProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const isLight = theme === "light";
   const [record, setRecord] = useState<SupabaseIndustryRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -119,9 +121,9 @@ export function IndustryDetailsPage({
           </button>
           <div>
             <div className="text-xs font-mono text-[var(--accent-cyan)] flex items-center gap-2">
-              <span>CONSOLE</span>
+              <span>{t("pages.industry.console")}</span>
               <span>/</span>
-              <span>INDUSTRY MAP</span>
+              <span>{t("pages.industry.mapBadge")}</span>
               <span>/</span>
               <span className="text-white font-semibold">{plant.industry_name}</span>
               {loading && (
@@ -169,19 +171,19 @@ export function IndustryDetailsPage({
 
             <div className="grid grid-cols-3 gap-3 pt-2">
               <div className="glass-panel-sub p-3">
-                <span className="text-[10px] text-slate-400 font-mono block">SECTOR</span>
+                <span className="text-[10px] text-slate-400 font-mono block">{t("pages.industry.sector")}</span>
                 <span className="font-semibold text-white text-sm truncate block mt-0.5">
                   {plant.category || "General Industry"}
                 </span>
               </div>
               <div className="glass-panel-sub p-3">
-                <span className="text-[10px] text-slate-400 font-mono block">STACK HEIGHT</span>
+                <span className="text-[10px] text-slate-400 font-mono block">{t("pages.industry.stackHeight")}</span>
                 <span className="font-semibold text-white text-sm block mt-0.5 font-mono">
                   {plant.estimatedStackHeight}m Flue
                 </span>
               </div>
               <div className="glass-panel-sub p-3">
-                <span className="text-[10px] text-slate-400 font-mono block">COMPLIANCE STATUS</span>
+                <span className="text-[10px] text-slate-400 font-mono block">{t("pages.industry.compliance")}</span>
                 <span
                   className="font-semibold text-sm block mt-0.5"
                   style={{ color: compliance.statusColor }}
@@ -255,7 +257,7 @@ export function IndustryDetailsPage({
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="glass-panel-sub p-4">
-            <span className="text-xs font-mono text-slate-400 block">Ambient PM2.5</span>
+            <span className="text-xs font-mono text-slate-400 block">{t("pages.industry.ambientPm25")}</span>
             <div className="text-2xl font-bold font-mono text-[#ff3b5c] mt-1">
               {liveAqi ? liveAqi.pm25 : 142.5}{" "}
               <span className="text-xs text-slate-400 font-normal">µg/m³</span>
@@ -264,7 +266,7 @@ export function IndustryDetailsPage({
           </div>
 
           <div className="glass-panel-sub p-4">
-            <span className="text-xs font-mono text-slate-400 block">Ambient PM10</span>
+            <span className="text-xs font-mono text-slate-400 block">{t("pages.industry.ambientPm10")}</span>
             <div className="text-2xl font-bold font-mono text-white mt-1">
               {liveAqi ? liveAqi.pm10 : 238.0}{" "}
               <span className="text-xs text-slate-400 font-normal">µg/m³</span>
@@ -273,21 +275,21 @@ export function IndustryDetailsPage({
           </div>
 
           <div className="glass-panel-sub p-4">
-            <span className="text-xs font-mono text-slate-400 block">Nitrogen Dioxide (NO2)</span>
+            <span className="text-xs font-mono text-slate-400 block">{t("pages.industry.no2")}</span>
             <div className="text-2xl font-bold font-mono text-[var(--accent-teal)] mt-1">
               {liveAqi ? liveAqi.no2 : 58.4}{" "}
               <span className="text-xs text-slate-400 font-normal">µg/m³</span>
             </div>
-            <span className="text-[10px] text-slate-500 font-mono">Combustion Byproduct</span>
+            <span className="text-[10px] text-slate-500 font-mono">{t("pages.industry.no2Sub")}</span>
           </div>
 
           <div className="glass-panel-sub p-4">
-            <span className="text-xs font-mono text-slate-400 block">Sulphur Dioxide (SO2)</span>
+            <span className="text-xs font-mono text-slate-400 block">{t("pages.industry.so2")}</span>
             <div className="text-2xl font-bold font-mono text-[#ff9f1c] mt-1">
               {liveAqi ? liveAqi.so2 : 32.1}{" "}
               <span className="text-xs text-slate-400 font-normal">µg/m³</span>
             </div>
-            <span className="text-[10px] text-slate-500 font-mono">Coal / Fuel Desulphurization</span>
+            <span className="text-[10px] text-slate-500 font-mono">{t("pages.industry.so2Sub")}</span>
           </div>
         </div>
       </div>
@@ -306,7 +308,7 @@ export function IndustryDetailsPage({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="glass-panel-sub p-4">
-            <span className="text-xs text-slate-400 font-mono block">Annual Total Mass Discharge</span>
+            <span className="text-xs text-slate-400 font-mono block">{t("pages.industry.annualDischarge")}</span>
             <div className="text-2xl font-bold font-mono text-white mt-1">
               {plant.estimatedEmissions.tons_per_year}{" "}
               <span className="text-xs text-slate-400 font-normal">tons/year</span>
@@ -315,20 +317,20 @@ export function IndustryDetailsPage({
           </div>
 
           <div className="glass-panel-sub p-4">
-            <span className="text-xs text-slate-400 font-mono block">Flue Gas Exit Velocity</span>
+            <span className="text-xs text-slate-400 font-mono block">{t("pages.industry.exitVelocity")}</span>
             <div className="text-2xl font-bold font-mono text-[var(--accent-cyan)] mt-1">
               {plant.estimatedEmissions.flue_gas_velocity_ms}{" "}
               <span className="text-xs text-slate-400 font-normal">m/s</span>
             </div>
-            <span className="text-[10px] text-slate-500 font-mono">Induced Draft Fan Velocity</span>
+            <span className="text-[10px] text-slate-500 font-mono">{t("pages.industry.fanVelocity")}</span>
           </div>
 
           <div className="glass-panel-sub p-4">
-            <span className="text-xs text-slate-400 font-mono block">Exhaust Stack Temperature</span>
+            <span className="text-xs text-slate-400 font-mono block">{t("pages.industry.stackTemp")}</span>
             <div className="text-2xl font-bold font-mono text-[var(--accent-teal)] mt-1">
               {plant.estimatedEmissions.stack_temp_c}°C
             </div>
-            <span className="text-[10px] text-slate-500 font-mono">Thermodynamic Flue Gas</span>
+            <span className="text-[10px] text-slate-500 font-mono">{t("pages.industry.flueGas")}</span>
           </div>
         </div>
 

@@ -23,6 +23,7 @@ import {
   Wind,
   Zap,
 } from "lucide-react";
+import { useTranslation } from "@/i18n";
 
 import {
   fetchIndustriesInViewport,
@@ -72,13 +73,13 @@ function renderPopupHtml(record: SupabaseIndustryRecord): string {
       <!-- Sector & Stack Info -->
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11px; margin-bottom:10px;">
         <div class="glass-panel-sub" style="padding:6px; border-radius:6px; background:rgba(8,16,30,0.6); border:1px solid rgba(56,180,255,0.12);">
-          <span style="color:#94a3b8; display:block; font-size:10px;">Sector:</span>
+          <span style="color:#94a3b8; display:block; font-size:10px;">{t("pages.industry.sector")}:</span>
           <span style="font-weight:600; color:#e2e8f0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;">
             ${escapeHtml(record.category || "General Industry")}
           </span>
         </div>
         <div class="glass-panel-sub" style="padding:6px; border-radius:6px; background:rgba(8,16,30,0.6); border:1px solid rgba(56,180,255,0.12);">
-          <span style="color:#94a3b8; display:block; font-size:10px;">Stack Height:</span>
+          <span style="color:#94a3b8; display:block; font-size:10px;">{t("pages.industry.stackHeight")}:</span>
           <span style="font-weight:600; color:#e2e8f0; display:block;">
             ${record.estimatedStackHeight}m (Active)
           </span>
@@ -88,7 +89,7 @@ function renderPopupHtml(record: SupabaseIndustryRecord): string {
       <!-- Estimated Daily Stack Emissions -->
       <div class="glass-panel-sub" style="padding:6px; border-radius:6px; background:rgba(8,16,30,0.6); border:1px solid rgba(56,180,255,0.12); margin-bottom:10px;">
         <div style="font-size:10px; font-family:monospace; color:#38b4ff; margin-bottom:6px; display:flex; justify-content:space-between;">
-          <span>ESTIMATED STACK EMISSIONS</span>
+          <span>{t("pages.industry.thEmissions")}</span>
           <span>kg/day</span>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; text-align:center; font-family:monospace;">
@@ -121,7 +122,7 @@ function renderPopupHtml(record: SupabaseIndustryRecord): string {
         class="cyber-btn"
         style="width:100%; justify-content:center; font-size:11px; text-align:center; text-decoration:none; display:flex; padding:7px 12px; box-sizing:border-box;"
       >
-        <span>Deep Intelligence Profile ↗</span>
+        <span>{t("pages.industry.deepProfileLink")}</span>
       </a>
     </div>
   `;
@@ -387,6 +388,7 @@ export function InteractiveIndustryMap({
   windDirectionDeg = 300,
 }: InteractiveIndustryMapProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const isLight = theme === "light";
 
   const [records, setRecords] = useState<SupabaseIndustryRecord[]>([]);
@@ -703,7 +705,7 @@ export function InteractiveIndustryMap({
                   ? "bg-[rgba(56,180,255,0.2)] text-[var(--accent-cyan)]"
                   : "text-slate-500 hover:text-slate-300"
               }`}
-              title="Toggle Industrial Pins"
+              title={t("pages.industry.togglePins")}
             >
               <Factory className="w-4 h-4" />
             </button>
@@ -715,7 +717,7 @@ export function InteractiveIndustryMap({
                   ? "bg-[rgba(56,180,255,0.2)] text-[var(--accent-teal)]"
                   : "text-slate-500 hover:text-slate-300"
               }`}
-              title="Toggle Live Wind Vector"
+              title={t("pages.industry.toggleWind")}
             >
               <Wind className="w-4 h-4" />
             </button>
@@ -727,7 +729,7 @@ export function InteractiveIndustryMap({
                   ? "bg-[rgba(255,59,92,0.2)] text-[#ff3b5c]"
                   : "text-slate-500 hover:text-slate-300"
               }`}
-              title="Toggle Dispersion Plume Halo"
+              title={t("pages.industry.togglePlume")}
             >
               <Flame className="w-4 h-4" />
             </button>
@@ -795,7 +797,7 @@ export function InteractiveIndustryMap({
           </div>
 
           <div className="mt-2 pt-2 border-t border-[rgba(56,180,255,0.1)] flex items-center justify-between text-[11px]">
-            <span className="text-slate-300">Active Stacks in Visible Section:</span>
+            <span className="text-slate-300">{t("pages.industry.activeStacks")}</span>
             <span className="font-mono font-bold text-white text-xs">
               {visibleSectionRecords.length} visible ({industriesInRadius.length} in {radiusKm}km circle)
             </span>
@@ -820,7 +822,7 @@ export function InteractiveIndustryMap({
 
           <div className="flex items-center gap-1.5 text-slate-300">
             <Zap className="w-3.5 h-3.5 text-[#ff9f1c]" />
-            <span>DB: 136k+</span>
+            <span>{t("pages.industry.dbCount")}</span>
           </div>
 
           {loading && (

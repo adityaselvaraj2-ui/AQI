@@ -25,6 +25,7 @@ import {
   Sparkles,
   Wind,
 } from "lucide-react";
+import { useTranslation } from "@/i18n";
 import type { Panel } from "@/hooks/useForecastData";
 import type {
   InversionStatus,
@@ -59,6 +60,7 @@ const ACTIVITY_RATES: Record<string, { label: string; rate_m3_h: number; icon: s
 };
 
 export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props) {
+  const { t } = useTranslation();
   const [selectedUid, setSelectedUid] = useState<string>("");
   const [activeTab, setActiveTab] = useState<TabCategory>("overview");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -329,7 +331,7 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
                   setSelectedUid(e.target.value);
                 }
               }}
-              aria-label="Select target air quality monitoring station"
+              aria-label={t("pages.source.ariaStation")}
               className="bg-transparent text-sm text-slate-100 font-medium focus:outline-none cursor-pointer pr-2"
             >
               {stationRows.map((s) => (
@@ -377,7 +379,7 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
       {/* Atmospheric Context & Ventilation Bar */}
       <div className="source-target-strip grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs mt-4">
         <div className="p-2 rounded-lg bg-slate-950/50 border border-slate-800/60">
-          <span className="block text-[10px] uppercase font-bold tracking-wider text-slate-400">Target Location</span>
+          <span className="block text-[10px] uppercase font-bold tracking-wider text-slate-400">{t("pages.source.targetLocation")}</span>
           <strong className="text-white font-semibold block truncate mt-0.5">{evalCoords.name}</strong>
           <span className="text-[10px] text-slate-400 font-mono">
             {evalCoords.lat.toFixed(3)}°N, {evalCoords.lon.toFixed(3)}°E
@@ -385,7 +387,7 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
         </div>
 
         <div className="p-2 rounded-lg bg-slate-950/50 border border-slate-800/60">
-          <span className="block text-[10px] uppercase font-bold tracking-wider text-slate-400">Transport Vector</span>
+          <span className="block text-[10px] uppercase font-bold tracking-wider text-slate-400">{t("pages.source.transportVector")}</span>
           <strong className="text-cyan-300 font-semibold block mt-0.5">
             {atmosphere.wind_speed_ms.toFixed(1)} m/s · {Math.round(atmosphere.wind_direction_deg)}°
           </strong>
@@ -396,13 +398,13 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
         </div>
 
         <div className="p-2 rounded-lg bg-slate-950/50 border border-slate-800/60">
-          <span className="block text-[10px] uppercase font-bold tracking-wider text-slate-400">Mixing Depth (PBL)</span>
+          <span className="block text-[10px] uppercase font-bold tracking-wider text-slate-400">{t("pages.source.mixingDepth")}</span>
           <strong className="text-white font-semibold block mt-0.5">{Math.round(atmosphere.pbl_height_m)} m</strong>
           <span className="text-[10px] text-slate-400">{atmosphere.mixing_category}</span>
         </div>
 
         <div className="p-2 rounded-lg bg-slate-950/50 border border-slate-800/60">
-          <span className="block text-[10px] uppercase font-bold tracking-wider text-slate-400">Ventilation / Trapping</span>
+          <span className="block text-[10px] uppercase font-bold tracking-wider text-slate-400">{t("pages.source.ventTrapping")}</span>
           <strong className="text-white font-semibold block mt-0.5">{atmosphere.inversion_state}</strong>
           <span
             className={`text-[10px] font-medium ${
@@ -496,11 +498,11 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
                     <h3 className="text-sm font-bold text-white tracking-tight">
                       Why Is {evalCoords.name} Polluted Right Now?
                     </h3>
-                    <p className="text-[11px] text-slate-400">Dynamic Atmospheric and Emission Synthesis</p>
+                    <p className="text-[11px] text-slate-400">{t("pages.source.synthesis")}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Current PM2.5</span>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">{t("pages.source.currentPm")}</span>
                   <strong className="text-base font-bold text-amber-400">{Math.round(currentPm25)} µg/m³</strong>
                 </div>
               </div>
@@ -559,7 +561,7 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
               <div className="flex items-center gap-2 border-b border-slate-800 pb-2.5">
                 <Flame size={18} className="text-amber-400" />
                 <div>
-                  <h3 className="text-sm font-bold text-white">Fire → Plume Transport → Target Location</h3>
+                  <h3 className="text-sm font-bold text-white">{t("pages.source.fireChain")}</h3>
                   <p className="text-[11px] text-slate-400">
                     Lagrangian 850 hPa Smoke Advection Pathway
                     {plume?.data?.hotspot_count_total !== undefined && ` (${plume.data.hotspot_count_total} regional detections)`}
@@ -577,17 +579,17 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
                 <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col items-center">
                   <span className="text-[10px] uppercase font-bold text-slate-400">2. Deterministic ID</span>
                   <span className="font-mono text-[10px] text-cyan-300 my-1 bg-slate-950 px-1 py-0.5 rounded">FIRE_lat_lon</span>
-                  <span className="text-[11px] text-slate-400">Tracked Source</span>
+                  <span className="text-[11px] text-slate-400">{t("pages.source.trackedSource")}</span>
                 </div>
                 <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col items-center">
                   <span className="text-[10px] uppercase font-bold text-slate-400">3. 850 hPa Wind</span>
                   <Wind size={20} className="text-cyan-400 my-1" />
-                  <span className="text-[11px] text-slate-300">Advection Vector</span>
+                  <span className="text-[11px] text-slate-300">{t("pages.source.advectionVector")}</span>
                 </div>
                 <div className="p-2 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col items-center">
                   <span className="text-[10px] uppercase font-bold text-slate-400">4. Closest Approach</span>
                   <Crosshair size={20} className="text-purple-400 my-1" />
-                  <span className="text-[11px] text-slate-300">Gaussian Spread</span>
+                  <span className="text-[11px] text-slate-300">{t("pages.source.gaussianSpread")}</span>
                 </div>
                 <div className="p-2 rounded-xl bg-slate-900/80 border border-emerald-500/30 flex flex-col items-center">
                   <span className="text-[10px] uppercase font-bold text-emerald-400">5. Target Station</span>
@@ -609,8 +611,8 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
                 <div className="flex items-center gap-2">
                   <Activity size={18} className="text-emerald-400" />
                   <div>
-                    <h3 className="text-sm font-bold text-white">Citizen Activity Exposure Simulator</h3>
-                    <p className="text-[11px] text-slate-400">Estimate personal particulate inhalation and find safer hours</p>
+                    <h3 className="text-sm font-bold text-white">{t("pages.source.exposureSim")}</h3>
+                    <p className="text-[11px] text-slate-400">{t("pages.source.exposureSimDesc")}</p>
                   </div>
                 </div>
                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase ${doseTier.color}`}>
@@ -621,7 +623,7 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
               {/* Interactive Controls */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">Select Physical Activity</label>
+                  <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">{t("pages.source.selectActivity")}</label>
                   <div className="grid grid-cols-2 gap-1.5">
                     {Object.entries(ACTIVITY_RATES).map(([k, act]) => (
                       <button
@@ -645,7 +647,7 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">Duration</label>
+                  <label className="block text-[11px] font-semibold text-slate-300 mb-1.5">{t("pages.source.duration")}</label>
                   <div className="grid grid-cols-4 gap-1.5 mb-3">
                     {[15, 30, 45, 60].map((mins) => (
                       <button
@@ -666,7 +668,7 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
                   {/* Estimated Inhaled Dose Box */}
                   <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Estimated Inhaled PM2.5</span>
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">{t("pages.source.inhaledPm")}</span>
                       <strong className="text-lg font-bold text-white">{inhaledDoseUg} µg</strong>
                       <span className="text-[10px] text-slate-400 block">
                         across {durationMinutes} min ({currentActivity.rate_m3_h} m³/h × {Math.round(currentPm25)} µg/m³)
@@ -678,7 +680,7 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
                         Safer Window
                       </span>
                       <strong className="text-xs text-slate-200 block mt-0.5">13:00 – 16:00 IST</strong>
-                      <span className="text-[10px] text-slate-400">Peak daytime mixing</span>
+                      <span className="text-[10px] text-slate-400">{t("pages.source.peakMixing")}</span>
                     </div>
                   </div>
                 </div>
@@ -801,23 +803,23 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
                           <p className="text-slate-300 leading-relaxed">{s.physics_explanation}</p>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800/80 text-[11px]">
                             <div>
-                              <span className="text-slate-400 block">Catalog / Registry</span>
+                              <span className="text-slate-400 block">{t("pages.source.catalog")}</span>
                               <strong className="text-slate-200">{s.data_source}</strong>
                             </div>
                             <div>
-                              <span className="text-slate-400 block">Coordinates</span>
+                              <span className="text-slate-400 block">{t("pages.source.coordinates")}</span>
                               <strong className="text-slate-200 font-mono">
                                 {s.latitude.toFixed(3)}°N, {s.longitude.toFixed(3)}°E
                               </strong>
                             </div>
                             <div>
-                              <span className="text-slate-400 block">Daily Emission Budget</span>
+                              <span className="text-slate-400 block">{t("pages.source.emissionBudget")}</span>
                               <strong className="text-slate-200">
                                 {s.daily_pm25_kg} kg/day PM2.5 · {s.tons_per_year} t/yr
                               </strong>
                             </div>
                             <div>
-                              <span className="text-slate-400 block">Stack & Trapping</span>
+                              <span className="text-slate-400 block">{t("pages.source.stackTrapping")}</span>
                               <strong className="text-amber-400">
                                 {s.stack_height_m}m stack · {atmosphere.trapping_factor.toFixed(2)}x trapping
                               </strong>
@@ -971,8 +973,8 @@ export function SourceInfluencePanel({ stations, plume, inversion, hour }: Props
       <div className="source-disclaimer mt-4 p-3.5 rounded-xl bg-slate-900/50 border border-slate-800 text-xs text-slate-400 flex items-start gap-2.5">
         <HelpCircle size={16} className="text-cyan-400 shrink-0 mt-0.5" />
         <p className="leading-relaxed">
-          <strong className="text-slate-200">Non-Negotiable Scientific Positioning:</strong> All outputs are{" "}
-          <strong className="text-cyan-300">Estimated Model Influences</strong> derived from Lagrangian wind transport alignment, distance decay (55 km scale), boundary layer suppression, and thermal inversion trapping. These represent modeled explanatory rankings and downwind potential rather than chemically resolved source apportionment or exact stack emission percentages.
+          <strong className="text-slate-200">{t("pages.source.positioningLabel")}</strong> {t("pages.source.positioning1")}{" "}
+          <strong className="text-cyan-300">{t("pages.source.positioning2")}</strong> {t("pages.source.positioning3")}
         </p>
       </div>
     </section>

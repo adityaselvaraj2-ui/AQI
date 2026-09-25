@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { X, Building2, Users, ShieldCheck, Loader2, Check, AlertCircle } from "lucide-react";
+import { useTranslation } from "@/i18n";
 import {
   login,
   register,
@@ -60,6 +61,7 @@ function nameProblem(name: string): string | null {
 }
 
 export function AuthModal({ open, onClose, onAuthed }: AuthModalProps) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<Mode>("signin");
   const [role, setRole] = useState<Role>("citizen");
   const [email, setEmail] = useState("");
@@ -288,7 +290,7 @@ export function AuthModal({ open, onClose, onAuthed }: AuthModalProps) {
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t("pages.auth.close")}
             style={{
               background: "transparent",
               border: "none",
@@ -482,12 +484,12 @@ export function AuthModal({ open, onClose, onAuthed }: AuthModalProps) {
                       {inviteValidating ? (
                         <>
                           <Loader2 size={11} className="spin" style={{ color: "#7dd3fc", flexShrink: 0 }} />
-                          <span style={{ fontSize: "10.5px", color: "#7dd3fc", fontFamily: "var(--mono)" }}>Verifying code…</span>
+                          <span style={{ fontSize: "10.5px", color: "#7dd3fc", fontFamily: "var(--mono)" }}>{t("pages.auth.verifying")}</span>
                         </>
                       ) : inviteValid === "valid" ? (
                         <>
                           <Check size={11} style={{ color: "#4ade80", flexShrink: 0 }} />
-                          <span style={{ fontSize: "10.5px", color: "#4ade80", fontFamily: "var(--mono)" }}>Verified — Google sign-in unlocked.</span>
+                          <span style={{ fontSize: "10.5px", color: "#4ade80", fontFamily: "var(--mono)" }}>{t("pages.auth.verified")}</span>
                         </>
                       ) : inviteValid === "invalid" ? (
                         <>
@@ -617,7 +619,7 @@ export function AuthModal({ open, onClose, onAuthed }: AuthModalProps) {
               }}
             >
               {googleBusy ? <Loader2 size={14} className="spin" /> : <GoogleIcon />}
-              <span>Continue with Google</span>
+              <span>{t("pages.auth.continueGoogle")}</span>
             </button>
             <div
               style={{

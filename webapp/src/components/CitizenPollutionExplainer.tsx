@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import lottie from "lottie-web";
+import { useTranslation } from "@/i18n";
 import salesmanAnimation from "@/assets/pollution_explainer_animation.json";
 import industryAnimation from "@/assets/industry_explainer_animation.json";
 import bikeAnimation from "@/assets/transport_2wheeler_animation.json";
@@ -257,6 +258,7 @@ export function CitizenPollutionExplainer({
   onSelectedUidChange,
 }: Props) {
   const stationRows = stations.data ?? [];
+  const { t } = useTranslation();
 
   // Default to Bawana if available, otherwise first station
   const defaultUid = useMemo(() => {
@@ -709,7 +711,7 @@ export function CitizenPollutionExplainer({
       style={{
         background: "transparent",
       }}
-      aria-label="Citizen Air Pollution Guide"
+      aria-label={t("pages.citizen.ariaGuide")}
     >
       <div className="max-w-7xl mx-auto">
         {/* Top Header & Neighbourhood Switcher Bar */}
@@ -717,10 +719,10 @@ export function CitizenPollutionExplainer({
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-cyan-300 text-xs font-mono font-medium tracking-wide mb-2.5">
               <Users size={14} className="text-cyan-400" />
-              <span>CITIZEN AIR GUIDE · PLAIN LANGUAGE</span>
+              <span>{t("pages.citizen.badge")}</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-sans">
-              What's Polluting {targetCoords.name}?
+              {t("pages.citizen.whatsPolluting", { name: targetCoords.name })}
             </h2>
             {/* 3 compact topic pills instead of a long paragraph */}
             <div className="flex flex-wrap items-center gap-2 mt-2.5">
@@ -751,7 +753,7 @@ export function CitizenPollutionExplainer({
                   value={selectedUid}
                   onChange={(e) => setSelectedUid(e.target.value)}
                   className="bg-transparent text-sm text-white font-semibold focus:outline-none cursor-pointer pr-3"
-                  aria-label="Select your neighborhood station"
+                  aria-label={t("pages.citizen.ariaStationSel")}
                 >
                   {stationRows.map((s) => (
                     <option key={s.uid} value={s.uid} className="bg-slate-900 text-white">
@@ -796,7 +798,7 @@ export function CitizenPollutionExplainer({
                     EVERYDAY AIR EXPLAINER
                   </span>
                   <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight font-sans">
-                    Why Is {targetCoords.name} Polluted Right Now?
+                    {t("pages.citizen.whyPolluted", { name: targetCoords.name })}
                   </h3>
                 </div>
               </div>
@@ -852,7 +854,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
                               <Wind size={16} className="shrink-0" />
-                              <span>Atmospheric Inversion Lid</span>
+                              <span>{t("pages.citizen.lid")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               {weatherTrappingReason}
@@ -862,7 +864,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
                               <Info size={16} className="shrink-0" />
-                              <span>Microscopic PM2.5 Hazard</span>
+                              <span>{t("pages.citizen.pmHazard")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Toxic soot specks 30× thinner than human hair bypass nasal filters and penetrate deep into lungs and blood vessels.
@@ -883,11 +885,11 @@ export function CitizenPollutionExplainer({
                       >
                         {/* Prominent Lead Statement in clean font matching Image 2 */}
                         <div className="citizen-statement-font text-base sm:text-lg lg:text-[20px] font-medium text-slate-100 leading-relaxed">
-                          Air pollution in {targetCoords.name} peaks between{" "}
-                          <span className="text-amber-400 font-semibold">8:00 PM and 8:00 AM</span>,
-                          making{" "}
-                          <span className="text-emerald-400 font-semibold">1:00 PM to 4:00 PM</span>{" "}
-                          the safest window for your family's outdoor activities.
+                          {t("pages.citizen.peaksLine1")} {targetCoords.name} {t("pages.citizen.peaksBetween")}{" "}
+                          <span className="text-amber-400 font-semibold">{t("pages.citizen.peakWindow")}</span>,
+                          {t("pages.citizen.making")}{" "}
+                          <span className="text-emerald-400 font-semibold">{t("pages.citizen.safeWindow")}</span>{" "}
+                          {t("pages.citizen.peaksSuffix")}
                         </div>
 
                         {/* Structured 2-card breakdown */}
@@ -895,7 +897,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-emerald-500/[0.08] border border-emerald-500/25 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-emerald-300 font-semibold text-sm">
                               <Clock size={16} className="shrink-0" />
-                              <span>Safe Ventilation (1 PM – 4 PM)</span>
+                              <span>{t("pages.citizen.safeVent")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Afternoon sunshine thins out the cold ground smog layer. Air out your home and run outdoor errands during this clean-air window.
@@ -905,7 +907,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-rose-500/[0.08] border border-rose-500/25 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-rose-300 font-semibold text-sm">
                               <ShieldAlert size={16} className="shrink-0" />
-                              <span>Children & Seniors Protection</span>
+                              <span>{t("pages.citizen.childrenSeniors")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Children and senior citizens experience throat cough and irritation first. Keep doctor prescribed inhalers handy and avoid indoor incense.
@@ -1009,12 +1011,12 @@ export function CitizenPollutionExplainer({
                     {isSlidePaused ? (
                       <>
                         <Play size={12} className="text-emerald-400" />
-                        <span>Resume</span>
+                        <span>{t("pages.citizen.resume")}</span>
                       </>
                     ) : (
                       <>
                         <Pause size={12} className="text-amber-400" />
-                        <span>Pause</span>
+                        <span>{t("pages.citizen.pause")}</span>
                       </>
                     )}
                   </button>
@@ -1045,9 +1047,9 @@ export function CitizenPollutionExplainer({
               </div>
 
               <div className="flex items-center gap-2 self-start sm:self-auto">
-                <span className="text-xs sm:text-sm text-slate-300 font-medium">Estimated Factory Share:</span>
+                <span className="text-xs sm:text-sm text-slate-300 font-medium">{t("pages.citizen.factoryShare")}</span>
                 <span className="text-xs sm:text-sm font-semibold text-amber-400 px-3 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30">
-                  ~24% of PM2.5 in {targetCoords.name}
+                  {t("pages.citizen.factorySharePct", { pct: 24, name: targetCoords.name })}
                 </span>
               </div>
             </div>
@@ -1076,7 +1078,7 @@ export function CitizenPollutionExplainer({
                         <div className="citizen-statement-font text-base sm:text-lg lg:text-[20px] font-medium text-slate-100 leading-relaxed">
                           Industrial plants account for{" "}
                           <span className="text-amber-400 font-semibold">
-                            ~24% of PM2.5 in {targetCoords.name}
+                            {t("pages.citizen.factorySharePct", { pct: 24, name: targetCoords.name })}
                           </span>
                           , with smokestack emissions cooling and{" "}
                           <span className="text-slate-200 font-semibold">
@@ -1089,7 +1091,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
                               <Factory size={16} className="shrink-0" />
-                              <span>Why Chimneys Reach Ground Level</span>
+                              <span>{t("pages.citizen.chimneyGround")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Hot exhaust starts high in chimneys, but under calm winds and trapped air, the dense particulate smoke cools down and sinks right into street-level air.
@@ -1099,7 +1101,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
                               <Wind size={16} className="shrink-0" />
-                              <span>Kilometers of Wind Transport</span>
+                              <span>{t("pages.citizen.kmTransport")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Winds blowing from industrial belts push continuous plumes of furnace soot, sulfur, and chemical vapors into residential neighborhoods.
@@ -1124,9 +1126,9 @@ export function CitizenPollutionExplainer({
                           <span className="text-amber-400 font-semibold">
                             {top3Industries[0]?.name || "upwind industrial clusters"}
                           </span>{" "}
-                          are actively blowing emissions along the{" "}
+                          {t("pages.citizen.activelyBlowing")}{" "}
                           <span className="text-cyan-300 font-semibold">
-                            direct wind path into {targetCoords.name}
+                            {t("pages.citizen.windPathInto", { name: targetCoords.name })}
                           </span>.
                         </div>
 
@@ -1144,7 +1146,7 @@ export function CitizenPollutionExplainer({
                                 <div>
                                   <div className="flex items-center justify-between gap-1 mb-1.5">
                                     <span className="text-[10px] font-bold font-sans text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-md border border-amber-500/30">
-                                      #{idx + 1} UPWIND
+                                      #{idx + 1} {t("pages.citizen.upwindBadge")}
                                     </span>
                                     <span
                                       className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border ${
@@ -1160,15 +1162,15 @@ export function CitizenPollutionExplainer({
                                   </div>
                                   <h5 className="text-xs font-bold text-white mb-1 line-clamp-1">{item.name}</h5>
                                   <span className="text-[11px] text-slate-400 block mb-1">
-                                    {item.distance_km} km away ({getCompassDirection(item.bearing_deg)})
+                                    {t("pages.citizen.kmAway", { km: item.distance_km, dir: getCompassDirection(item.bearing_deg) })}
                                   </span>
                                   <p className="text-[10.5px] text-slate-300 line-clamp-1">
-                                    <span className="text-amber-300/90 font-medium">Emits: </span>
+                                    <span className="text-amber-300/90 font-medium">{t("pages.citizen.emits")} </span>
                                     {getPlainEmissionDesc(item.category)}
                                   </p>
                                 </div>
                                 <div className="mt-2 pt-1.5 border-t border-slate-800 text-[11px] text-amber-300 font-sans font-semibold">
-                                  {Math.round(item.wind_alignment_pct)}% direct wind alignment
+                                  {t("pages.citizen.windAlignment", { pct: Math.round(item.wind_alignment_pct) })}
                                 </div>
                               </div>
                             ))}
@@ -1204,7 +1206,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
                               <Factory size={16} className="shrink-0" />
-                              <span>Metal & Foundry Soot</span>
+                              <span>{t("pages.citizen.metalSoot")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Metal casting and coal boilers emit dense dark smoke with metallic dust specks that cause throat burning and eye stinging.
@@ -1214,7 +1216,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
                               <Wind size={16} className="shrink-0" />
-                              <span>Chemical & Solvent Fumes</span>
+                              <span>{t("pages.citizen.chemicalFumes")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Volatile vapors and sulfur gases interact with sunlight in the air, creating secondary PM2.5 that lingers for days.
@@ -1265,12 +1267,12 @@ export function CitizenPollutionExplainer({
                     {isIndustrySlidePaused ? (
                       <>
                         <Play size={12} className="text-emerald-400" />
-                        <span>Resume</span>
+                        <span>{t("pages.citizen.resume")}</span>
                       </>
                     ) : (
                       <>
                         <Pause size={12} className="text-amber-400" />
-                        <span>Pause</span>
+                        <span>{t("pages.citizen.pause")}</span>
                       </>
                     )}
                   </button>
@@ -1305,7 +1307,7 @@ export function CitizenPollutionExplainer({
               </div>
 
               <div className="flex items-center gap-2 self-start sm:self-auto">
-                <span className="text-xs sm:text-sm text-slate-300 font-medium">Estimated Vehicle Share:</span>
+                <span className="text-xs sm:text-sm text-slate-300 font-medium">{t("pages.citizen.vehicleShare")}</span>
                 <span className="text-xs sm:text-sm font-semibold text-emerald-400 px-3 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30">
                   ~{transportBreakdown.overallTransportPct}% of PM2.5 in {targetCoords.name}
                 </span>
@@ -1389,7 +1391,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
                               <Wind size={16} className="shrink-0" />
-                              <span>Direct Breath-Level Exhaust</span>
+                              <span>{t("pages.citizen.breathExhaust")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Unlike trucks with tall stacks, motorcycle and scooter exhausts sit 30–45 cm off the road, bathing pedestrians, cyclists, and nearby riders directly in raw tailpipe fumes.
@@ -1399,7 +1401,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
                               <Info size={16} className="shrink-0" />
-                              <span>Stop-and-Go Incomplete Burn</span>
+                              <span>{t("pages.citizen.stopGo")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Frequent low-gear throttling and deceleration at traffic choke points prevent complete combustion, pumping dense unburnt carbon monoxide and black soot into street air.
@@ -1436,7 +1438,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-sky-400 font-semibold text-sm">
                               <Clock size={16} className="shrink-0" />
-                              <span>Gridlock & AC Engine Idling</span>
+                              <span>{t("pages.citizen.gridlock")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Cars crawling in traffic jams with air conditioning running idle fuel inefficiently, producing up to 3× higher nitrogen oxides (NO₂) that react with sunlight into stinging smog.
@@ -1446,7 +1448,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-indigo-400 font-semibold text-sm">
                               <ShieldAlert size={16} className="shrink-0" />
-                              <span>Brake Dust & Tire Wear</span>
+                              <span>{t("pages.citizen.brakeDust")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Heavier four-wheelers produce substantial non-exhaust PM10 particles through abrasive brake pad friction and rubber tire tread wear on paved road surfaces.
@@ -1483,7 +1485,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-amber-400 font-semibold text-sm">
                               <Factory size={16} className="shrink-0" />
-                              <span>Dense Diesel Black Carbon Soot</span>
+                              <span>{t("pages.citizen.dieselSoot")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Interstate commercial diesel trailers burning fuel under heavy cargo loads release elemental black carbon (soot) that lodges deep in human lung alveoli.
@@ -1493,7 +1495,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-rose-400 font-semibold text-sm">
                               <ShieldAlert size={16} className="shrink-0" />
-                              <span>Night Entry Inversion Window</span>
+                              <span>{t("pages.citizen.nightWindow")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               When highway entry bans lift after 10 PM, thousands of freight trucks enter arterial rings just as cold night air traps exhaust within 100 meters of the ground.
@@ -1530,7 +1532,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm">
                               <CheckCircle2 size={16} className="shrink-0" />
-                              <span>Hub Pickups & Local Feeder Routes</span>
+                              <span>{t("pages.citizen.hubPickups")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               Navigating narrow neighborhood roads, frequent passenger pickups, and idling near metro station gates produce concentrated localized tailpipe bursts.
@@ -1540,7 +1542,7 @@ export function CitizenPollutionExplainer({
                           <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80 flex flex-col gap-1.5 shadow-sm">
                             <div className="flex items-center gap-2 text-teal-400 font-semibold text-sm">
                               <Info size={16} className="shrink-0" />
-                              <span>CNG Fleet & Fine NOx Vapors</span>
+                              <span>{t("pages.citizen.cngFleet")}</span>
                             </div>
                             <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed">
                               While Delhi's CNG fleet emits virtually no coarse black diesel soot, older engines and unserviced fuel kits still discharge fine nitrogen gases and vapor particles.
@@ -1592,12 +1594,12 @@ export function CitizenPollutionExplainer({
                     {isTransportSlidePaused ? (
                       <>
                         <Play size={12} className="text-emerald-400" />
-                        <span>Resume</span>
+                        <span>{t("pages.citizen.resume")}</span>
                       </>
                     ) : (
                       <>
                         <Pause size={12} className="text-amber-400" />
-                        <span>Pause</span>
+                        <span>{t("pages.citizen.pause")}</span>
                       </>
                     )}
                   </button>
@@ -1607,8 +1609,8 @@ export function CitizenPollutionExplainer({
 
             {/* Bottom Info Footnote */}
             <div className="mt-4 pt-3 border-t border-white/[0.08] text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
-              <span>Derived from street NO₂ telemetry, road traffic windows & municipal vehicle apportionment</span>
-              <span className="font-mono text-emerald-400 text-[10px]">Real-Time Fleet Apportionment Engine</span>
+              <span>{t("pages.citizen.derived")}</span>
+              <span className="font-mono text-emerald-400 text-[10px]">{t("pages.citizen.fleetEngine")}</span>
             </div>
           </div>
         </div>

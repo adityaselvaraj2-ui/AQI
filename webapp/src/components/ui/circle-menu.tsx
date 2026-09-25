@@ -38,6 +38,8 @@ const pointOnCircle = (
     if (tier) {
       if (tier === 1) {
         // Outer Arc: Authority sections
+        // Span trimmed on the right side (28° instead of 15°) so the widest icon
+        // keeps clear of the header's alert bell instead of touching it.
         const outerR = Math.max(r * 1.35, 115);
         const total = tierTotal && tierTotal > 1 ? tierTotal : 1;
         const idx = tierIndex ?? i;
@@ -45,8 +47,8 @@ const pointOnCircle = (
           const theta = Math.PI / 2;
           return { x: cx + outerR * Math.cos(theta), y: cy + outerR * Math.sin(theta) };
         }
-        const startAngle = (165 * Math.PI) / 180;
-        const endAngle = (15 * Math.PI) / 180;
+        const startAngle = (158 * Math.PI) / 180;
+        const endAngle = (28 * Math.PI) / 180;
         const step = (endAngle - startAngle) / (total - 1);
         const theta = startAngle + idx * step;
         const x = cx + outerR * Math.cos(theta);
@@ -54,6 +56,7 @@ const pointOnCircle = (
         return { x, y };
       } else {
         // Inner Arc: Citizen sections & Overview
+        // Right side pulled in (48° instead of 30°) for bell clearance.
         const innerR = Math.max(r * 0.78, 68);
         const total = tierTotal && tierTotal > 1 ? tierTotal : 1;
         const idx = tierIndex ?? i;
@@ -61,8 +64,8 @@ const pointOnCircle = (
           const theta = Math.PI / 2;
           return { x: cx + innerR * Math.cos(theta), y: cy + innerR * Math.sin(theta) };
         }
-        const startAngle = (150 * Math.PI) / 180;
-        const endAngle = (30 * Math.PI) / 180;
+        const startAngle = (145 * Math.PI) / 180;
+        const endAngle = (48 * Math.PI) / 180;
         const step = (endAngle - startAngle) / (total - 1);
         const theta = startAngle + idx * step;
         const x = cx + innerR * Math.cos(theta);
@@ -198,7 +201,10 @@ const MenuItem = ({
         }}
         style={{
           height: itemSize - 2,
-          width: itemSize - 2
+          width: itemSize - 2,
+          /* Raise the hovered item above its siblings so its label tooltip
+             is never painted underneath the neighbouring icons. */
+          zIndex: hovering ? 60 : 10
         }}
         className={cn(
           STYLES.item.container,
@@ -343,7 +349,7 @@ const MenuTrigger = ({
   };
 
   return (
-    <motion.div animate={shakeAnimation} className="z-50 pointer-events-auto">
+    <motion.div animate={shakeAnimation} className="relative z-50 pointer-events-auto">
       <motion.button
         type="button"
         animate={animate}
@@ -527,7 +533,7 @@ const CircleMenu = ({
       />
       <motion.div
         animate={animate}
-        className={cn('absolute inset-0 z-0 flex items-center justify-center pointer-events-none')}
+        className={cn('absolute inset-0 z-30 flex items-center justify-center pointer-events-none')}
       >
         {items.map((item, index) => {
           const tier1Items = items.filter((it) => it.tier === 1);

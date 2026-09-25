@@ -24,6 +24,7 @@ import delhiSkyline from "@/assets/delhi_skyline.png";
 import boyCharacter from "@/assets/boy_character.png";
 import { MovingClouds } from "@/components/MovingClouds";
 import { useTheme } from "@/context/ThemeContext";
+import { useTranslation } from "@/i18n";
 
 export interface HeroProps {
   forecast: Panel<ForecastResponse | any>;
@@ -78,21 +79,21 @@ interface ScaleBand {
 }
 
 const CPCB_BANDS: readonly ScaleBand[] = [
-  { name: "Good", min: 0, max: 50, color: "#3fbf6f", pctWidth: 10 },
-  { name: "Satisfactory", min: 51, max: 100, color: "#a8c256", pctWidth: 10 },
-  { name: "Moderate", min: 101, max: 200, color: "#e8a13c", pctWidth: 20 },
-  { name: "Poor", min: 201, max: 300, color: "#e2634a", pctWidth: 20 },
-  { name: "Very Poor", min: 301, max: 400, color: "#d04a6e", pctWidth: 20 },
-  { name: "Severe", min: 401, max: 500, color: "#a34ac9", pctWidth: 20 },
+  { name: "hero.categories.good", min: 0, max: 50, color: "#3fbf6f", pctWidth: 10 },
+  { name: "hero.categories.satisfactory", min: 51, max: 100, color: "#a8c256", pctWidth: 10 },
+  { name: "hero.categories.moderate", min: 101, max: 200, color: "#e8a13c", pctWidth: 20 },
+  { name: "hero.categories.poor", min: 201, max: 300, color: "#e2634a", pctWidth: 20 },
+  { name: "hero.categories.veryPoor", min: 301, max: 400, color: "#d04a6e", pctWidth: 20 },
+  { name: "hero.categories.severe", min: 401, max: 500, color: "#a34ac9", pctWidth: 20 },
 ] as const;
 
 const EPA_BANDS: readonly ScaleBand[] = [
-  { name: "Good", min: 0, max: 50, color: "#3fbf6f", pctWidth: 10 },
-  { name: "Moderate", min: 51, max: 100, color: "#a8c256", pctWidth: 10 },
-  { name: "Unhealthy for Sensitive", min: 101, max: 150, color: "#e8a13c", pctWidth: 10 },
-  { name: "Unhealthy", min: 151, max: 200, color: "#e2634a", pctWidth: 10 },
-  { name: "Very Unhealthy", min: 201, max: 300, color: "#d04a6e", pctWidth: 20 },
-  { name: "Hazardous", min: 301, max: 500, color: "#a34ac9", pctWidth: 40 },
+  { name: "hero.categories.good", min: 0, max: 50, color: "#3fbf6f", pctWidth: 10 },
+  { name: "hero.categories.moderate", min: 51, max: 100, color: "#a8c256", pctWidth: 10 },
+  { name: "hero.categories.unhealthySensitive", min: 101, max: 150, color: "#e8a13c", pctWidth: 10 },
+  { name: "hero.categories.unhealthy", min: 151, max: 200, color: "#e2634a", pctWidth: 10 },
+  { name: "hero.categories.veryUnhealthy", min: 201, max: 300, color: "#d04a6e", pctWidth: 20 },
+  { name: "hero.categories.hazardous", min: 301, max: 500, color: "#a34ac9", pctWidth: 40 },
 ] as const;
 
 export function Hero({
@@ -105,6 +106,7 @@ export function Hero({
   selectedStation,
 }: HeroProps) {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const isLight = theme === "light";
   const [scaleMode, setScaleMode] = useState<"cpcb" | "epa">("cpcb");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -158,7 +160,7 @@ export function Hero({
   }, [displayAqi, scaleMode]);
 
   const categoryAccent = currentBandInfo.color;
-  const categoryName = currentBandInfo.category;
+  const categoryName = t(currentBandInfo.category);
 
   // Dominant pollutant & concentration — station-first, then city aggregate
   const dominantPollutant = useMemo(() => {
@@ -202,12 +204,15 @@ export function Hero({
   }, [selectedStation, weatherapi, realtime, hour]);
 
   const conditionLabel = useMemo(() => {
-    if (weatherapi?.condition) return weatherapi.condition;
-    if (displayAqi > 300) return "Dense Haze";
-    if (displayAqi > 200) return "Very Unhealthy Haze";
-    if (displayAqi > 100) return "Haze";
-    return "Clear / Real-time";
-  }, [weatherapi, displayAqi]);
+    // The backend sentinel "Clear / Real-time" must not leak English into a
+    // translated UI — treat it as "clear now"; other provider conditions pass through.
+    const raw = weatherapi?.condition;
+    if (raw && raw !== "Clear / Real-time") return raw;
+    if (displayAqi > 300) return t("hero.denseHaze");
+    if (displayAqi > 200) return t("hero.veryUnhealthyHaze");
+    if (displayAqi > 100) return t("hero.haze");
+    return t("hero.clearNow");
+  }, [weatherapi, displayAqi, t]);
 
   const humidity = useMemo(() => {
     const stHum = selectedStation?.weather?.humidity;
@@ -285,7 +290,7 @@ export function Hero({
   const activeBands = scaleMode === "cpcb" ? CPCB_BANDS : EPA_BANDS;
 
   return (
-    <div className="relative w-full flex flex-col items-center pt-[66px] sm:pt-[72px] pb-3 px-3 sm:px-6 md:px-10 lg:px-12 bg-transparent">
+    <div className="relative w-full flex flex-col items-center pt-[66px] sm:pt-[72px] pb-16 sm:pb-20 px-3 sm:px-6 md:px-10 lg:px-12 bg-transparent">
       {/* ── AMBIENT DARK BACKDROP RADIAL GLOW ── */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -310,16 +315,16 @@ export function Hero({
               )}
             </h2>
             <p className={`text-xs md:text-sm mt-0.5 font-medium ${isLight ? "text-slate-600" : "text-[#9aa3b2]"}`}>
-              Last updated: {updatedTimestamp} (Local Time)
+              {t("hero.lastUpdated")} {updatedTimestamp} ({t("hero.localTime")})
               {selectedStation && (
                 <span className={`ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono ${isLight ? "bg-sky-500/10 text-sky-700 border border-sky-500/25" : "bg-sky-500/10 text-sky-400 border border-sky-500/30"}`}>
                   <MapPin size={9} />
-                  {selectedStation.name} · station sensor
+                  {selectedStation.name} · {t("header.stationSensor")}
                 </span>
               )}
               {!selectedStation && (
                 <span className={`ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono ${isLight ? "bg-slate-500/10 text-slate-600 border border-slate-500/25" : "bg-white/5 text-[#9aa3b2] border border-white/15"}`}>
-                  city aggregate · pick a station in the header
+                  {t("hero.cityAggregate")}
                 </span>
               )}
             </p>
@@ -472,9 +477,9 @@ export function Hero({
                     boxShadow: `0 0 10px ${categoryAccent}`,
                   }}
                 />
-                <span className={`font-semibold ${isLight ? "text-slate-900" : "text-[#f2f4f8]"}`}>Live AQI</span>
+                <span className={`font-semibold ${isLight ? "text-slate-900" : "text-[#f2f4f8]"}`}>{t("hero.liveAqi")}</span>
                 <span className="opacity-40">·</span>
-                <span>{isLiveNow ? "Continuous Monitor" : `Forecast +${cursor}h`}</span>
+                <span>{isLiveNow ? t("hero.continuousMonitor") : t("hero.forecastPlus", { h: cursor })}</span>
               </div>
 
               {/* Large Numerical Display */}
@@ -497,7 +502,7 @@ export function Hero({
 
               {/* Verdict line */}
               <div className={`flex items-center gap-2 text-sm md:text-base font-medium mt-0.5 ${isLight ? "text-slate-900" : "text-[#f2f4f8]"}`}>
-                <span>Air quality is</span>
+                <span>{t("hero.airQualityIs")}</span>
                 <span
                   className="px-3 py-0.5 rounded-full text-xs font-semibold tracking-wide border transition-all"
                   style={{
@@ -513,7 +518,7 @@ export function Hero({
 
               {/* Dominant Pollutant Caption */}
               <p className={`text-xs font-mono mt-0.5 ${isLight ? "text-slate-600" : "text-[#9aa3b2]"}`}>
-                Dominant: <strong className={`font-bold ${isLight ? "text-slate-900" : "text-[#f2f4f8]"}`}>{dominantPollutant}</strong> ·{" "}
+                {t("hero.dominant")}: <strong className={`font-bold ${isLight ? "text-slate-900" : "text-[#f2f4f8]"}`}>{dominantPollutant}</strong> ·{" "}
                 <span>{dominantConcentration} µg/m³</span>
               </p>
             </div>
@@ -534,7 +539,7 @@ export function Hero({
                   {temperature} °C
                 </span>
                 <span className={`text-[11px] font-mono uppercase tracking-wider font-semibold ${isLight ? "text-slate-500" : "text-[#9aa3b2]"}`}>
-                  Weather
+                  {t("hero.weather")}
                 </span>
               </div>
 
@@ -571,7 +576,7 @@ export function Hero({
             {/* Labels row: Proportional category labels */}
             <div className={`flex w-full text-[11px] md:text-xs font-mono font-medium mb-1.5 px-0.5 ${isLight ? "text-slate-600" : "text-[#9aa3b2]"}`}>
               {activeBands.map((band) => {
-                const isCurrent = band.name.toLowerCase() === categoryName.toLowerCase();
+                const isCurrent = band.name === currentBandInfo.category;
                 return (
                   <div
                     key={band.name}
@@ -586,7 +591,7 @@ export function Hero({
                         : "text-[#9aa3b2]"
                     }`}
                   >
-                    {band.name}
+                    {t(band.name)}
                   </div>
                 );
               })}

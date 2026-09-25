@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { useTranslation } from "@/i18n";
 import { StationDetail } from "@/components/map/StationDetail";
 import { MapCanvas } from "@/components/map/MapCanvas";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,7 +21,6 @@ import type {
   PlumeVectorsResponse,
   StationReading,
 } from "@/lib/types";
-import { useTranslation } from "@/i18n";
 
 // Leaflet's bundle is only fetched when the online renderer actually mounts —
 // offline mode never pays for it.
@@ -69,7 +69,7 @@ export function StationMap({
   cursor,
   cityAggregate,
 }: StationMapProps) {
-  const { t: _t } = useTranslation();
+  const { t } = useTranslation();
   const online = useOnline();
   const reduced = useReducedMotion();
 
@@ -138,7 +138,7 @@ export function StationMap({
           <div className="pb-3 border-b border-[var(--border-glass)] mb-4">
             <div>
               <div className="text-xs font-mono text-emerald-400/90 flex items-center gap-2 uppercase tracking-wider">
-                <span>NETWORK</span>
+                <span>{t("pages.map.network")}</span>
               </div>
               <h2 className="text-2xl font-bold text-white mt-1 mb-2 font-sans" id="map-h">
                 Station map
@@ -239,7 +239,7 @@ export function StationMap({
               {feedsLoading ? <p className="map__flag">loading live feeds…</p> : null}
               {stationsFailed ? (
                 <p className="map__flag">
-                  <b>Live station data unavailable.</b> Basemap and fire transport are shown; no
+                  <b>{t("pages.map.liveUnavailable1")}</b> {t("pages.map.liveUnavailable2")}
                   station markers are invented in their place.
                 </p>
               ) : null}
