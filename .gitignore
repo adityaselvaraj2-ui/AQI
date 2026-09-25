@@ -24,14 +24,28 @@ cit.json
 
 # Local runtime output
 *.log
-.freebuff/
 
 # Local signing material
-backend/app/artifacts/jwt_secret.key# IDE
+backend/app/artifacts/jwt_secret.key
+
+# IDE
 .vscode/
 .idea/
+*.swp
+
+# AI assistants / agent local state (never commit AI watermarks)
 .claude/
-*.swp
+.claude.json
+CLAUDE.md
+.freebuff/
+.codebuff/
+.cursor/
+.cursorrules
+.windsurf/
+.codeium/
+.aider*
+.gemini/
+GEMINI.md
 
 # OS
 .DS_Store
@@ -56,16 +70,29 @@ htmlcov/
 *.zip
 
 # Temporary probe exports
-*.csv.gz# Data / model artefacts
+*.csv.gz
+
+# Local auth database (real user rows - never commit)
+backend/app/data/
+
+# Data / model artefacts
 data/raw/
-model_backups/
+archive/
 *.pkl
 *.h5
 *.nc
-*.db
+*.db
 
 .vercel
 
 # FIRMS raw response cache (re-fetchable via training/fetch_firms.py) and HPO pool (rebuildable via training/hpo.py)
 llm/model/training/data/firms_cache/
 llm/model/training/data/hpo_pool.npz
+
+# Safety nets - secrets & regenerable local artefacts
+*.key
+*.pem
+*.pfx
+*.p12
+package_project.bat
+project_summary.txt
