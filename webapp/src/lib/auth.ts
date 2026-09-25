@@ -238,10 +238,13 @@ export async function completeGoogleSignIn(): Promise<AuthUser | null> {
   });
   if (error) throw new Error(`Supabase session error: ${error.message}`);
 
-  // Try the backend exchange first (mints a local JWT with role-gating).
-  // If the backend isn't reachable (e.g. dev without the API server running),
-  // fall back to building the AuthUser directly from the Supabase session so
-  // sign-in still works for the frontend-only use case.
+  // Backend exchange: mints the local JWT AND (when an invite code is
+  // pending) validates + redeems the code server-side, so the response role
+  // is authoritative. The code travels WITH the exchange — one call, no
+  // second round-trip that could fail silently and strand a citizen.
+  const PENDING_KEY = "ncr72.pending_authority_code";
+  const pendingCode = sessionStorage.getItem(PENDING_KEY);
+
   let localUser: AuthUser;
   let localToken: string;
 
@@ -249,13 +252,32 @@ export async function completeGoogleSignIn(): Promise<AuthUser | null> {
     const data = await authFetch<TokenPayload>("/api/v1/auth/supabase", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ access_token: accessToken }),
+      body: JSON.stringify({
+        access_token: accessToken,
+        invite_code: pendingCode || undefined,
+      }),
     });
     localUser = data.user;
     localToken = data.access_token;
+    sessionStorage.removeItem(PENDING_KEY); // consumed (or not needed)
   } catch (backendErr) {
-    // Backend unreachable or returned an error — build the user from the
-    // Supabase session directly so the frontend still works.
+    const reason = backendErr instanceof Error ? backendErr.message : String(backendErr);
+    const networkDown = /failed to fetch|network|load failed/i.test(reason);
+    if (!networkDown) {
+      // Definitive server rejection (bad/expired token, code not recognised
+      // or already used): do NOT fabricate a citizen session — surface the
+      // exact reason. The Supabase session is discarded so nothing half-
+      // signed-in lingers.
+      sessionStorage.removeItem(PENDING_KEY);
+      await sb.auth.signOut().catch(() => undefined);
+      throw new Error(
+        pendingCode
+          ? `Google sign-in stopped: ${reason} Your invite code was NOT consumed — try again.`
+          : `Google sign-in failed: ${reason}`,
+      );
+    }
+    // Backend genuinely unreachable (dev without API, offline): keep a
+    // degraded citizen session from the Supabase profile so the UI works.
     const sbUser = sessionData?.user;
     if (!sbUser) throw new Error("Google sign-in failed: no session from Supabase.");
     localUser = {
@@ -270,25 +292,35 @@ export async function completeGoogleSignIn(): Promise<AuthUser | null> {
     };
     // Use the Supabase access token directly as the local token for API calls.
     localToken = accessToken!;
+    // Keep the pending code stored: the profile-menu redeem box can apply it
+    // once the backend is reachable again.
     console.warn("Backend auth exchange skipped (not reachable); signed in via Supabase session.", backendErr);
   }
 
   persist(localUser, localToken);
-
-  // Auto-redeem a pending authority invite code (authority-via-Google flow).
-  const PENDING_KEY = "ncr72.pending_authority_code";
-  const pendingCode = sessionStorage.getItem(PENDING_KEY);
-  sessionStorage.removeItem(PENDING_KEY);
-  if (pendingCode && localUser.role === "citizen") {
-    try {
-      return await elevate(pendingCode);
-    } catch (err) {
-      // Never block the sign-in over elevation; the user can still redeem
-      // the code from the header chip afterwards.
-      console.warn("Automatic authority elevation failed:", err);
-    }
-  }
   return localUser;
+}
+
+/**
+ * Pre-flight check of an authority invite code WITHOUT consuming it.
+ * Backs the Google-sign-in gate: the button stays locked until the server
+ * confirms the code exists and is unused, so a typo never sails through an
+ * entire OAuth redirect just to fail afterwards.
+ */
+export interface InviteValidation {
+  code: string;
+  format_ok: boolean;
+  exists: boolean;
+  used: boolean;
+  message: string;
+}
+
+export async function validateInviteCode(code: string): Promise<InviteValidation> {
+  return authFetch<InviteValidation>("/api/v1/auth/invite/validate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code: code.trim().toUpperCase() }),
+  });
 }
 
 /**

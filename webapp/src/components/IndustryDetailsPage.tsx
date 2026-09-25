@@ -19,6 +19,7 @@ import {
   type SupabaseIndustryRecord,
 } from "@/lib/industrySupabase";
 import "@/styles/industry-intelligence.css";
+import { useTheme } from "@/context/ThemeContext";
 
 export interface IndustryDetailsPageProps {
   industryId?: string | number | null;
@@ -33,6 +34,8 @@ export function IndustryDetailsPage({
   longitude,
   onBack,
 }: IndustryDetailsPageProps) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const [record, setRecord] = useState<SupabaseIndustryRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [liveAqi, setLiveAqi] = useState<any>(null);
@@ -195,11 +198,15 @@ export function IndustryDetailsPage({
               center={[plant.latitude, plant.longitude]}
               zoom={14}
               zoomControl={false}
-              className="w-full h-full bg-[#080e18]"
+              className={`w-full h-full ${isLight ? "bg-[#f8fafc]" : "bg-[#080e18]"}`}
             >
               <TileLayer
                 attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                url={
+                  isLight
+                    ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                }
               />
               <Marker position={[plant.latitude, plant.longitude]} icon={pinIcon} />
               <Circle

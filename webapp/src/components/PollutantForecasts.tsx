@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Wind,
   Activity,
@@ -13,7 +13,11 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { PanelMessage } from "@/components/ui/panel-message";
 import { DailyForecastStrip } from "@/components/DailyForecastStrip";
-import { getStationForecast, getStationRegistry } from "@/lib/api";
+import {
+  getChronosStatus,
+  getStationForecastWithModel,
+  getStationRegistry,
+} from "@/lib/api";
 import type { Panel } from "@/hooks/useForecastData";
 import { aqiToCategory, categoryColor, pollutantSubIndex } from "@/lib/aqi";
 import type {
@@ -25,10 +29,13 @@ import type {
   Pollutant,
   StationForecastResponse,
   StationRegistryEntry,
+  StationReading,
+  ChronosStatusResponse,
 } from "@/lib/types";
 import { useTranslation } from "@/i18n";
 
-type ViewHorizon = "24h" | "48h" | "72h" | "168h";
+type ViewHorizon = "24h" | "48h" | "72h";
+type StationModel = "lightgbm" | "chronos2";
 
 interface PollutantMeta {
   id: string;
@@ -114,12 +121,230 @@ function formatVal(species: Pollutant, val: number): string {
   return String(Math.round(val));
 }
 
+interface SplineForecastSeriesPoint {
+  label: string;
+  fullTime: string;
+  value: number;
+  subIndex: number;
+  category: AqiCategory;
+}
+
+interface SplineForecastCardItem {
+  id: string;
+  chemical: Pollutant;
+  themeColor: string;
+  gradientId: string;
+  series: SplineForecastSeriesPoint[];
+}
+
+interface SplineForecastChartProps {
+  pol: SplineForecastCardItem;
+  horizon: ViewHorizon;
+  hoveredIdx: number | null;
+  onHover: (idx: number | null) => void;
+}
+
+function SplineForecastChart({
+  pol,
+  horizon,
+  hoveredIdx,
+  onHover,
+}: SplineForecastChartProps) {
+  const pathRef = useRef<SVGPathElement>(null);
+  const [measuredLength, setMeasuredLength] = useState<number | null>(null);
+
+  const rawData = pol.series;
+  if (rawData.length < 2) return null;
+
+  const width = 560;
+  const height = 135;
+  const padX = 28;
+  const padYTop = 26;
+  const padYBottom = 24;
+
+  const values = rawData.map((d) => d.value);
+  const min = Math.min(...values) * 0.85;
+  const max = Math.max(...values) * 1.15 || 1;
+  const range = max - min || 1;
+
+  const coords = rawData.map((d, i) => {
+    const x = padX + (i / (rawData.length - 1)) * (width - padX * 2);
+    const y = height - padYBottom - ((d.value - min) / range) * (height - padYTop - padYBottom);
+    return {
+      x,
+      y,
+      val: d.value,
+      label: d.label,
+      fullTime: d.fullTime,
+      category: d.category,
+      subIndex: d.subIndex,
+    };
+  });
+
+  let pathD = `M ${coords[0].x},${coords[0].y}`;
+  for (let i = 0; i < coords.length - 1; i++) {
+    const p0 = coords[i];
+    const p1 = coords[i + 1];
+    const cx = (p0.x + p1.x) / 2;
+    pathD += ` C ${cx},${p0.y} ${cx},${p1.y} ${p1.x},${p1.y}`;
+  }
+
+  const areaD = `${pathD} L ${coords[coords.length - 1].x},${height - padYBottom} L ${coords[0].x},${height - padYBottom} Z`;
+
+  // Calculate chord length so on the very first frame the strokeDasharray is already accurate
+  const approxLength = useMemo(() => {
+    let len = 0;
+    for (let i = 0; i < coords.length - 1; i++) {
+      const dx = coords[i + 1].x - coords[i].x;
+      const dy = coords[i + 1].y - coords[i].y;
+      len += Math.sqrt(dx * dx + dy * dy);
+    }
+    return Math.ceil(len * 1.2);
+  }, [coords]);
+
+  useLayoutEffect(() => {
+    if (pathRef.current) {
+      try {
+        const len = Math.ceil(pathRef.current.getTotalLength());
+        if (len > 0) {
+          setMeasuredLength(len);
+        }
+      } catch {
+        // fallback to approxLength
+      }
+    }
+  }, [pathD]);
+
+  const finalLength = measuredLength || approxLength || 800;
+  const clipId = `reveal-clip-${pol.id}-${horizon}`;
+
+  return (
+    <div style={{ position: "relative", width: "100%", height: "140px", marginTop: "0.75rem" }}>
+      <svg
+        key={`${pol.id}-${horizon}-${pathD.slice(0, 40)}`}
+        viewBox={`0 0 ${width} ${height}`}
+        style={{ width: "100%", height: "100%", overflow: "visible" }}
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id={pol.gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={pol.themeColor} stopOpacity="0.4" />
+            <stop offset="100%" stopColor={pol.themeColor} stopOpacity="0.0" />
+          </linearGradient>
+          <filter id={`glow-${pol.id}`} x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+          <clipPath id={clipId}>
+            <rect
+              x={0}
+              y={0}
+              width={width + 20}
+              height={height + 20}
+              className="spline-clip-animated"
+            />
+          </clipPath>
+        </defs>
+
+        {/* Area Fill with synchronized clipPath reveal */}
+        <path d={areaD} fill={`url(#${pol.gradientId})`} clipPath={`url(#${clipId})`} />
+
+        {/* Spline Line animated from start to end */}
+        <path
+          ref={pathRef}
+          d={pathD}
+          fill="none"
+          stroke={pol.themeColor}
+          strokeWidth="2.5"
+          filter={`url(#glow-${pol.id})`}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="spline-path-animated"
+          style={{
+            ["--spline-len" as string]: `${finalLength}px`,
+            strokeDasharray: `${finalLength}px`,
+            strokeDashoffset: `${finalLength}px`,
+          }}
+        />
+
+        {/* Static X-axis Day/Hour Labels */}
+        {coords.map((pt, i) => (
+          <text
+            key={`axis-${i}`}
+            x={pt.x}
+            y={height - 3}
+            textAnchor="middle"
+            fill="var(--mist-faint)"
+            fontSize="9px"
+            fontFamily="var(--sans)"
+          >
+            {pt.label}
+          </text>
+        ))}
+
+        {/* Data Points and Floating Value Labels staggered along line progression */}
+        {coords.map((pt, i) => {
+          const isHovered = hoveredIdx === i;
+          const progress = coords.length > 1 ? i / (coords.length - 1) : 0;
+          const pointDelayMs = Math.round(100 + progress * 1150);
+
+          return (
+            <g
+              key={`pt-${i}`}
+              className="spline-point-animated"
+              style={{
+                animationDelay: `${pointDelayMs}ms`,
+                cursor: "pointer",
+              }}
+              onMouseEnter={() => onHover(i)}
+              onMouseLeave={() => onHover(null)}
+            >
+              {/* Floating Value Text */}
+              <text
+                x={pt.x}
+                y={pt.y - 9}
+                textAnchor="middle"
+                fill={isHovered ? "var(--bone)" : pol.themeColor}
+                fontSize="10px"
+                fontFamily="var(--mono)"
+                fontWeight={isHovered ? "bold" : "600"}
+              >
+                {formatVal(pol.chemical, pt.val)}
+              </text>
+
+              {/* Outer halo point */}
+              <circle
+                cx={pt.x}
+                cy={pt.y}
+                r={isHovered ? 6 : 3.5}
+                fill="var(--deep)"
+                stroke={pol.themeColor}
+                strokeWidth={isHovered ? 2.5 : 2}
+                style={{ transition: "all 0.15s ease" }}
+              />
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
 interface PollutantForecastsProps {
   forecast?: Panel<ForecastResponse>;
   hour?: HourlyForecast | null;
   cursor?: number;
   consensus?: ConsensusResponse | null;
   cityAggregate?: CityAggregateResponse | null;
+  /** app-wide station + model selection (header picker = single source of truth).
+   *  When wired, the selectors here READ that selection and WRITE back to it. */
+  liveStations?: StationReading[] | null;
+  selectedStationUid?: string | null;
+  onStationSelect?: (uid: string) => void;
+  /** trained-model id bridged for the selected station (computed in App) */
+  trainedStationId?: number | null;
+  stationModel?: StationModel;
+  onStationModelChange?: (m: StationModel) => void;
 }
 
 export function PollutantForecasts({
@@ -128,40 +353,91 @@ export function PollutantForecasts({
   cursor = 0,
   consensus,
   cityAggregate,
+  liveStations = null,
+  selectedStationUid = null,
+  onStationSelect,
+  trainedStationId = null,
+  stationModel: stationModelProp,
+  onStationModelChange,
 }: PollutantForecastsProps) {
   const { t } = useTranslation();
-  const [horizon, setHorizon] = useState<ViewHorizon>("72h");
-  const [hoveredIdx, setHoveredIdx] = useState<{ [key: string]: number | null }>({});
-
-  // ── Trained per-station module (llm/) — per-station 72h forecast ──────────
-  const [stations, setStations] = useState<StationRegistryEntry[]>([]);
-  const [stationId, setStationId] = useState<number | null>(null);
+  // ── Trained per-station module (llm/) with a model-comparison toggle ─────
+  // lightgbm = production fleet (primary). chronos2 = CPCB-trained comparison
+  // model — kept visible for transparency.
+  const controlled = liveStations != null && !!onStationSelect;
+  const [registryStations, setRegistryStations] = useState<StationRegistryEntry[]>([]);
+  const [localStationId, setLocalStationId] = useState<number | null>(null);
+  const [localModel, setLocalModel] = useState<StationModel>("lightgbm");
   const [stationForecast, setStationForecast] = useState<StationForecastResponse | null>(null);
   const [stationLoading, setStationLoading] = useState(false);
   const [stationError, setStationError] = useState<string | null>(null);
+  const [chronosStatus, setChronosStatus] = useState<ChronosStatusResponse | null>(null);
 
+  // model: controlled when wired, local otherwise — writes propagate up
+  const stationModel = stationModelProp ?? localModel;
+  const setStationModel = (m: StationModel) => {
+    setLocalModel(m);
+    onStationModelChange?.(m);
+  };
+
+  // standalone mode only: registry-backed dropdown (the app shell passes liveStations)
   useEffect(() => {
+    if (controlled) return;
     let alive = true;
     getStationRegistry()
       .then((r) => {
         if (!alive) return;
         const trained = r.stations.filter((s) => s.trained);
-        setStations(trained.length > 0 ? trained : r.stations);
-        if (trained.length > 0) setStationId((cur) => cur ?? trained[0].station_id);
+        setRegistryStations(trained.length > 0 ? trained : r.stations);
+        if (trained.length > 0) setLocalStationId((cur) => cur ?? trained[0].station_id);
       })
       .catch(() => undefined);
     return () => {
       alive = false;
     };
+  }, [controlled]);
+
+  // station: bridged from the app-wide LIVE selection when controlled
+  const stationId = controlled ? trainedStationId ?? null : localStationId;
+  const selectedLive = controlled
+    ? liveStations?.find((s) => s.uid === selectedStationUid) ?? null
+    : null;
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    getChronosStatus(ctrl.signal)
+      .then((r) => aliveSet(r))
+      .catch(() => undefined);
+    let live = true;
+    function aliveSet(v: ChronosStatusResponse) {
+      if (live) setChronosStatus(v);
+    }
+    return () => {
+      live = false;
+      ctrl.abort();
+    };
   }, []);
+
+  // per-(station, model) cache: toggling back to a previously-loaded model is
+  // instant instead of re-running a 20s Chronos-2 inference
+  const forecastCacheRef = useRef(new Map<string, StationForecastResponse>());
 
   useEffect(() => {
     if (stationId == null) return;
     let alive = true;
+    const key = `${stationId}:${stationModel}`;
+    const cached = forecastCacheRef.current.get(key);
+    if (cached) {
+      setStationForecast(cached);
+      setStationError(null);
+      setStationLoading(false);
+      return;
+    }
     setStationLoading(true);
     setStationError(null);
-    getStationForecast(stationId)
+    getStationForecastWithModel(stationId, stationModel)
       .then((r) => {
+        forecastCacheRef.current.set(key, r);
         if (alive) setStationForecast(r);
       })
       .catch(() => {
@@ -176,13 +452,10 @@ export function PollutantForecasts({
     return () => {
       alive = false;
     };
-  }, [stationId]);
+  }, [stationId, stationModel]);
 
-  // hour index (1..168) of each entry of stationHoursForStrip (0 = the live anchor)
-  const stationHourNumbers = useMemo<number[]>(() => {
-    if (!stationForecast) return [];
-    return [0, ...stationForecast.forecast_hours.map((h) => h.horizon)];
-  }, [stationForecast]);
+  const [horizon, setHorizon] = useState<ViewHorizon>("72h");
+  const [hoveredIdx, setHoveredIdx] = useState<{ [key: string]: number | null }>({});
 
   const forecastData = forecast?.data;
   const rawHours = forecastData?.forecast_hours ?? [];
@@ -194,6 +467,9 @@ export function PollutantForecasts({
     const anchorHour: HourlyForecast | null = (() => {
       const agg = cityAggregate?.sub_indices ?? null;
       const m = consensus?.metrics ?? null;
+      // THE SELECTED STATION'S LIVE SENSOR READING comes first — the anchor is
+      // "now at this station", not the city aggregate
+      const st = selectedLive?.pollutants ?? null;
       const mk = (p: Pollutant, conc: number): HourlyForecast["sub_indices"][number] => ({
         pollutant: p,
         concentration: conc,
@@ -204,12 +480,22 @@ export function PollutantForecasts({
       const push = (p: Pollutant, conc?: number | null) => {
         if (typeof conc === "number" && conc > 0) subs.push(mk(p, conc));
       };
-      if (agg) {
+      if (st && Object.keys(st).length > 0) {
+        (Object.keys(st) as Pollutant[]).forEach((p) => {
+          const conc = st[p];
+          if (typeof conc === "number" && conc > 0) {
+            const si = pollutantSubIndex(p, conc);
+            subs.push({ pollutant: p, concentration: conc, sub_index: si, category: aqiToCategory(si) });
+          }
+        });
+      }
+      if (subs.length === 0 && agg) {
         (Object.keys(agg) as Pollutant[]).forEach((p) => {
           const d = agg[p];
           if (d) subs.push({ pollutant: p, concentration: d.conc, sub_index: d.index, category: aqiToCategory(d.index) });
         });
-      } else if (m) {
+      }
+      if (subs.length === 0 && m) {
         push("PM2.5", m.pm25);
         push("PM10", m.pm10);
         push("NO2", m.no2);
@@ -262,10 +548,12 @@ export function PollutantForecasts({
       plume_contribution: 0,
     }));
     return anchorHour ? [anchorHour, ...modelHours] : modelHours;
-  }, [stationForecast, rawHours, cityAggregate, consensus]);
+  }, [stationForecast, rawHours, cityAggregate, consensus, selectedLive]);
 
   const hours = stationForecast ? stationHoursForStrip : rawHours;
-  const activeStation = stations.find((s) => s.station_id === stationId) ?? null;
+  const activeStation = controlled
+    ? null
+    : registryStations.find((s) => s.station_id === stationId) ?? null;
   const isLoading = forecast?.status === "loading" && hours.length === 0 && !cityAggregate;
   const isError = forecast?.status === "error" && hours.length === 0 && !cityAggregate;
 
@@ -317,23 +605,14 @@ export function PollutantForecasts({
 
       const series: SeriesPoint[] = [];
 
-      // Checkpoint indices are horizon-relative; when the active series is the
-      // trained per-station module it already carries the live anchor at index 0.
-      const nHours = hours.length;
-      const cap = Math.max(0, nHours - 1);
-      const mk = (step: number) =>
-        Array.from({ length: 13 }, (_, i) => Math.min(i * step, cap));
       let checkpoints: number[] = [];
       if (horizon === "24h") {
-        checkpoints = nHours >= 25 ? [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24] : mk(2);
+        checkpoints = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24];
       } else if (horizon === "48h") {
-        checkpoints = nHours >= 49 ? [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48] : mk(4);
-      } else if (horizon === "72h") {
-        // Full 72h horizon
-        checkpoints = nHours >= 72 ? [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 71] : mk(6);
+        checkpoints = [0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48];
       } else {
-        // Full 7-day (168h) horizon — 13 points every 14h
-        checkpoints = nHours >= 168 ? [0, 14, 28, 42, 56, 70, 84, 98, 112, 126, 140, 154, 167] : mk(14);
+        // Full 72h horizon
+        checkpoints = [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 71];
       }
 
       checkpoints.forEach((hIdx) => {
@@ -391,131 +670,7 @@ export function PollutantForecasts({
         series,
       };
     });
-  }, [hours, horizon, hour, cursor, cityAggregate, consensus, stationForecast]);
-
-  const renderSplineChart = (pol: (typeof cards)[0]) => {
-    const rawData = pol.series;
-    if (rawData.length < 2) return null;
-
-    const width = 560;
-    const height = 135;
-    const padX = 28;
-    const padYTop = 26;
-    const padYBottom = 24;
-
-    const values = rawData.map((d) => d.value);
-    const min = Math.min(...values) * 0.85;
-    const max = Math.max(...values) * 1.15 || 1;
-    const range = max - min || 1;
-
-    const coords = rawData.map((d, i) => {
-      const x = padX + (i / (rawData.length - 1)) * (width - padX * 2);
-      const y = height - padYBottom - ((d.value - min) / range) * (height - padYTop - padYBottom);
-      return {
-        x,
-        y,
-        val: d.value,
-        label: d.label,
-        fullTime: d.fullTime,
-        category: d.category,
-        subIndex: d.subIndex,
-      };
-    });
-
-    let pathD = `M ${coords[0].x},${coords[0].y}`;
-    for (let i = 0; i < coords.length - 1; i++) {
-      const p0 = coords[i];
-      const p1 = coords[i + 1];
-      const cx = (p0.x + p1.x) / 2;
-      pathD += ` C ${cx},${p0.y} ${cx},${p1.y} ${p1.x},${p1.y}`;
-    }
-
-    const areaD = `${pathD} L ${coords[coords.length - 1].x},${height - padYBottom} L ${coords[0].x},${height - padYBottom} Z`;
-
-    return (
-      <div style={{ position: "relative", width: "100%", height: "140px", marginTop: "0.75rem" }}>
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          style={{ width: "100%", height: "100%", overflow: "visible" }}
-          aria-hidden="true"
-        >
-          <defs>
-            <linearGradient id={pol.gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={pol.themeColor} stopOpacity="0.4" />
-              <stop offset="100%" stopColor={pol.themeColor} stopOpacity="0.0" />
-            </linearGradient>
-            <filter id={`glow-${pol.id}`} x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="2.5" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
-
-          {/* Area Fill */}
-          <path d={areaD} fill={`url(#${pol.gradientId})`} />
-
-          {/* Spline Line */}
-          <path
-            d={pathD}
-            fill="none"
-            stroke={pol.themeColor}
-            strokeWidth="2.5"
-            filter={`url(#glow-${pol.id})`}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {/* Data Points and Labels */}
-          {coords.map((pt, i) => {
-            const isHovered = hoveredIdx[pol.id] === i;
-            return (
-              <g
-                key={i}
-                onMouseEnter={() => setHoveredIdx((prev) => ({ ...prev, [pol.id]: i }))}
-                onMouseLeave={() => setHoveredIdx((prev) => ({ ...prev, [pol.id]: null }))}
-                style={{ cursor: "pointer" }}
-              >
-                {/* Floating Value Text */}
-                <text
-                  x={pt.x}
-                  y={pt.y - 9}
-                  textAnchor="middle"
-                  fill={isHovered ? "#ffffff" : pol.themeColor}
-                  fontSize="10px"
-                  fontFamily="var(--mono)"
-                  fontWeight={isHovered ? "bold" : "600"}
-                >
-                  {formatVal(pol.chemical, pt.val)}
-                </text>
-
-                {/* Outer halo point */}
-                <circle
-                  cx={pt.x}
-                  cy={pt.y}
-                  r={isHovered ? 6 : 3.5}
-                  fill="#0e131f"
-                  stroke={pol.themeColor}
-                  strokeWidth={isHovered ? 2.5 : 2}
-                  style={{ transition: "all 0.15s ease" }}
-                />
-
-                {/* X-axis Day/Hour Label */}
-                <text
-                  x={pt.x}
-                  y={height - 3}
-                  textAnchor="middle"
-                  fill="var(--mist-faint)"
-                  fontSize="9px"
-                  fontFamily="var(--sans)"
-                >
-                  {pt.label}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-      </div>
-    );
-  };
+  }, [hours, horizon, hour, cursor, cityAggregate, consensus]);
 
   return (
     <section
@@ -592,10 +747,57 @@ export function PollutantForecasts({
           >
             Station Model
           </span>
+          {controlled ? (
+            <select
+              value={selectedStationUid ?? ""}
+              onChange={(e) => onStationSelect?.(e.target.value)}
+              aria-label="Select monitoring station for the trained forecast"
+              style={{
+                background: "var(--slab)",
+                border: "1px solid var(--hairline-2)",
+                borderRadius: "4px",
+                color: "var(--bone)",
+                fontFamily: "var(--mono)",
+                fontSize: "12px",
+                padding: "0.4rem 0.6rem",
+                cursor: "pointer",
+                maxWidth: "260px",
+              }}
+            >
+              {(liveStations ?? []).map((s) => (
+                <option key={s.uid} value={s.uid}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <select
+              value={localStationId ?? ""}
+              onChange={(e) => setLocalStationId(Number(e.target.value))}
+              aria-label="Select monitoring station for the trained forecast"
+              style={{
+                background: "var(--slab)",
+                border: "1px solid var(--hairline-2)",
+                borderRadius: "4px",
+                color: "var(--bone)",
+                fontFamily: "var(--mono)",
+                fontSize: "12px",
+                padding: "0.4rem 0.6rem",
+                cursor: "pointer",
+                maxWidth: "260px",
+              }}
+            >
+              {registryStations.map((s) => (
+                <option key={s.station_id} value={s.station_id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          )}
           <select
-            value={stationId ?? ""}
-            onChange={(e) => setStationId(Number(e.target.value))}
-            aria-label="Select monitoring station for the trained 72h forecast"
+            value={stationModel}
+            onChange={(e) => setStationModel(e.target.value as StationModel)}
+            aria-label="Select forecast model"
             style={{
               background: "var(--slab)",
               border: "1px solid var(--hairline-2)",
@@ -605,18 +807,18 @@ export function PollutantForecasts({
               fontSize: "12px",
               padding: "0.4rem 0.6rem",
               cursor: "pointer",
-              maxWidth: "260px",
             }}
           >
-            {stations.map((s) => (
-              <option key={s.station_id} value={s.station_id}>
-                {s.name}
-              </option>
-            ))}
+            <option value="lightgbm">LightGBM (production)</option>
+            <option value="chronos2" disabled={!chronosStatus?.chronos2.available}>
+              Chronos-2 (CPCB-trained comparison)
+            </option>
           </select>
           {stationLoading && (
-            <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--mist)" }}>
-              running station model…
+            <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--warn, #f59e0b)" }}>
+              {stationModel === "chronos2"
+                ? "running Chronos-2 inference — up to ~30s on first load…"
+                : "running LightGBM station model…"}
             </span>
           )}
           {!stationLoading && stationForecast && (
@@ -627,11 +829,14 @@ export function PollutantForecasts({
                 gap: "0.35rem",
                 fontFamily: "var(--mono)",
                 fontSize: "11px",
-                color: "var(--live)",
+                color: stationForecast.model === "chronos2" ? "var(--warn, #f59e0b)" : "var(--live)",
               }}
+              title={stationForecast.model_label}
             >
-              ● {activeStation?.name ?? stationForecast.station.name} · trained module · T0 anchor{" "}
-              {stationForecast.anchor_used ? "live" : "archive"}
+              ● {activeStation?.name ?? stationForecast.station.name} ·{" "}
+              {stationForecast.model === "chronos2"
+                ? "Chronos-2 (CPCB-trained comparison)"
+                : "LightGBM (production)"} · T0 anchor {stationForecast.anchor_used ? "live" : "archive"}
             </span>
           )}
           {!stationLoading && stationError && (
@@ -667,21 +872,13 @@ export function PollutantForecasts({
           >
             Full 72h
           </button>
-          <button
-            type="button"
-            className="btn btn--solid map__ctrlBtn"
-            aria-pressed={horizon === "168h"}
-            onClick={() => setHorizon("168h")}
-          >
-            7 days
-          </button>
         </div>
       </div>
 
       {/* 7-Day Predictable Daily AQI Outlook Strip */}
       <div style={{ marginTop: "1rem" }}>
         <DailyForecastStrip
-          forecast={stationForecast ? undefined : forecastData}
+          forecast={forecastData}
           hours={hours}
           consensus={consensus}
           cityAggregate={cityAggregate}
@@ -894,7 +1091,12 @@ export function PollutantForecasts({
                     </div>
 
                     {/* Spline Area Chart */}
-                    {renderSplineChart(pol)}
+                    <SplineForecastChart
+                      pol={pol}
+                      horizon={horizon}
+                      hoveredIdx={hoveredIdx[pol.id] ?? null}
+                      onHover={(idx) => setHoveredIdx((prev) => ({ ...prev, [pol.id]: idx }))}
+                    />
                   </div>
 
                   {/* Bottom Metrics Bar */}

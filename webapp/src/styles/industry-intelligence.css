@@ -19,6 +19,29 @@
   --font-sans: 'IBM Plex Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Light Theme Variables */
+:root[data-theme="light"],
+html.light {
+  --bg-void: #f8fafc;
+  --bg-card: rgba(255, 255, 255, 0.92);
+  --bg-card-hover: rgba(255, 255, 255, 0.98);
+  --border-glass: rgba(15, 23, 42, 0.1);
+  --border-glass-bright: rgba(15, 23, 42, 0.22);
+  --accent-cyan: #0284c7;
+}
+
+[data-theme="light"] .glass-panel,
+html.light .glass-panel {
+  box-shadow: 0 6px 24px -2px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="light"] .glass-panel-sub,
+html.light .glass-panel-sub {
+  background: rgba(241, 245, 249, 0.8);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: var(--bone);
+}
+
 /* Glassmorphism Containers */
 .glass-panel {
   background: var(--bg-card);

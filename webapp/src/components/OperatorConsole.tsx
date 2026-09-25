@@ -26,6 +26,7 @@ interface InviteCode {
 interface OperatorConsoleProps {
   open: boolean;
   onClose: () => void;
+  onOpenAuthorityLogin?: () => void;
 }
 
 type Phase = "locked" | "ready";
@@ -54,7 +55,7 @@ async function opFetch<T>(path: string, init: RequestInit = {}, token?: string |
   return body as T;
 }
 
-export function OperatorConsole({ open, onClose }: OperatorConsoleProps) {
+export function OperatorConsole({ open, onClose, onOpenAuthorityLogin }: OperatorConsoleProps) {
   const [phase, setPhase] = useState<Phase>("locked");
   const [token, setToken] = useState<string | null>(null);
   const [store, setStore] = useState<string>("");
@@ -363,6 +364,78 @@ export function OperatorConsole({ open, onClose }: OperatorConsoleProps) {
                 {busy ? <Loader2 size={14} className="spin" /> : <ShieldCheck size={14} />}
                 Unlock console
               </button>
+
+              {password.trim().toUpperCase().startsWith("NCR72-") && (
+                <div
+                  style={{
+                    marginTop: "0.8rem",
+                    padding: "0.6rem 0.75rem",
+                    background: "rgba(56,189,248,0.1)",
+                    border: "1px solid rgba(56,189,248,0.35)",
+                    borderRadius: "8px",
+                    fontFamily: "var(--mono)",
+                    fontSize: "11px",
+                    color: "#7dd3fc",
+                    textAlign: "center",
+                  }}
+                >
+                  It looks like you entered an Authority Console Code!
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenAuthorityLogin?.();
+                    }}
+                    style={{
+                      display: "block",
+                      margin: "0.4rem auto 0",
+                      background: "rgba(56,189,248,0.25)",
+                      border: "1px solid rgba(56,189,248,0.5)",
+                      borderRadius: "6px",
+                      padding: "0.3rem 0.6rem",
+                      color: "#fff",
+                      fontFamily: "var(--mono)",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Log in with Authority Code &rarr;
+                  </button>
+                </div>
+              )}
+
+              {onOpenAuthorityLogin && (
+                <div style={{ marginTop: "1rem", textAlign: "center", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "0.8rem" }}>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "rgba(255,255,255,0.5)", marginBottom: "0.4rem" }}>
+                    Are you an authority officer with a console code?
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenAuthorityLogin();
+                    }}
+                    style={{
+                      background: "rgba(56,189,248,0.1)",
+                      border: "1px solid rgba(56,189,248,0.3)",
+                      borderRadius: "6px",
+                      padding: "0.35rem 0.75rem",
+                      color: "var(--cyan)",
+                      fontFamily: "var(--mono)",
+                      fontSize: "11.5px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    <ShieldCheck size={13} />
+                    Log in with Authority Code
+                  </button>
+                </div>
+              )}
             </form>
           )}
 

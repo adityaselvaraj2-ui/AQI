@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowUpRight, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowUpRight, TrendingDown, TrendingUp, MapPin } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -12,11 +12,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { CityAggregateResponse, ConsensusResponse, MlForecast72hrResponse } from "@/lib/types";
+import type { CityAggregateResponse, ConsensusResponse, MlForecast72hrResponse, StationForecastResponse, StationReading } from "@/lib/types";
+import type { StationModel } from "@/hooks/useStationForecast";
 import type { IqairRealtimeResponse } from "@/lib/api";
 import { useTranslation } from "@/i18n";
 import { pollutantSubIndex } from "@/lib/aqi";
 import { VantaCellsBackground } from "./VantaCellsBackground";
+import { useTheme } from "@/context/ThemeContext";
 
 interface Props {
   data: ConsensusResponse | null;
@@ -25,10 +27,44 @@ interface Props {
   error: string | null;
   cityAggregate?: CityAggregateResponse | null;
   realtimeIqair?: IqairRealtimeResponse | null;
+  /** per-station trained-model forecast (shared app selection). DEFAULT IS OFF:
+   *  the chart stays on the city-wide coupled-physics model unless the user
+   *  explicitly opts in via "Station model view". */
+  stationForecast?: StationForecastResponse | null;
+  stationLoading?: boolean;
+  stationName?: string | null;
+  stationModel?: StationModel;
+  onStationModelChange?: (m: StationModel) => void;
+  stationOptions?: StationReading[] | null;
+  selectedStationUid?: string | null;
+  onStationSelect?: (uid: string) => void;
+  /** the app-wide picked station's LIVE sensor reading (independent of model availability) */
+  selectedStationLive?: { name: string; aqi: number; pm25?: number } | null;
+  /** when true the chart shows the trained station-model series instead of physics */
+  stationViewEnabled?: boolean;
+  onStationViewToggle?: (on: boolean) => void;
 }
 
 /** Standard-aware AQI category and color mapping */
-function getAqiMeta(aqi: number, standard: "cpcb" | "epa") {
+function getAqiMeta(aqi: number, standard: "cpcb" | "epa", isLight = false) {
+  if (isLight) {
+    if (standard === "epa") {
+      if (aqi <= 50) return { category: "Good", color: "#15803d" };
+      if (aqi <= 100) return { category: "Moderate", color: "#ca8a04" };
+      if (aqi <= 150) return { category: "Unhealthy for Sensitive Groups", color: "#ea580c" };
+      if (aqi <= 200) return { category: "Unhealthy", color: "#dc2626" };
+      if (aqi <= 300) return { category: "Very Unhealthy", color: "#9333ea" };
+      return { category: "Hazardous", color: "#7f1d1d" };
+    } else {
+      if (aqi <= 50) return { category: "Good", color: "#15803d" };
+      if (aqi <= 100) return { category: "Satisfactory", color: "#ca8a04" };
+      if (aqi <= 200) return { category: "Moderate", color: "#ea580c" };
+      if (aqi <= 300) return { category: "Poor", color: "#dc2626" };
+      if (aqi <= 400) return { category: "Very Poor", color: "#9333ea" };
+      return { category: "Severe", color: "#7f1d1d" };
+    }
+  }
+
   if (standard === "epa") {
     if (aqi <= 50) return { category: "Good", color: "#8ceb8c" };
     if (aqi <= 100) return { category: "Moderate", color: "#ffff00" };
@@ -46,25 +82,92 @@ function getAqiMeta(aqi: number, standard: "cpcb" | "epa") {
   }
 }
 
-export function ConsensusDashboard({ data, forecast, loading: _loading, error, cityAggregate, realtimeIqair }: Props) {
+export function ConsensusDashboard({
+  data,
+  forecast,
+  loading: _loading,
+  error,
+  cityAggregate,
+  realtimeIqair,
+  stationForecast = null,
+  stationLoading = false,
+  stationName = null,
+  stationModel = "lightgbm",
+  onStationModelChange,
+  stationOptions = null,
+  selectedStationUid = null,
+  onStationSelect,
+  selectedStationLive = null,
+  stationViewEnabled = false,
+  onStationViewToggle,
+}: Props) {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const metrics = data?.metrics;
 
   const [horizon, setHorizon] = useState<"24h" | "48h" | "72h">("72h");
   const [chartType, setChartType] = useState<"line" | "bars">("bars");
   const [standard, setStandard] = useState<"cpcb" | "epa">("cpcb");
 
-  const liveAqi = realtimeIqair?.aqi ?? (cityAggregate?.overall_aqi ?? (metrics ? Math.round(metrics.aqi) : 88));
-  const livePm25 = cityAggregate?.sub_indices?.["PM2.5"]?.conc ?? (metrics?.pm25 ?? 45);
+  // LIVE OBSERVATION chip: the picked station's real sensor reading when one is
+  // selected (that is what "live observation" means), else the city aggregate.
+  const liveAqi = selectedStationLive?.aqi
+    ?? realtimeIqair?.aqi
+    ?? (cityAggregate?.overall_aqi ?? (metrics ? Math.round(metrics.aqi) : 88));
+  const livePm25 = selectedStationLive?.pm25
+    ?? cityAggregate?.sub_indices?.["PM2.5"]?.conc
+    ?? (metrics?.pm25 ?? 45);
+
+  // The chart shows the trained station-model series ONLY when the user opted
+  // in AND the model actually has data for this station. Default = physics.
+  const useStationSeries = Boolean(stationViewEnabled && stationForecast);
 
   const currentLiveAqi = standard === "epa" ? pollutantSubIndex("PM2.5", livePm25, "epa") : liveAqi;
-  const liveInfo = useMemo(() => getAqiMeta(currentLiveAqi, standard), [currentLiveAqi, standard]);
+  const liveInfo = useMemo(() => getAqiMeta(currentLiveAqi, standard, isLight), [currentLiveAqi, standard, isLight]);
 
   // Single source of truth for the chart's points based on horizon and selected standard
   const forecastPoints = useMemo(() => {
-    const mlHours = forecast?.forecast_hours;
     const maxH = horizon === "24h" ? 24 : horizon === "48h" ? 48 : 72;
 
+    // SOURCE: default = city-wide coupled-physics model. The trained station
+    // series replaces it ONLY when the user explicitly enabled station view.
+    const stHours = useStationSeries ? stationForecast?.forecast_hours : null;
+    if (stHours && stHours.length > 0) {
+      return stHours.slice(0, maxH).map((h) => {
+        let timeFormatted = `+${h.horizon}h`;
+        let fullDateStr = `+${h.horizon}h`;
+        let pillDateStr = `+${h.horizon}h`;
+        if (h.timestamp) {
+          try {
+            const d = new Date(h.timestamp);
+            if (!Number.isNaN(d.getTime())) {
+              const hrs = d.getHours().toString().padStart(2, "0");
+              const mins = d.getMinutes().toString().padStart(2, "0");
+              timeFormatted = `${hrs}:${mins}`;
+              fullDateStr = `${d.getDate()} ${d.toLocaleString("en", { month: "short" })}, ${hrs}:${mins}`;
+              pillDateStr = `${d.getDate()} ${d.toLocaleString("en", { month: "short" })} · ${hrs}:${mins}`;
+            }
+          } catch { /* keep fallback labels */ }
+        }
+        const a = standard === "epa"
+          ? pollutantSubIndex("PM2.5", h.conc?.pm25 ?? Math.round(h.aqi * 0.45), "epa")
+          : Math.round(h.aqi);
+        const meta = getAqiMeta(a, standard, isLight);
+        return {
+          horizon_hours: h.horizon,
+          aqi: a,
+          timeFormatted,
+          fullDateStr,
+          pillDateStr,
+          category: h.category,
+          color: meta.color,
+          pm25: Math.round(h.conc?.pm25 ?? 0),
+        };
+      });
+    }
+
+    const mlHours = forecast?.forecast_hours;
     if (mlHours && mlHours.length > 0) {
       const slice = mlHours.slice(0, maxH);
       return slice.map((h, idx) => {
@@ -98,8 +201,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
           }
         }
 
-        const meta = getAqiMeta(pointAqi, standard);
-
+        const meta = getAqiMeta(pointAqi, standard, isLight);
         return {
           index: idx,
           horizon_hours: idx,
@@ -128,7 +230,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
         const monthStr = d.toLocaleDateString("en-US", { month: "short" });
         const diurnalWave = Math.sin((i - 4) / 3.8) * 22;
         const a = Math.max(25, Math.round(currentLiveAqi + diurnalWave));
-        const meta = getAqiMeta(a, standard);
+        const meta = getAqiMeta(a, standard, isLight);
         pts.push({
           index: i,
           horizon_hours: i,
@@ -165,7 +267,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
         }
       }
       const a = standard === "epa" ? pollutantSubIndex("PM2.5", item.pm25, "epa") : item.aqi;
-      const meta = getAqiMeta(a, standard);
+      const meta = getAqiMeta(a, standard, isLight);
       return {
         index: idx,
         horizon_hours: item.horizon_hours,
@@ -179,7 +281,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
         color: meta.color,
       };
     });
-  }, [forecast, data, horizon, standard, currentLiveAqi]);
+  }, [forecast, data, horizon, standard, currentLiveAqi, isLight, useStationSeries, stationForecast]);
 
   // Compute MIN and MAX AQI for the currently active horizon
   const { minAqi, maxAqi } = useMemo(() => {
@@ -215,36 +317,106 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
       {/* Section Head: Replaced marked block with clean, prominent forecast heading */}
       <div className="consensus-head">
         <div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white font-sans">
-            {horizonNumber}-hour consensus forecast
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-[var(--bone)] font-sans">
+            {horizonNumber}-hour {useStationSeries ? "station" : "consensus"} forecast
           </h2>
+          <p className="text-[11px] font-mono text-[var(--mist-dim)] mt-1 flex items-center gap-1.5 flex-wrap">
+            <MapPin size={11} style={{ flexShrink: 0 }} />
+            {useStationSeries
+              ? `${stationName ?? "selected station"} · trained per-station model`
+              : selectedStationLive
+              ? `${selectedStationLive.name} · station view off — city-wide physics shown`
+              : "city-wide · coupled physics model · pick a station to switch"}
+          </p>
         </div>
-        <span className="source-count">
-          {t("consensus.aggregatedAcross")} {cityAggregate?.station_count ?? 0} {t("consensus.stationsCount")} + {data?.source_count ?? 0} {t("consensus.meteoFeeds")}.
-        </span>
+        <div className="flex flex-col items-end gap-2">
+          {/* Station + model pickers — same ONE selection the header uses */}
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            {stationOptions && stationOptions.length > 0 && (
+              <select
+                value={selectedStationUid ?? ""}
+                onChange={(e) => onStationSelect?.(e.target.value)}
+                aria-label="Select station for this forecast"
+                className="cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-mono font-semibold focus:outline-none"
+                style={{
+                  background: isLight ? "rgba(255,255,255,0.9)" : "rgba(12,16,26,0.7)",
+                  border: `1px solid ${isLight ? "rgba(15,23,42,0.12)" : "rgba(255,255,255,0.16)"}`,
+                  color: isLight ? "#0f172a" : "rgba(255,255,255,0.92)",
+                  maxWidth: "180px",
+                }}
+              >
+                {stationOptions.map((s) => (
+                  <option key={s.uid} value={s.uid} style={{ color: "#0f172a" }}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            <select
+              value={stationModel}
+              onChange={(e) => onStationModelChange?.(e.target.value as StationModel)}
+              aria-label="Select forecast model"
+              disabled={!stationViewEnabled}
+              title={stationViewEnabled ? undefined : "Enable Station model view to choose a model"}
+              className="cursor-pointer rounded-lg px-2.5 py-1.5 text-xs font-mono font-semibold focus:outline-none"
+              style={{
+                opacity: stationViewEnabled ? 1 : 0.45,
+                background: isLight ? "rgba(255,255,255,0.9)" : "rgba(12,16,26,0.7)",
+                border: `1px solid ${isLight ? "rgba(15,23,42,0.12)" : "rgba(255,255,255,0.16)"}`,
+                color: isLight ? "#0f172a" : "rgba(255,255,255,0.92)",
+              }}
+            >
+              <option value="lightgbm" style={{ color: "#0f172a" }}>LightGBM (production)</option>
+              <option value="chronos2" style={{ color: "#0f172a" }}>Chronos-2 (CPCB-trained comparison)</option>
+            </select>
+            <label
+              className="flex items-center gap-1.5 cursor-pointer select-none"
+              title="Replace the city-wide physics chart with the trained model forecast for the selected station"
+            >
+              <input
+                type="checkbox"
+                checked={stationViewEnabled}
+                onChange={(e) => onStationViewToggle?.(e.target.checked)}
+                className="accent-sky-500 w-3.5 h-3.5 cursor-pointer"
+              />
+              <span className="text-[11px] font-mono font-semibold text-[var(--mist)]">Station model view</span>
+            </label>
+          </div>
+          {!useStationSeries && (
+            <span className="source-count">
+              {t("consensus.aggregatedAcross")} {cityAggregate?.station_count ?? 0} {t("consensus.stationsCount")} + {data?.source_count ?? 0} {t("consensus.meteoFeeds")}.
+            </span>
+          )}
+        </div>
       </div>
-      {error && <p className="consensus-error">Consensus feed unavailable: {error}</p>}
+      {stationLoading && (
+        <p className="consensus-error" style={{ color: "#f59e0b" }}>
+          running the trained station model — up to ~30s on first load…
+        </p>
+      )}
+      {error && !stationForecast && <p className="consensus-error">Consensus feed unavailable: {error}</p>}
 
       {/* Modern Atmospheric Forecast Box */}
       <div className="consensus-panels">
         <article className="chart-panel realism-box relative overflow-hidden">
           <div className="realism-topglow" />
-          <div className="realism-inner !p-5 sm:!p-6 !bg-[#0b1017] relative">
+          <div className="realism-inner !p-3.5 sm:!p-4.5 relative">
             {/* Vanta Cells Animated Background Layer - extended further down into the upper chart area */}
-            <div className="absolute inset-x-0 top-0 h-[260px] sm:h-[195px] pointer-events-none overflow-hidden z-0 rounded-t-[18px]">
+            <div className="absolute inset-x-0 top-0 h-[150px] sm:h-[125px] pointer-events-none overflow-hidden z-0 rounded-t-[18px]">
               <VantaCellsBackground
                 color1={0x3dbdbd}
                 color2={0xcdeae8}
                 size={1.0}
                 speed={2.8}
-                opacity={0.65}
+                opacity={isLight ? 0.35 : 0.65}
               />
               {/* Bottom mix / blur fade into solid card background so lower chart bars are unaffected */}
               <div
-                className="absolute inset-x-0 bottom-0 h-24 sm:h-20 pointer-events-none"
+                className="absolute inset-x-0 bottom-0 h-16 sm:h-12 pointer-events-none"
                 style={{
-                  background:
-                    "linear-gradient(to bottom, rgba(11,16,23,0) 0%, rgba(11,16,23,0.35) 35%, rgba(11,16,23,0.88) 75%, #0b1017 100%)",
+                  background: isLight
+                    ? "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 35%, rgba(255,255,255,0.92) 75%, #ffffff 100%)"
+                    : "linear-gradient(to bottom, rgba(11,16,23,0) 0%, rgba(11,16,23,0.35) 35%, rgba(11,16,23,0.88) 75%, #0b1017 100%)",
                   backdropFilter: "blur(6px)",
                   WebkitBackdropFilter: "blur(6px)",
                 }}
@@ -252,7 +424,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
             </div>
 
             {/* Top Bar: Hero Live Telemetry (Left) & Controls (Right) */}
-            <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-4 pb-3.5 border-b border-white/[0.08]">
+            <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-3 pb-2.5 border-b border-[var(--hairline)]">
               {/* Left: Hero Live AQI with Subordinate Min & Peak Extremes */}
               <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                 {/* PRIMARY HERO: Live AQI Display */}
@@ -260,7 +432,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                   {/* Big Bold Live Number with Colored Drop Glow */}
                   <div className="flex items-baseline gap-1.5">
                     <span
-                      className="text-4xl sm:text-5xl font-black font-mono tracking-tight leading-none"
+                      className="text-3xl sm:text-4xl font-black font-mono tracking-tight leading-none"
                       style={{
                         color: liveInfo.color,
                         textShadow: `0 0 24px ${liveInfo.color}40`,
@@ -268,7 +440,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                     >
                       {currentLiveAqi}
                     </span>
-                    <span className="text-[11px] font-mono font-bold text-white/40 uppercase tracking-wider">
+                    <span className="text-[11px] font-mono font-bold text-[var(--mist-dim)] uppercase tracking-wider">
                       AQI
                     </span>
                   </div>
@@ -286,7 +458,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                           style={{ backgroundColor: liveInfo.color }}
                         />
                       </span>
-                      <span className="text-[10px] font-mono font-extrabold uppercase tracking-widest text-white/60">
+                      <span className="text-[10px] font-mono font-extrabold uppercase tracking-widest text-[var(--mist)]">
                         LIVE OBSERVATION
                       </span>
                     </div>
@@ -306,34 +478,34 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                 </div>
 
                 {/* Vertical Hairline Glass Divider */}
-                <div className="hidden sm:block h-9 w-px bg-white/10" />
+                <div className="hidden sm:block h-9 w-px bg-[var(--hairline)]" />
 
                 {/* SECONDARY / SUBORDINATE: Min & Peak Range Window */}
                 <div className="flex flex-col justify-center gap-1.5 text-xs font-mono py-0.5">
                   {/* Min / Trough */}
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-400">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-500">
                       <TrendingDown size={13} className="shrink-0" />
                       <span>MIN</span>
                     </span>
-                    <span className="font-bold text-emerald-400 text-sm leading-none">
+                    <span className="font-bold text-emerald-500 text-sm leading-none">
                       {minAqi.aqi}
                     </span>
-                    <span className="text-white/45 text-[11px]">
+                    <span className="text-[var(--mist-dim)] text-[11px]">
                       · {minAqi.pillDateStr}
                     </span>
                   </div>
 
                   {/* Peak / Crest */}
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-400">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-500">
                       <TrendingUp size={13} className="shrink-0" />
                       <span>PEAK</span>
                     </span>
-                    <span className="font-bold text-rose-400 text-sm leading-none">
+                    <span className="font-bold text-rose-500 text-sm leading-none">
                       {maxAqi.aqi}
                     </span>
-                    <span className="text-white/45 text-[11px]">
+                    <span className="text-[var(--mist-dim)] text-[11px]">
                       · {maxAqi.pillDateStr}
                     </span>
                   </div>
@@ -343,7 +515,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
               {/* Right: 3 Segmented Pill Button Groups */}
               <div className="flex flex-wrap items-center gap-2">
                 {/* 1. Horizon [ 24h | 48h | 72h ] */}
-                <div className="inline-flex items-center rounded-full bg-white/[0.04] border border-white/10 p-0.5">
+                <div className="inline-flex items-center rounded-full bg-[var(--slab)] border border-[var(--hairline-2)] p-0.5">
                   {(["24h", "48h", "72h"] as const).map((h) => (
                     <button
                       key={h}
@@ -351,8 +523,8 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                       onClick={() => setHorizon(h)}
                       className={`px-3 py-1 text-xs font-mono rounded-full transition-all cursor-pointer ${
                         horizon === h
-                          ? "bg-white/15 text-white font-semibold shadow-sm"
-                          : "text-white/50 hover:text-white/80"
+                          ? "bg-[var(--slab-hi)] text-[var(--bone)] font-semibold shadow-sm border border-[var(--hairline)]"
+                          : "text-[var(--mist-dim)] hover:text-[var(--bone)]"
                       }`}
                     >
                       {h}
@@ -361,7 +533,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                 </div>
 
                 {/* 2. Chart Type [ Bars | Line ] */}
-                <div className="inline-flex items-center rounded-full bg-white/[0.04] border border-white/10 p-0.5">
+                <div className="inline-flex items-center rounded-full bg-[var(--slab)] border border-[var(--hairline-2)] p-0.5">
                   {(["bars", "line"] as const).map((mode) => (
                     <button
                       key={mode}
@@ -369,8 +541,8 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                       onClick={() => setChartType(mode)}
                       className={`px-3 py-1 text-xs font-mono rounded-full transition-all capitalize cursor-pointer ${
                         chartType === mode
-                          ? "bg-white/15 text-white font-semibold shadow-sm"
-                          : "text-white/50 hover:text-white/80"
+                          ? "bg-[var(--slab-hi)] text-[var(--bone)] font-semibold shadow-sm border border-[var(--hairline)]"
+                          : "text-[var(--mist-dim)] hover:text-[var(--bone)]"
                       }`}
                     >
                       {mode === "bars" ? "Bars" : "Line"}
@@ -379,14 +551,14 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                 </div>
 
                 {/* 3. Standard [ AQI (CPCB) | AQI (US EPA) ] */}
-                <div className="inline-flex items-center rounded-full bg-white/[0.04] border border-white/10 p-0.5">
+                <div className="inline-flex items-center rounded-full bg-[var(--slab)] border border-[var(--hairline-2)] p-0.5">
                   <button
                     type="button"
                     onClick={() => setStandard("cpcb")}
                     className={`px-3 py-1 text-xs font-mono rounded-full transition-all cursor-pointer ${
                       standard === "cpcb"
-                        ? "bg-white/15 text-white font-semibold shadow-sm"
-                        : "text-white/50 hover:text-white/80"
+                        ? "bg-[var(--slab-hi)] text-[var(--bone)] font-semibold shadow-sm border border-[var(--hairline)]"
+                        : "text-[var(--mist-dim)] hover:text-[var(--bone)]"
                     }`}
                   >
                     AQI (CPCB)
@@ -396,8 +568,8 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                     onClick={() => setStandard("epa")}
                     className={`px-3 py-1 text-xs font-mono rounded-full transition-all cursor-pointer ${
                       standard === "epa"
-                        ? "bg-white/15 text-white font-semibold shadow-sm"
-                        : "text-white/50 hover:text-white/80"
+                        ? "bg-[var(--slab-hi)] text-[var(--bone)] font-semibold shadow-sm border border-[var(--hairline)]"
+                        : "text-[var(--mist-dim)] hover:text-[var(--bone)]"
                     }`}
                   >
                     AQI (US EPA)
@@ -407,30 +579,30 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
             </div>
 
             {/* Middle: Clean Chart Area */}
-            <div className="w-full h-[240px] sm:h-[270px] mt-2 relative z-10">
+            <div className="w-full h-[175px] sm:h-[195px] mt-1 relative z-10">
               <ResponsiveContainer width="100%" height="100%">
                 {chartType === "line" ? (
-                  <AreaChart data={forecastPoints} margin={{ top: 14, right: 12, left: -14, bottom: 0 }}>
+                  <AreaChart data={forecastPoints} margin={{ top: 8, right: 12, left: -14, bottom: 0 }}>
                     <defs>
                       <linearGradient id="curveGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.25} />
                         <stop offset="100%" stopColor="#38bdf8" stopOpacity={0.0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.04)" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={isLight ? "rgba(15, 23, 42, 0.08)" : "rgba(255, 255, 255, 0.04)"} vertical={false} />
                     <XAxis
                       dataKey="timeFormatted"
                       interval={Math.max(1, Math.floor(forecastPoints.length / 7))}
-                      stroke="rgba(255, 255, 255, 0.35)"
+                      stroke={isLight ? "rgba(15, 23, 42, 0.25)" : "rgba(255, 255, 255, 0.35)"}
                       tickLine={false}
-                      axisLine={{ stroke: "rgba(255, 255, 255, 0.12)" }}
-                      tick={{ fontSize: 11, fontFamily: "var(--mono)", fill: "rgba(255, 255, 255, 0.45)" }}
+                      axisLine={{ stroke: isLight ? "rgba(15, 23, 42, 0.15)" : "rgba(255, 255, 255, 0.12)" }}
+                      tick={{ fontSize: 11, fontFamily: "var(--mono)", fill: isLight ? "rgba(15, 23, 42, 0.6)" : "rgba(255, 255, 255, 0.45)" }}
                     />
                     <YAxis
-                      stroke="rgba(255, 255, 255, 0.35)"
+                      stroke={isLight ? "rgba(15, 23, 42, 0.25)" : "rgba(255, 255, 255, 0.35)"}
                       tickLine={false}
                       axisLine={false}
-                      tick={{ fontSize: 11, fontFamily: "var(--mono)", fill: "rgba(255, 255, 255, 0.45)" }}
+                      tick={{ fontSize: 11, fontFamily: "var(--mono)", fill: isLight ? "rgba(15, 23, 42, 0.6)" : "rgba(255, 255, 255, 0.45)" }}
                       width={38}
                       domain={[0, (dataMax) => Math.ceil(Math.max(dataMax, 200) / 90) * 90]}
                     />
@@ -441,16 +613,16 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                           return (
                             <div
                               style={{
-                                background: "rgba(11, 16, 24, 0.95)",
-                                border: `1px solid ${pt.color}50`,
+                                background: isLight ? "rgba(255, 255, 255, 0.97)" : "rgba(11, 16, 24, 0.95)",
+                                border: isLight ? `1px solid rgba(15, 23, 42, 0.12)` : `1px solid ${pt.color}50`,
                                 borderRadius: "10px",
-                                boxShadow: "0 12px 30px rgba(0, 0, 0, 0.7)",
+                                boxShadow: isLight ? "0 10px 25px -4px rgba(0, 0, 0, 0.12)" : "0 12px 30px rgba(0, 0, 0, 0.7)",
                                 fontSize: "12px",
                                 fontFamily: "var(--mono)",
                                 padding: "10px 14px",
                               }}
                             >
-                              <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.5)", marginBottom: "4px" }}>
+                              <div style={{ fontSize: "11px", color: isLight ? "rgba(15, 23, 42, 0.55)" : "rgba(255, 255, 255, 0.5)", marginBottom: "4px" }}>
                                 {pt.fullDateStr}
                               </div>
                               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -463,7 +635,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                                     boxShadow: `0 0 10px ${pt.color}`,
                                   }}
                                 />
-                                <span style={{ fontSize: "16px", fontWeight: 800, color: "#fff" }}>
+                                <span style={{ fontSize: "16px", fontWeight: 800, color: isLight ? "#0f172a" : "#fff" }}>
                                   {pt.aqi}
                                 </span>
                                 <span
@@ -482,7 +654,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                                   {pt.category}
                                 </span>
                               </div>
-                              <div style={{ fontSize: "10px", color: "rgba(255, 255, 255, 0.4)", marginTop: "6px" }}>
+                              <div style={{ fontSize: "10px", color: isLight ? "rgba(15, 23, 42, 0.5)" : "rgba(255, 255, 255, 0.4)", marginTop: "6px" }}>
                                 PM2.5: {pt.pm25} µg/m³ · {standard === "cpcb" ? "CPCB (India)" : "US EPA"}
                               </div>
                             </div>
@@ -494,28 +666,28 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                     <Area
                       type="monotone"
                       dataKey="aqi"
-                      stroke="#38bdf8"
+                      stroke={isLight ? "#0284c7" : "#38bdf8"}
                       strokeWidth={2.5}
                       fill="url(#curveGradient)"
-                      activeDot={{ r: 5, fill: "#38bdf8", stroke: "#0d1117", strokeWidth: 2 }}
+                      activeDot={{ r: 5, fill: isLight ? "#0284c7" : "#38bdf8", stroke: isLight ? "#ffffff" : "#0d1117", strokeWidth: 2 }}
                     />
                   </AreaChart>
                 ) : (
-                  <BarChart data={forecastPoints} margin={{ top: 14, right: 12, left: -14, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.04)" vertical={false} />
+                  <BarChart data={forecastPoints} margin={{ top: 8, right: 12, left: -14, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={isLight ? "rgba(15, 23, 42, 0.08)" : "rgba(255, 255, 255, 0.04)"} vertical={false} />
                     <XAxis
                       dataKey="timeFormatted"
                       interval={Math.max(1, Math.floor(forecastPoints.length / 7))}
-                      stroke="rgba(255, 255, 255, 0.35)"
+                      stroke={isLight ? "rgba(15, 23, 42, 0.25)" : "rgba(255, 255, 255, 0.35)"}
                       tickLine={false}
-                      axisLine={{ stroke: "rgba(255, 255, 255, 0.12)" }}
-                      tick={{ fontSize: 11, fontFamily: "var(--mono)", fill: "rgba(255, 255, 255, 0.45)" }}
+                      axisLine={{ stroke: isLight ? "rgba(15, 23, 42, 0.15)" : "rgba(255, 255, 255, 0.12)" }}
+                      tick={{ fontSize: 11, fontFamily: "var(--mono)", fill: isLight ? "rgba(15, 23, 42, 0.6)" : "rgba(255, 255, 255, 0.45)" }}
                     />
                     <YAxis
-                      stroke="rgba(255, 255, 255, 0.35)"
+                      stroke={isLight ? "rgba(15, 23, 42, 0.25)" : "rgba(255, 255, 255, 0.35)"}
                       tickLine={false}
                       axisLine={false}
-                      tick={{ fontSize: 11, fontFamily: "var(--mono)", fill: "rgba(255, 255, 255, 0.45)" }}
+                      tick={{ fontSize: 11, fontFamily: "var(--mono)", fill: isLight ? "rgba(15, 23, 42, 0.6)" : "rgba(255, 255, 255, 0.45)" }}
                       width={38}
                       domain={[0, (dataMax) => Math.ceil(Math.max(dataMax, 200) / 90) * 90]}
                     />
@@ -526,16 +698,16 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                           return (
                             <div
                               style={{
-                                background: "rgba(11, 16, 24, 0.95)",
-                                border: `1px solid ${pt.color}50`,
+                                background: isLight ? "rgba(255, 255, 255, 0.97)" : "rgba(11, 16, 24, 0.95)",
+                                border: isLight ? `1px solid rgba(15, 23, 42, 0.12)` : `1px solid ${pt.color}50`,
                                 borderRadius: "10px",
-                                boxShadow: "0 12px 30px rgba(0, 0, 0, 0.7)",
+                                boxShadow: isLight ? "0 10px 25px -4px rgba(0, 0, 0, 0.12)" : "0 12px 30px rgba(0, 0, 0, 0.7)",
                                 fontSize: "12px",
                                 fontFamily: "var(--mono)",
                                 padding: "10px 14px",
                               }}
                             >
-                              <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.5)", marginBottom: "4px" }}>
+                              <div style={{ fontSize: "11px", color: isLight ? "rgba(15, 23, 42, 0.55)" : "rgba(255, 255, 255, 0.5)", marginBottom: "4px" }}>
                                 {pt.fullDateStr}
                               </div>
                               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -548,7 +720,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                                     boxShadow: `0 0 10px ${pt.color}`,
                                   }}
                                 />
-                                <span style={{ fontSize: "16px", fontWeight: 800, color: "#fff" }}>
+                                <span style={{ fontSize: "16px", fontWeight: 800, color: isLight ? "#0f172a" : "#fff" }}>
                                   {pt.aqi}
                                 </span>
                                 <span
@@ -567,7 +739,7 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
                                   {pt.category}
                                 </span>
                               </div>
-                              <div style={{ fontSize: "10px", color: "rgba(255, 255, 255, 0.4)", marginTop: "6px" }}>
+                              <div style={{ fontSize: "10px", color: isLight ? "rgba(15, 23, 42, 0.5)" : "rgba(255, 255, 255, 0.4)", marginTop: "6px" }}>
                                 PM2.5: {pt.pm25} µg/m³ · {standard === "cpcb" ? "CPCB (India)" : "US EPA"}
                               </div>
                             </div>
@@ -587,15 +759,15 @@ export function ConsensusDashboard({ data, forecast, loading: _loading, error, c
             </div>
 
             {/* Bottom Row: Full forecast data link & Issued timestamp */}
-            <div className="flex items-center justify-between pt-4 mt-2 border-t border-white/[0.06]">
+            <div className="flex items-center justify-between pt-2.5 mt-1 border-t border-[var(--hairline)]">
               <a
                 href="#forecast-datas"
-                className="inline-flex items-center gap-1 text-xs font-mono text-white/50 hover:text-white transition group"
+                className="inline-flex items-center gap-1 text-xs font-mono text-[var(--mist-dim)] hover:text-[var(--bone)] transition group"
               >
                 <span>Full forecast data</span>
                 <ArrowUpRight size={13} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </a>
-              <span className="text-xs font-mono text-white/40">
+              <span className="text-xs font-mono text-[var(--mist-dim)]">
                 Issued {issuedTime} · IST
               </span>
             </div>

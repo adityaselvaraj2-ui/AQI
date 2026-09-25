@@ -55,16 +55,13 @@ export function CouplingLoop({ hour, loading, cityAggregate, cursor = 0 }: Coupl
             {t("atmosphere.couplingLede")}
           </p>
         </div>
-        <div className="loop__iter">
+        <div className="loop__iter loop__iter--compact">
           {iters}
-          <span className="loop__iterK">
-            {t("atmosphere.picardIterations")}
-          </span>
         </div>
       </div>
 
       {/* Whole Realism Shiny Border Container for the 2-Way Loop */}
-      <article className="realism-box" style={{ width: "100%", margin: "1.5rem 0" }}>
+      <article className="realism-box" style={{ width: "100%", margin: "0.6rem 0" }}>
         <div className="realism-topglow" />
         <div
           className="realism-blob"
@@ -125,7 +122,7 @@ export function CouplingLoop({ hour, loading, cityAggregate, cursor = 0 }: Coupl
         </div>
       </article>
 
-      <p className="loop__note">
+      <p className="loop__note loop__note--compact">
         {t("atmosphere.couplingFootnote")}
       </p>
     </section>

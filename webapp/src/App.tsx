@@ -1,28 +1,16 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useStationSelection } from "@/hooks/useStationSelection";
+import { useStationForecast, type StationModel } from "@/hooks/useStationForecast";
 
 import { Boot } from "@/components/Boot";
-import { ConsensusDashboard } from "@/components/ConsensusDashboard";
 import { HazeField } from "@/components/HazeField";
 import { Hero } from "@/components/Hero";
 import { Rail, type PageType } from "@/components/Rail";
-import { StationMap } from "@/components/StationMap";
 import { Stations } from "@/components/Stations";
-import { ForecastDataPage } from "@/components/ForecastDataPage";
-import { HistoricDataPage } from "@/components/HistoricDataPage";
-import { AtmosphericDynamicsPage } from "@/components/AtmosphericDynamicsPage";
-import { ExposureTrackerPage } from "@/components/ExposureTrackerPage";
-import { TransportPage } from "@/components/TransportPage";
-import { HealthCareAssistantPage } from "@/components/HealthCareAssistantPage";
-import { AlertsPage } from "@/components/AlertsPage";
-import { AqiReportPage } from "@/components/AqiReportPage";
 import { AuthModal } from "@/components/AuthModal";
 import { OperatorConsole } from "@/components/OperatorConsole";
 import { Landing } from "@/components/Landing";
 import { useAuth } from "@/hooks/useAuth";
-import { IndustryMapView } from "@/components/IndustryMapView";
-import { PollutantCardStackSection } from "@/components/PollutantCardStackSection";
-import { CitizenIndustryPage } from "@/components/CitizenIndustryPage";
-import { CitizenPollutionExplainer } from "@/components/CitizenPollutionExplainer";
 import GradualBlur from "@/components/ui/GradualBlur";
 import { useCityAggregate } from "@/hooks/useCityAggregate";
 import { useConsensus } from "@/hooks/useConsensus";
@@ -34,6 +22,44 @@ import { categoryColor } from "@/lib/aqi";
 import { stamp as fmtStamp } from "@/lib/format";
 import { evaluateAlerts, loadAlertSettings } from "@/lib/alertsEngine";
 
+// ── Code splitting (performance budget: initial JS < 300 KB gzip) ────────────
+// Route-level and below-the-fold chunks load on demand; every boundary is
+// local so one chunk's suspense never blocks another section.
+const ConsensusDashboard = lazy(() => import("@/components/ConsensusDashboard").then((m) => ({ default: m.ConsensusDashboard })));
+const StationMap = lazy(() => import("@/components/StationMap").then((m) => ({ default: m.StationMap })));
+const ForecastDataPage = lazy(() => import("@/components/ForecastDataPage").then((m) => ({ default: m.ForecastDataPage })));
+const HistoricDataPage = lazy(() => import("@/components/HistoricDataPage").then((m) => ({ default: m.HistoricDataPage })));
+const AtmosphericDynamicsPage = lazy(() => import("@/components/AtmosphericDynamicsPage").then((m) => ({ default: m.AtmosphericDynamicsPage })));
+const ExposureTrackerPage = lazy(() => import("@/components/ExposureTrackerPage").then((m) => ({ default: m.ExposureTrackerPage })));
+const TransportPage = lazy(() => import("@/components/TransportPage").then((m) => ({ default: m.TransportPage })));
+const HealthCareAssistantPage = lazy(() => import("@/components/HealthCareAssistantPage").then((m) => ({ default: m.HealthCareAssistantPage })));
+const AlertsPage = lazy(() => import("@/components/AlertsPage").then((m) => ({ default: m.AlertsPage })));
+const AqiReportPage = lazy(() => import("@/components/AqiReportPage").then((m) => ({ default: m.AqiReportPage })));
+const ModelTransparencyPage = lazy(() => import("@/components/ModelTransparencyPage").then((m) => ({ default: m.ModelTransparencyPage })));
+const IndustryMapView = lazy(() => import("@/components/IndustryMapView").then((m) => ({ default: m.IndustryMapView })));
+const CitizenIndustryPage = lazy(() => import("@/components/CitizenIndustryPage").then((m) => ({ default: m.CitizenIndustryPage })));
+const CitizenPollutionExplainer = lazy(() => import("@/components/CitizenPollutionExplainer").then((m) => ({ default: m.CitizenPollutionExplainer })));
+const PollutantCardStackSection = lazy(() => import("@/components/PollutantCardStackSection").then((m) => ({ default: m.PollutantCardStackSection })));
+const MagicRings = lazy(() => import("@/components/ui/MagicRings").then((m) => ({ default: m.default })));
+
+// Lightweight placeholder while a route chunk streams in
+function PageFallback() {
+  return (
+    <div style={{ minHeight: "60vh", display: "grid", placeItems: "center" }}>
+      <span
+        style={{
+          fontFamily: "var(--mono)",
+          fontSize: "11px",
+          letterSpacing: "0.12em",
+          color: "var(--mist)",
+        }}
+      >
+        LOADING MODULE…
+      </span>
+    </div>
+  );
+}
+
 // Pages reserved for authority accounts. Citizens get the citizen pages +
 // shared pages; authorities get everything.
 const AUTHORITY_PAGES: PageType[] = [
@@ -42,6 +68,7 @@ const AUTHORITY_PAGES: PageType[] = [
   "atmospheric-dynamics",
   "transports",
   "industry-map",
+  "model-transparency",
 ];
 
 export default function App() {
@@ -119,6 +146,9 @@ export default function App() {
       ) {
         return "citizen-industry";
       }
+      if (window.location.hash === "#model-transparency") {
+        return "model-transparency";
+      }
     }
     return "overview";
   });
@@ -161,6 +191,8 @@ export default function App() {
         window.location.hash === "#local-industry"
       ) {
         setCurrentPage("citizen-industry");
+      } else if (window.location.hash === "#model-transparency") {
+        setCurrentPage("model-transparency");
       } else if (
         window.location.hash === "#health-assistant" ||
         window.location.hash === "#healthcare" ||
@@ -192,6 +224,28 @@ export default function App() {
       ? "overview"
       : currentPage;
 
+  // ONE station + ONE model selection for the whole app: picked once at the top
+  // (header selector), then the Hero live AQI, the 72h consensus chart, the
+  // station forecast module and the area explainer all follow it.
+  const {
+    stations: allStations,
+    selected: selectedStation,
+    selectedUid,
+    selectByUid,
+    trainedStationId,
+    loading: stationsLoading,
+  } = useStationSelection(data.stations.data);
+
+  // ONE model choice for the whole app (overview chart + forecast page module)
+  const [stationModel, setStationModel] = useState<StationModel>("lightgbm");
+  // Station-model view of the overview chart: OPT-IN, physics stays the default
+  const [stationView, setStationView] = useState(false);
+  const stationForecast = useStationForecast(
+    stationView ? trainedStationId : null,
+    stationModel,
+    selectedStation?.name ?? null,
+  );
+
   const handlePageChange = (page: PageType) => {
     setCurrentPage(page);
     window.location.hash =
@@ -207,6 +261,8 @@ export default function App() {
         ? "transports"
         : page === "industry-map"
         ? "industry-map"
+        : page === "model-transparency"
+        ? "model-transparency"
         : page === "citizen-industry"
         ? "citizen-industry"
         : page === "health-assistant"
@@ -292,6 +348,41 @@ export default function App() {
 
   return (
     <>
+      {/* React Bits <MagicRings /> Background Ambient Canvas */}
+      {!reduced && (
+        <div
+          className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
+          style={{ opacity: 0.6 }}
+          aria-hidden="true"
+        >
+          <Suspense fallback={null}>
+          <MagicRings
+            color="#b181dd"
+            colorTwo="#6b6dd9"
+            ringCount={6}
+            speed={1}
+            attenuation={10}
+            lineThickness={2}
+            baseRadius={0.35}
+            radiusStep={0.1}
+            scaleRate={0.1}
+            opacity={0.8}
+            blur={0}
+            noiseAmount={0.1}
+            rotation={0}
+            ringGap={1.5}
+            fadeIn={0.7}
+            fadeOut={0.5}
+            followMouse={true}
+            mouseInfluence={0.2}
+            hoverScale={1.2}
+            parallax={0.05}
+            clickBurst={true}
+          />
+          </Suspense>
+        </div>
+      )}
+
       <HazeField pm25={pm25} reduced={reduced} />
 
       <Rail
@@ -306,6 +397,9 @@ export default function App() {
         currentPage={effectivePage}
         onSignIn={() => setAuthOpen(true)}
         onOperatorConsole={() => setOperatorOpen(true)}
+        stations={allStations}
+        selectedStationUid={selectedUid}
+        onStationSelect={selectByUid}
         onPageChange={(page) => {
           // Extra guard: a citizen clicking an authority page can't happen via
           // the UI, but keep hash-url deep links from doing it either.
@@ -316,14 +410,26 @@ export default function App() {
 
       {/* Auth gate: signed-out users see ONLY the landing page — no data, no tabs. */}
       {!auth.user ? (
-        <Landing onSignIn={() => setAuthOpen(true)} signInError={auth.authError} />
-      ) : effectivePage === "forecast-datas" ? (
+        <Landing
+          onSignIn={() => setAuthOpen(true)}
+          onSignInAuthority={() => setAuthOpen(true)}
+          signInError={auth.authError}
+        />
+      ) : (
+        <Suspense fallback={<PageFallback />}>
+        {effectivePage === "forecast-datas" ? (
         <ForecastDataPage
           forecast={data.forecast}
           hour={hour}
           cursor={cursor.cursor}
           consensus={consensus.data}
           cityAggregate={cityAggregate.data}
+          liveStations={allStations}
+          selectedStationUid={selectedUid}
+          onStationSelect={selectByUid}
+          trainedStationId={trainedStationId}
+          stationModel={stationModel}
+          onStationModelChange={setStationModel}
           onBack={() => handlePageChange("overview")}
         />
       ) : effectivePage === "historic-data" ? (
@@ -393,6 +499,8 @@ export default function App() {
           inversion={data.inversion}
           onBack={() => handlePageChange("overview")}
         />
+      ) : effectivePage === "model-transparency" ? (
+        <ModelTransparencyPage onBack={() => handlePageChange("overview")} />
       ) : effectivePage === "industry-map" ? (
         <IndustryMapView
           onBack={() => handlePageChange("overview")}
@@ -411,7 +519,7 @@ export default function App() {
         />
       ) : (
         <main ref={mainRef}>
-          {/* 1. Hero Section (AQI Value with Full Screen Video Background) */}
+          {/* 1. Hero Section (AQI Value with Live Sky Observation) */}
           <div id="forecast-hero">
             <Hero
               forecast={data.forecast}
@@ -421,6 +529,8 @@ export default function App() {
               cityAggregate={cityAggregate.data}
               realtime={realtime.iqair.data}
               weatherapi={realtime.weatherapi.data}
+              selectedStation={selectedStation}
+              stationsLoading={stationsLoading}
               activeVideo={activeVideo}
               onVideoChange={setActiveVideo}
               ready={data.ready}
@@ -429,17 +539,8 @@ export default function App() {
             />
           </div>
 
-          {/* 1.5. Live Pollutant Particle Breakdown - 3D Fanning Card Stack */}
-          <PollutantCardStackSection
-            cityAggregate={cityAggregate.data}
-            consensus={consensus.data}
-            hour={hour}
-            cursor={cursor.cursor}
-            weatherapi={realtime.weatherapi.data}
-            realtimeIqair={realtime.iqair.data}
-          />
-
-          {/* 2. Delhi NCR Live Condition */}
+          {/* 2. 72-Hour Consensus Prediction Box - Directly under AQI Box */}
+          <Suspense fallback={null}>
           <div id="consensus-dashboard">
             <ConsensusDashboard
               data={consensus.data}
@@ -448,10 +549,43 @@ export default function App() {
               error={consensus.error}
               cityAggregate={cityAggregate.data}
               realtimeIqair={realtime.iqair.data}
+              stationForecast={stationForecast.data}
+              stationLoading={stationForecast.loading}
+              stationName={selectedStation?.name ?? null}
+              stationModel={stationModel}
+              onStationModelChange={setStationModel}
+              stationOptions={allStations}
+              selectedStationUid={selectedUid}
+              onStationSelect={selectByUid}
+              selectedStationLive={
+                selectedStation
+                  ? {
+                      name: selectedStation.name,
+                      aqi: selectedStation.aqi,
+                      pm25: selectedStation.pollutants?.["PM2.5"],
+                    }
+                  : null
+              }
+              stationViewEnabled={stationView}
+              onStationViewToggle={setStationView}
             />
           </div>
+          </Suspense>
+
+          {/* 2.5. Live Pollutant Particle Breakdown - 3D Fanning Card Stack */}
+          <Suspense fallback={null}>
+          <PollutantCardStackSection
+            cityAggregate={cityAggregate.data}
+            consensus={consensus.data}
+            hour={hour}
+            cursor={cursor.cursor}
+            weatherapi={realtime.weatherapi.data}
+            realtimeIqair={realtime.iqair.data}
+          />
+          </Suspense>
 
           {/* 2.5. Citizen Air Guide - 3 Plain-Language Breakdown Boxes */}
+          <Suspense fallback={null}>
           <div id="citizen-pollution-breakdown">
             <CitizenPollutionExplainer
               stations={data.stations}
@@ -460,10 +594,14 @@ export default function App() {
               hour={hour}
               cityAggregate={cityAggregate.data}
               weatherapi={realtime.weatherapi.data}
+              selectedUid={selectedUid}
+              onSelectedUidChange={selectByUid}
             />
           </div>
+          </Suspense>
 
           {/* 3. Map View Stations */}
+          <Suspense fallback={null}>
           <div id="station-map-view" className="w-full px-6 lg:px-12 xl:px-16 2xl:px-24 mx-auto">
             <StationMap
               stations={data.stations}
@@ -474,21 +612,30 @@ export default function App() {
               cityAggregate={cityAggregate.data}
             />
           </div>
-
-
+          </Suspense>
 
           {/* 5. List All Live Stations */}
           <div id="stations-grid">
             <Stations stations={data.stations} overview={data.overview} />
           </div>
         </main>
+        )}
+        </Suspense>
       )}
 
       <Boot boot={data.boot} ready={data.ready} />
 
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuthed={() => undefined} />
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onAuthed={() => undefined}
+      />
 
-      <OperatorConsole open={operatorOpen} onClose={() => setOperatorOpen(false)} />
+      <OperatorConsole
+        open={operatorOpen}
+        onClose={() => setOperatorOpen(false)}
+        onOpenAuthorityLogin={() => setAuthOpen(true)}
+      />
 
       {/* Progressive Gradual Blur Overlay at Website Bottom (GPU Optimized) */}
       <GradualBlur

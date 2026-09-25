@@ -106,14 +106,31 @@ export function AtmosphericDynamicsPage({
         </div>
       </div>
 
-      {/* Main Content Modules */}
+      {/* Main Content Modules — screenshot layout: the column (trapped layer)
+          and the inversion watch side by side on top, the chemistry push-back
+          as a full-width band below (per the user's alignment sketch). */}
       <main style={{ maxWidth: "1400px", margin: "0 auto" }}>
-        {/* Module 1: The Layer Air Trapped In */}
-        <section id="atmosphere-column">
-          <Atmosphere forecast={forecast} hour={hour} cursor={cursor} />
-        </section>
+        <div className="adgrid">
+          <section id="atmosphere-column" className="adgrid__left">
+            <Atmosphere forecast={forecast} cursor={cursor} />
+          </section>
 
-        {/* Module 2: Chemistry Pushing Back on the Weather */}
+          <section
+            id="inversion-watch"
+            className="adgrid__right"
+            style={{ borderLeft: "1px solid var(--hairline)" }}
+          >
+            {inversion ? (
+              <InversionStrip inversion={inversion} cursor={cursor.cursor} />
+            ) : (
+              <p className="section__lede" style={{ padding: "2rem 0" }}>
+                Inversion series unavailable.
+              </p>
+            )}
+          </section>
+        </div>
+
+        {/* Module 2: Chemistry Pushing Back on the Weather — full-width band */}
         <section id="coupling-loop" style={{ borderTop: "1px solid var(--hairline)" }}>
           <CouplingLoop
             hour={hour}
@@ -121,11 +138,6 @@ export function AtmosphericDynamicsPage({
             cityAggregate={cityAggregate}
             cursor={cursor.cursor}
           />
-        </section>
-
-        {/* Module 3: Thermal Inversion Watch & Lid */}
-        <section id="inversion-watch" style={{ borderTop: "1px solid var(--hairline)" }}>
-          {inversion && <InversionStrip inversion={inversion} cursor={cursor.cursor} />}
         </section>
       </main>
     </div>

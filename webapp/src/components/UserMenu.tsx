@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, LogOut, ShieldCheck, Users } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, ShieldCheck, Users } from "lucide-react";
 
-import type { AuthUser } from "@/lib/auth";
+import { elevate, type AuthUser } from "@/lib/auth";
 
 function initialsOf(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -12,6 +12,8 @@ function initialsOf(name: string): string {
 
 interface UserMenuProps {
   user: AuthUser;
+  /** called after a successful invite-code redemption so the app re-renders with the new role */
+  onUserUpdate?: (user: AuthUser) => void;
 }
 
 /**
@@ -20,8 +22,12 @@ interface UserMenuProps {
  * sign-out action. Closes on outside click and Escape; aria-wired for
  * keyboard use.
  */
-export function UserMenu({ user }: UserMenuProps) {
+export function UserMenu({ user, onUserUpdate }: UserMenuProps) {
   const [open, setOpen] = useState(false);
+  const [redeemCode, setRedeemCode] = useState("");
+  const [redeemError, setRedeemError] = useState<string | null>(null);
+  const [redeemBusy, setRedeemBusy] = useState(false);
+  const [redeemDone, setRedeemDone] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -224,6 +230,87 @@ export function UserMenu({ user }: UserMenuProps) {
               </div>
             </div>
           </div>
+
+          {/* Citizen + invite code: visible retry path for the Google flow.
+              If the automatic post-Google-redirect redemption failed (e.g. the
+              code was consumed elsewhere first), the user can redeem here. */}
+          {!isAuthority && (
+            <div style={{ marginBottom: "0.75rem" }}>
+              {redeemDone ? (
+                <div style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: "#7dd3fc", padding: "0.4rem 0" }}>
+                  Code applied — your account is now an Official authority.
+                </div>
+              ) : (
+                <>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.35rem" }}>
+                    <KeyRound size={11} style={{ color: "var(--cyan)" }} />
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "9.5px", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>
+                      Have an authority code?
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.4rem" }}>
+                    <input
+                      value={redeemCode}
+                      onChange={(e) => {
+                        setRedeemCode(e.target.value);
+                        setRedeemError(null);
+                      }}
+                      placeholder="NCR72-XXXXXXXX"
+                      aria-label="Authority invite code"
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        padding: "0.4rem 0.55rem",
+                        background: "rgba(0,0,0,0.4)",
+                        border: "1px solid rgba(255,255,255,0.16)",
+                        borderRadius: "7px",
+                        color: "#fff",
+                        fontFamily: "var(--mono)",
+                        fontSize: "11px",
+                      }}
+                    />
+                    <button
+                      type="button"
+                      role="menuitem"
+                      disabled={redeemBusy || !redeemCode.trim()}
+                      onClick={async () => {
+                        setRedeemBusy(true);
+                        setRedeemError(null);
+                        try {
+                          const updated = await elevate(redeemCode);
+                          setRedeemDone(true);
+                          onUserUpdate?.(updated);
+                        } catch (err) {
+                          setRedeemError(err instanceof Error ? err.message : "Code redemption failed.");
+                        } finally {
+                          setRedeemBusy(false);
+                        }
+                      }}
+                      style={{
+                        padding: "0.4rem 0.6rem",
+                        background: "rgba(56,189,248,0.15)",
+                        border: "1px solid rgba(56,189,248,0.4)",
+                        borderRadius: "7px",
+                        color: "#7dd3fc",
+                        fontFamily: "var(--mono)",
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        cursor: redeemBusy || !redeemCode.trim() ? "not-allowed" : "pointer",
+                        opacity: redeemBusy || !redeemCode.trim() ? 0.5 : 1,
+                      }}
+                    >
+                      {redeemBusy ? "…" : "Apply"}
+                    </button>
+                  </div>
+                  {redeemError && (
+                    <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "#ffb4a2", marginTop: "0.35rem" }}>
+                      {redeemError}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
 
           {/* Sign out */}
           <button

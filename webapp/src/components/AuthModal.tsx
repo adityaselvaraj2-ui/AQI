@@ -5,6 +5,7 @@ import {
   register,
   signInWithGoogle,
   setPendingAuthorityCode,
+  validateInviteCode,
   getAuthState,
   type AuthUser,
   type Role,
@@ -67,6 +68,9 @@ export function AuthModal({ open, onClose, onAuthed }: AuthModalProps) {
   const [inviteCode, setInviteCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
+  const [inviteValidating, setInviteValidating] = useState(false);
+  const [inviteValid, setInviteValid] = useState<"unknown" | "valid" | "invalid">("unknown");
+  const [inviteStatusMsg, setInviteStatusMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -79,10 +83,47 @@ export function AuthModal({ open, onClose, onAuthed }: AuthModalProps) {
       setGoogleBusy(false);
       setTouched({});
     }
-  }, [open, mode]);
+  }, [open]);
 
   const pwChecks = useMemo(() => passwordChecks(password), [password]);
   const pwValid = Object.values(pwChecks).every(Boolean);
+
+  // Server-side pre-flight of the authority invite code (debounced): the
+  // Google button stays LOCKED until the backend confirms the code exists
+  // and is unused. Format-only checks let a well-formed typo sail through a
+  // whole OAuth redirect just to die on return — this stops it up front.
+  useEffect(() => {
+    if (mode !== "signup" || role !== "authority") {
+      setInviteValid("unknown");
+      setInviteStatusMsg(null);
+      return;
+    }
+    const code = inviteCode.trim().toUpperCase();
+    if (!INVITE_RE.test(code)) {
+      setInviteValid("unknown");
+      setInviteStatusMsg(null);
+      return;
+    }
+    setInviteValidating(true);
+    const t = setTimeout(async () => {
+      try {
+        const res = await validateInviteCode(code);
+        if (res.format_ok && res.exists && !res.used) {
+          setInviteValid("valid");
+          setInviteStatusMsg(res.message);
+        } else {
+          setInviteValid("invalid");
+          setInviteStatusMsg(res.message);
+        }
+      } catch {
+        setInviteValid("unknown");
+        setInviteStatusMsg("Could not reach the server to verify the code — Google sign-in stays locked until it can.");
+      } finally {
+        setInviteValidating(false);
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [inviteCode, mode, role]);
 
   const emailErr = touched.email ? emailProblem(email) : null;
   const nameErr = touched.fullName && mode === "signup" ? nameProblem(fullName) : null;
@@ -112,34 +153,43 @@ export function AuthModal({ open, onClose, onAuthed }: AuthModalProps) {
     setNotice(null);
     setTouched({ email: true, fullName: true, inviteCode: true });
 
-    if (mode === "signup") {
+    if (mode === "signin") {
       const p = emailProblem(email);
       if (p) return setError(p);
-      if (!pwValid)
-        return setError("Password doesn't meet the requirements below yet.");
-      const np = nameProblem(fullName);
-      if (np) return setError(np);
-      if (role === "authority") {
-        const code = inviteCode.trim().toUpperCase();
-        if (!INVITE_RE.test(code))
-          return setError("Enter the official invite code issued to your organisation.");
+      setBusy(true);
+      try {
+        const user = await login(email.trim().toLowerCase(), password);
+        finish(user);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Something went wrong.");
+      } finally {
+        setBusy(false);
       }
-    } else if (emailProblem(email)) {
-      return setError(emailProblem(email)!);
+      return;
+    }
+
+    // mode === "signup"
+    const p = emailProblem(email);
+    if (p) return setError(p);
+    if (!pwValid)
+      return setError("Password doesn't meet the requirements below yet.");
+    const np = nameProblem(fullName);
+    if (np) return setError(np);
+    if (role === "authority") {
+      const code = inviteCode.trim().toUpperCase();
+      if (!INVITE_RE.test(code))
+        return setError("Enter the official invite code issued to your organisation.");
     }
 
     setBusy(true);
     try {
-      const user =
-        mode === "signin"
-          ? await login(email.trim().toLowerCase(), password)
-          : await register({
-              email: email.trim().toLowerCase(),
-              password,
-              full_name: fullName.trim(),
-              role,
-              invite_code: role === "authority" ? inviteCode.trim().toUpperCase() : undefined,
-            });
+      const user = await register({
+        email: email.trim().toLowerCase(),
+        password,
+        full_name: fullName.trim(),
+        role,
+        invite_code: role === "authority" ? inviteCode.trim().toUpperCase() : undefined,
+      });
       finish(user);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -279,155 +329,177 @@ export function AuthModal({ open, onClose, onAuthed }: AuthModalProps) {
         </div>
 
         <form onSubmit={submit} noValidate>
-          {mode === "signup" && (
             <>
-              {/* Role picker */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginBottom: "1rem" }}>
-                {(
-                  [
-                    { id: "citizen" as Role, icon: Users, label: "Citizen", desc: "Personal air-quality tools", color: "var(--live)" },
-                    { id: "authority" as Role, icon: Building2, label: "Authority", desc: "Official account (invite)", color: "var(--cyan)" },
-                  ]
-                ).map((r) => {
-                  const Icon = r.icon;
-                  const active = role === r.id;
-                  return (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => setRole(r.id)}
-                      style={{
-                        position: "relative",
-                        zIndex: active ? 2 : 1,
-                        textAlign: "left",
-                        padding: "0.7rem 0.8rem",
-                        background: active ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.3)",
-                        border: `1px solid ${active ? r.color : "rgba(255,255,255,0.12)"}`,
-                        borderRadius: "10px",
-                        cursor: "pointer",
-                        transition: "all 0.15s ease",
-                      }}
-                    >
-                      <Icon size={16} style={{ color: active ? r.color : "rgba(255,255,255,0.5)", marginBottom: 4 }} />
-                      <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", fontWeight: 600, color: "#fff" }}>{r.label}</div>
-                      <div style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.55)", fontFamily: "var(--mono)", marginTop: 2 }}>{r.desc}</div>
-                    </button>
-                  );
-                })}
-              </div>
+              {mode === "signup" && (
+                <>
+                  {/* Role picker */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginBottom: "1rem" }}>
+                    {(
+                      [
+                        { id: "citizen" as Role, icon: Users, label: "Citizen", desc: "Personal air-quality tools", color: "var(--live)" },
+                        { id: "authority" as Role, icon: Building2, label: "Authority", desc: "Official account (invite)", color: "var(--cyan)" },
+                      ]
+                    ).map((r) => {
+                      const Icon = r.icon;
+                      const active = role === r.id;
+                      return (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => setRole(r.id)}
+                          style={{
+                            position: "relative",
+                            zIndex: active ? 2 : 1,
+                            textAlign: "left",
+                            padding: "0.7rem 0.8rem",
+                            background: active ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.3)",
+                            border: `1px solid ${active ? r.color : "rgba(255,255,255,0.12)"}`,
+                            borderRadius: "10px",
+                            cursor: "pointer",
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          <Icon size={16} style={{ color: active ? r.color : "rgba(255,255,255,0.5)", marginBottom: 4 }} />
+                          <div style={{ fontFamily: "var(--mono)", fontSize: "12.5px", fontWeight: 600, color: "#fff" }}>{r.label}</div>
+                          <div style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.55)", fontFamily: "var(--mono)", marginTop: 2 }}>{r.desc}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <input
+                    type="text"
+                    placeholder="Full name (e.g. Aditya Sharma)"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    onBlur={() => setTouched((t) => ({ ...t, fullName: true }))}
+                    maxLength={120}
+                    autoComplete="name"
+                    style={{ ...errStyle(!!nameErr), marginBottom: nameErr ? "0.2rem" : "0.7rem" }}
+                  />
+                  {fieldError(nameErr)}
+                </>
+              )}
 
               <input
-                type="text"
-                placeholder="Full name (e.g. Aditya Sharma)"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                onBlur={() => setTouched((t) => ({ ...t, fullName: true }))}
-                maxLength={120}
-                autoComplete="name"
-                style={{ ...errStyle(!!nameErr), marginBottom: nameErr ? "0.2rem" : "0.7rem" }}
+                type="email"
+                placeholder="Email (name@example.com)"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                maxLength={254}
+                autoComplete="email"
+                style={{ ...errStyle(!!emailErr), marginBottom: emailErr ? "0.2rem" : "0.7rem" }}
               />
-              {fieldError(nameErr)}
-            </>
-          )}
+              {fieldError(emailErr)}
 
-          <input
-            type="email"
-            placeholder="Email (name@example.com)"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onBlur={() => setTouched((t) => ({ ...t, email: true }))}
-            maxLength={254}
-            autoComplete="email"
-            style={{ ...errStyle(!!emailErr), marginBottom: emailErr ? "0.2rem" : "0.7rem" }}
-          />
-          {fieldError(emailErr)}
-
-          <input
-            type="password"
-            placeholder={mode === "signup" ? "Create a password" : "Password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            maxLength={128}
-            autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            style={{ ...inputStyle, marginBottom: mode === "signup" ? "0.5rem" : "0.9rem" }}
-          />
-
-          {/* Live password checklist (registration only) */}
-          {mode === "signup" && (
-            <div
-              style={{
-                marginBottom: "0.9rem",
-                padding: "0.6rem 0.75rem",
-                background: "rgba(0,0,0,0.3)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "8px",
-              }}
-            >
-              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "0.4rem" }}>
-                Password must have
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.25rem 0.6rem" }}>
-                {(
-                  [
-                    ["length", "12+ characters"],
-                    ["upper", "An uppercase letter"],
-                    ["lower", "A lowercase letter"],
-                    ["digit", "A digit"],
-                    ["noSpaces", "No spaces/symbols like space or tab"],
-                  ] as const
-                ).map(([key, label]) => {
-                  const ok = pwChecks[key];
-                  return (
-                    <div key={key} style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                      {ok ? (
-                        <Check size={11} style={{ color: "#4ade80", flexShrink: 0 }} />
-                      ) : (
-                        <span style={{ width: 11, height: 11, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.3)", flexShrink: 0, display: "inline-block" }} />
-                      )}
-                      <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: ok ? "#4ade80" : "rgba(255,255,255,0.55)" }}>
-                        {label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {mode === "signup" && role === "authority" && (
-            <div
-              style={{
-                marginBottom: "0.7rem",
-                padding: "0.75rem 0.85rem",
-                background: "rgba(56,189,248,0.07)",
-                border: "1px solid rgba(56,189,248,0.3)",
-                borderRadius: "10px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.45rem" }}>
-                <ShieldCheck size={13} style={{ color: "var(--cyan)" }} />
-                <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#7dd3fc", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 600 }}>
-                  Official invite code required
-                </span>
-              </div>
               <input
-                type="text"
-                placeholder="NCR72-XXXXXXXX"
-                value={inviteCode}
-                onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                onBlur={() => setTouched((t) => ({ ...t, inviteCode: true }))}
-                maxLength={32}
-                autoComplete="off"
-                spellCheck={false}
-                style={{ ...errStyle(!!inviteErr), textTransform: "uppercase" }}
+                type="password"
+                placeholder={mode === "signup" ? "Create a password" : "Password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                maxLength={128}
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                style={{ ...inputStyle, marginBottom: mode === "signup" ? "0.5rem" : "0.9rem" }}
               />
-              {fieldError(inviteErr) ?? (
-                <div style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.5)", fontFamily: "var(--mono)", marginTop: "0.4rem" }}>
-                  Issued by the NCR·72 operator to verified government accounts. Every code is single-use.
+
+              {/* Live password checklist (registration only) */}
+              {mode === "signup" && (
+                <div
+                  style={{
+                    marginBottom: "0.9rem",
+                    padding: "0.6rem 0.75rem",
+                    background: "rgba(0,0,0,0.3)",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <div style={{ fontFamily: "var(--mono)", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.5)", marginBottom: "0.4rem" }}>
+                    Password must have
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.25rem 0.6rem" }}>
+                    {(
+                      [
+                        ["length", "12+ characters"],
+                        ["upper", "An uppercase letter"],
+                        ["lower", "A lowercase letter"],
+                        ["digit", "A digit"],
+                        ["noSpaces", "No spaces/symbols like space or tab"],
+                      ] as const
+                    ).map(([key, label]) => {
+                      const ok = pwChecks[key];
+                      return (
+                        <div key={key} style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                          {ok ? (
+                            <Check size={11} style={{ color: "#4ade80", flexShrink: 0 }} />
+                          ) : (
+                            <span style={{ width: 11, height: 11, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.3)", flexShrink: 0, display: "inline-block" }} />
+                          )}
+                          <span style={{ fontFamily: "var(--mono)", fontSize: "10.5px", color: ok ? "#4ade80" : "rgba(255,255,255,0.55)" }}>
+                            {label}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
-            </div>
-          )}
+
+              {mode === "signup" && role === "authority" && (
+                <div
+                  style={{
+                    marginBottom: "0.7rem",
+                    padding: "0.75rem 0.85rem",
+                    background: "rgba(56,189,248,0.07)",
+                    border: "1px solid rgba(56,189,248,0.3)",
+                    borderRadius: "10px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.45rem" }}>
+                    <ShieldCheck size={13} style={{ color: "var(--cyan)" }} />
+                    <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "#7dd3fc", letterSpacing: "0.05em", textTransform: "uppercase", fontWeight: 600 }}>
+                      Official invite code required
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="NCR72-XXXXXXXX"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                    onBlur={() => setTouched((t) => ({ ...t, inviteCode: true }))}
+                    maxLength={32}
+                    autoComplete="off"
+                    spellCheck={false}
+                    style={{ ...errStyle(!!inviteErr), textTransform: "uppercase" }}
+                  />
+                  {fieldError(inviteErr) ?? (
+                    <div style={{ fontSize: "10.5px", color: "rgba(255,255,255,0.5)", fontFamily: "var(--mono)", marginTop: "0.4rem" }}>
+                      Issued by the NCR·72 operator to verified government accounts. Every code is single-use.
+                    </div>
+                  )}
+                  {inviteCode.trim() !== "" && (
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", marginTop: "0.45rem" }}>
+                      {inviteValidating ? (
+                        <>
+                          <Loader2 size={11} className="spin" style={{ color: "#7dd3fc", flexShrink: 0 }} />
+                          <span style={{ fontSize: "10.5px", color: "#7dd3fc", fontFamily: "var(--mono)" }}>Verifying code…</span>
+                        </>
+                      ) : inviteValid === "valid" ? (
+                        <>
+                          <Check size={11} style={{ color: "#4ade80", flexShrink: 0 }} />
+                          <span style={{ fontSize: "10.5px", color: "#4ade80", fontFamily: "var(--mono)" }}>Verified — Google sign-in unlocked.</span>
+                        </>
+                      ) : inviteValid === "invalid" ? (
+                        <>
+                          <AlertCircle size={11} style={{ color: "#fca5a5", flexShrink: 0 }} />
+                          <span style={{ fontSize: "10.5px", color: "#fca5a5", fontFamily: "var(--mono)" }}>{inviteStatusMsg}</span>
+                        </>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
 
           {error && (
             <div
@@ -454,7 +526,10 @@ export function AuthModal({ open, onClose, onAuthed }: AuthModalProps) {
             style={{
               width: "100%",
               padding: "0.7rem 0",
-              background: busy || signupBlocked ? "rgba(56,189,248,0.3)" : "rgba(56,189,248,0.85)",
+              background:
+                busy || signupBlocked
+                  ? "rgba(56,189,248,0.3)"
+                  : "rgba(56,189,248,0.85)",
               border: "none",
               borderRadius: "8px",
               color: "#04121e",
@@ -480,76 +555,82 @@ export function AuthModal({ open, onClose, onAuthed }: AuthModalProps) {
         </form>
 
         {/* Divider + Google (Supabase OAuth) */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.7rem", margin: "1rem 0 0.8rem" }}>
-          <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.14)" }} />
-          <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "rgba(255,255,255,0.45)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-            or
-          </span>
-          <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.14)" }} />
-        </div>
+        <>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.7rem", margin: "1rem 0 0.8rem" }}>
+              <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.14)" }} />
+              <span style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "rgba(255,255,255,0.45)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                or
+              </span>
+              <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.14)" }} />
+            </div>
 
-        <button
-          type="button"
-          className="auth-google"
-          disabled={busy || googleBusy}
-          onClick={async () => {
-            setError(null);
-            // Authority-via-Google: carry the invite code through the OAuth
-            // redirect and redeem it automatically on return.
-            if (mode === "signup" && role === "authority") {
-              const code = inviteCode.trim().toUpperCase();
-              if (!INVITE_RE.test(code)) {
-                setError("Enter your official invite code first, then continue with Google.");
-                return;
-              }
-              setPendingAuthorityCode(code);
-            }
-            setGoogleBusy(true);
-            try {
-              await signInWithGoogle();
-              // Browser navigates away to Google's consent screen; nothing after
-              // this line runs in the success path.
-            } catch (err) {
-              setError(
-                err instanceof Error
-                  ? err.message
-                  : "Google sign-in is unavailable right now."
-              );
-              setGoogleBusy(false);
-            }
-          }}
-          style={{
-            width: "100%",
-            padding: "0.65rem 0",
-            background: "rgba(255,255,255,0.08)",
-            border: "1px solid rgba(255,255,255,0.3)",
-            borderRadius: "8px",
-            color: "#fff",
-            fontFamily: "var(--mono)",
-            fontSize: "12.5px",
-            fontWeight: 600,
-            cursor: googleBusy ? "wait" : "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.55rem",
-            transition: "background 0.2s ease, border-color 0.2s ease",
-          }}
-        >
-          {googleBusy ? <Loader2 size={14} className="spin" /> : <GoogleIcon />}
-          <span>Continue with Google</span>
-        </button>
-        <div
-          style={{
-            marginTop: "0.55rem",
-            textAlign: "center",
-            fontFamily: "var(--mono)",
-            fontSize: "10px",
-            color: "rgba(255,255,255,0.4)",
-          }}
-        >
-          Google accounts join as citizens — pick "Authority" above and enter your invite code first, and it's applied automatically after Google verifies you.
-        </div>
+            <button
+              type="button"
+              className="auth-google"
+              disabled={busy || googleBusy || (mode === "signup" && role === "authority" && inviteValid !== "valid")}
+              title={mode === "signup" && role === "authority" && inviteValid !== "valid" ? "Enter a valid, unused invite code to unlock Google sign-in" : undefined}
+              onClick={async () => {
+                setError(null);
+                if (mode === "signup" && role === "authority") {
+                  const code = inviteCode.trim().toUpperCase();
+                  if (!INVITE_RE.test(code)) {
+                    setError("Enter your official invite code first, then continue with Google.");
+                    return;
+                  }
+                  if (inviteValid !== "valid") {
+                    setError(
+                      inviteStatusMsg ??
+                        "The server must verify this code before Google sign-in unlocks — check the code and try again.",
+                    );
+                    return;
+                  }
+                  setPendingAuthorityCode(code);
+                }
+                setGoogleBusy(true);
+                try {
+                  await signInWithGoogle();
+                } catch (err) {
+                  setError(
+                    err instanceof Error
+                      ? err.message
+                      : "Google sign-in is unavailable right now."
+                  );
+                  setGoogleBusy(false);
+                }
+              }}
+              style={{
+                width: "100%",
+                padding: "0.65rem 0",
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.3)",
+                borderRadius: "8px",
+                color: "#fff",
+                fontFamily: "var(--mono)",
+                fontSize: "12.5px",
+                fontWeight: 600,
+                cursor: googleBusy ? "wait" : "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.55rem",
+                transition: "background 0.2s ease, border-color 0.2s ease",
+              }}
+            >
+              {googleBusy ? <Loader2 size={14} className="spin" /> : <GoogleIcon />}
+              <span>Continue with Google</span>
+            </button>
+            <div
+              style={{
+                marginTop: "0.55rem",
+                textAlign: "center",
+                fontFamily: "var(--mono)",
+                fontSize: "10px",
+                color: "rgba(255,255,255,0.4)",
+              }}
+            >
+              Google continues only after your invite code verifies with the server. The verified code is applied automatically once Google confirms your account — one flow, no second step.
+            </div>
+        </>
         </>)}
 
         {/* Authority members see their status */}

@@ -31,6 +31,7 @@ import {
   type ViewportBounds,
 } from "@/lib/industrySupabase";
 import "@/styles/industry-intelligence.css";
+import { useTheme } from "@/context/ThemeContext";
 
 // Escape helper for safe HTML popup injection
 function escapeHtml(str: string): string {
@@ -385,6 +386,9 @@ export function InteractiveIndustryMap({
   windSpeedKmh = 12.0,
   windDirectionDeg = 300,
 }: InteractiveIndustryMapProps) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+
   const [records, setRecords] = useState<SupabaseIndustryRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchBounds, setFetchBounds] = useState<ViewportBounds | null>(null);
@@ -834,11 +838,15 @@ export function InteractiveIndustryMap({
         minZoom={5}
         maxZoom={18}
         scrollWheelZoom={true}
-        className="w-full h-full bg-[#080e18]"
+        className={`w-full h-full ${isLight ? "bg-[#f8fafc]" : "bg-[#080e18]"}`}
       >
         <TileLayer
           attribution='&copy; <a href="https://carto.com/">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url={
+            isLight
+              ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          }
         />
 
         <ViewportListener onViewportChange={handleViewportChange} />

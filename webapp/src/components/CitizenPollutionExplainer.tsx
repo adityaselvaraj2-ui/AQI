@@ -42,6 +42,9 @@ interface Props {
   hour?: any;
   cityAggregate?: CityAggregateResponse | null;
   weatherapi?: WeatherapiRealtimeResponse | null;
+  /** app-wide station selection (header picker) — controls this section when set */
+  selectedUid?: string | null;
+  onSelectedUidChange?: (uid: string) => void;
 }
 
 /** Converts degrees to 8-point cardinal compass text */
@@ -250,6 +253,8 @@ export function CitizenPollutionExplainer({
   hour,
   cityAggregate,
   weatherapi,
+  selectedUid: controlledUid,
+  onSelectedUidChange,
 }: Props) {
   const stationRows = stations.data ?? [];
 
@@ -261,7 +266,14 @@ export function CitizenPollutionExplainer({
     return bawana?.uid ?? stationRows[0]?.uid ?? "";
   }, [stationRows]);
 
-  const [selectedUid, setSelectedUid] = useState<string>(defaultUid);
+  // Controlled by the app-wide station selection (header picker) when wired;
+  // internal state keeps the component working standalone.
+  const [internalUid, setInternalUid] = useState<string>(defaultUid);
+  const selectedUid = controlledUid ?? internalUid;
+  const setSelectedUid = (uid: string) => {
+    setInternalUid(uid);
+    onSelectedUidChange?.(uid);
+  };
 
   useEffect(() => {
     if (!selectedUid && defaultUid) {
@@ -695,7 +707,7 @@ export function CitizenPollutionExplainer({
       id="citizen-pollution-breakdown"
       className="relative w-full py-12 px-4 sm:px-6 lg:px-8 overflow-hidden"
       style={{
-        background: "linear-gradient(180deg, #07090e 0%, #090e15 50%, #07090e 100%)",
+        background: "transparent",
       }}
       aria-label="Citizen Air Pollution Guide"
     >

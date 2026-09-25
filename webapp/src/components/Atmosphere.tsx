@@ -1,15 +1,12 @@
 import { useCallback, useMemo, useRef } from "react";
-import { Pause, Play } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { PanelMessage } from "@/components/ui/panel-message";
-import { Readouts } from "@/components/Readouts";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Cursor } from "@/hooks/useCursor";
 import type { Panel } from "@/hooks/useForecastData";
 import { aqiColor } from "@/lib/aqi";
 import { int, leadLabel } from "@/lib/format";
-import type { ForecastResponse, HourlyForecast } from "@/lib/types";
+import type { ForecastResponse } from "@/lib/types";
 import { useTranslation } from "@/i18n";
 
 // ── Geometry (viewBox units) ──────────────────────────────────────────────────
@@ -49,11 +46,10 @@ function lidColor(dt: number): string | null {
 
 interface AtmosphereProps {
   forecast: Panel<ForecastResponse>;
-  hour: HourlyForecast | null;
   cursor: Cursor;
 }
 
-export function Atmosphere({ forecast, hour, cursor }: AtmosphereProps) {
+export function Atmosphere({ forecast, cursor }: AtmosphereProps) {
   const { t } = useTranslation();
   const svgRef = useRef<SVGSVGElement>(null);
   const hours = forecast.data?.forecast_hours ?? [];
@@ -259,14 +255,6 @@ export function Atmosphere({ forecast, hour, cursor }: AtmosphereProps) {
             {t("atmosphere.subtitle")}
           </p>
         </div>
-
-        <div className="transport">
-          <Button variant="solid" aria-pressed={cursor.playing} onClick={cursor.toggle}>
-            {cursor.playing ? <Pause className="btn__icon" aria-hidden="true" /> : <Play className="btn__icon" aria-hidden="true" />}
-            <span>{cursor.playing ? "Stop" : "Sweep 72 h"}</span>
-          </Button>
-          <Button onClick={cursor.goNow}>Now</Button>
-        </div>
       </div>
 
       <figure className="atmos">
@@ -275,6 +263,7 @@ export function Atmosphere({ forecast, hour, cursor }: AtmosphereProps) {
           <span className="lg lg--supp">removed by aerosol</span>
           <span className="lg lg--met">met-model depth</span>
           <span className="lg lg--inv">inversion</span>
+          <span className="lg lg--hint">drag or use ← → keys</span>
         </div>
 
         {errored ? (
@@ -338,15 +327,7 @@ export function Atmosphere({ forecast, hour, cursor }: AtmosphereProps) {
           </div>
         )}
 
-        <figcaption className="atmos__cap">
-          Drag anywhere on the field, or use <kbd>←</kbd> <kbd>→</kbd> to step an hour, <kbd>PgUp</kbd>{" "}
-          <kbd>PgDn</kbd> for six. Every reading on this page follows the cursor.
-        </figcaption>
       </figure>
-
-      {/* Cursor-driven readouts live inside this section, as in the prototype, so
-          they inherit the section's horizontal inset. */}
-      <Readouts hour={hour} loading={forecast.status === "loading"} />
     </section>
   );
 }

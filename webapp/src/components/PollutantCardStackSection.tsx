@@ -200,7 +200,7 @@ export function PollutantCardStackSection({
       id="pollutant-card-stack"
       className="relative w-full pt-16 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
       style={{
-        background: "linear-gradient(180deg, #08090c 0%, rgba(10,14,20,1) 50%, #08090c 100%)",
+        background: "transparent",
       }}
     >
       {/* Background ambient lighting — softly centered so it never gets clipped at the top boundary */}

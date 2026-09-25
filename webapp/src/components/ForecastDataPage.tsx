@@ -17,6 +17,14 @@ interface ForecastDataPageProps {
   consensus?: ConsensusResponse | null;
   cityAggregate?: CityAggregateResponse | null;
   onBack: () => void;
+  /** app-wide station + model selection (header picker, one source of truth) */
+  liveStations?: import("@/lib/types").StationReading[] | null;
+  selectedStationUid?: string | null;
+  onStationSelect?: (uid: string) => void;
+  /** trained-model id bridged for the selected station (computed in App) */
+  trainedStationId?: number | null;
+  stationModel?: "lightgbm" | "chronos2";
+  onStationModelChange?: (m: "lightgbm" | "chronos2") => void;
 }
 
 export function ForecastDataPage({
@@ -26,6 +34,12 @@ export function ForecastDataPage({
   consensus,
   cityAggregate,
   onBack,
+  liveStations = null,
+  selectedStationUid = null,
+  onStationSelect,
+  trainedStationId = null,
+  stationModel = "lightgbm",
+  onStationModelChange,
 }: ForecastDataPageProps) {
   const { t } = useTranslation();
   return (
@@ -110,6 +124,12 @@ export function ForecastDataPage({
           cursor={cursor}
           consensus={consensus}
           cityAggregate={cityAggregate}
+          liveStations={liveStations}
+          selectedStationUid={selectedStationUid}
+          onStationSelect={onStationSelect}
+          trainedStationId={trainedStationId}
+          stationModel={stationModel}
+          onStationModelChange={onStationModelChange}
         />
       </main>
 

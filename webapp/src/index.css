@@ -33,6 +33,11 @@
   --color-mist-dim:   var(--mist-dim);
   --color-mist-faint: var(--mist-faint);
 
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted:      var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
   --color-aqi-1: var(--aqi-1);
   --color-aqi-2: var(--aqi-2);
   --color-aqi-3: var(--aqi-3);
@@ -77,6 +82,23 @@
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
+}
+
+[data-theme="light"] .liquid-glass,
+html.light .liquid-glass {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(15, 23, 42, 0.09);
+  box-shadow: 0 10px 30px -4px rgba(15, 23, 42, 0.08), inset 0 1px 1.5px rgba(255, 255, 255, 0.9);
+}
+
+[data-theme="light"] .liquid-glass::before,
+html.light .liquid-glass::before {
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.5) 20%,
+    rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%,
+    rgba(255,255,255,0.4) 80%, rgba(255,255,255,0.9) 100%);
 }
 
 @keyframes trainBob {
@@ -198,3 +220,47 @@
 .source-influence-empty { padding:1.2rem; border:1px dashed rgba(255,255,255,.1); border-radius:10px; font-size:.78rem; opacity:.55; }
 @media (max-width: 900px) { .source-influence-grid { grid-template-columns:1fr; } .source-target-strip { grid-template-columns:1fr 1fr; } }
 @media (max-width: 560px) { .source-target-select { width:100%; } .source-target-select select { max-width:none; width:100%; } .source-target-strip { grid-template-columns:1fr; } .source-card__meta { gap:.35rem; } }
+
+/* Animated Pollutant Forecast Spline Charts */
+@keyframes splineDraw {
+  0% {
+    stroke-dashoffset: var(--spline-len, 1200px);
+  }
+  100% {
+    stroke-dashoffset: 0px;
+  }
+}
+
+@keyframes splineClipReveal {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes splinePointFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.spline-path-animated {
+  animation: splineDraw 1.65s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+}
+
+.spline-clip-animated {
+  transform-origin: 0 0;
+  animation: splineClipReveal 1.65s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+}
+
+.spline-point-animated {
+  opacity: 0;
+  animation: splinePointFadeIn 0.3s ease forwards;
+}

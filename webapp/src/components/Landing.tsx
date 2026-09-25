@@ -3,6 +3,7 @@ import { useTranslation } from "@/i18n";
 
 interface LandingProps {
   onSignIn: () => void;
+  onSignInAuthority?: () => void;
   /** Reason the last sign-in attempt (e.g. Google OAuth return) failed. */
   signInError?: string | null;
 }
@@ -12,7 +13,7 @@ interface LandingProps {
  * console is role-gated, so the signed-out page only explains the platform
  * and invites the visitor to sign in.
  */
-export function Landing({ onSignIn, signInError }: LandingProps) {
+export function Landing({ onSignIn, onSignInAuthority, signInError }: LandingProps) {
   const { t } = useTranslation();
   return (
     <main
@@ -287,6 +288,40 @@ export function Landing({ onSignIn, signInError }: LandingProps) {
               <span>{t("landing.authorityPoint3")}</span>
             </li>
           </ul>
+          <div style={{ marginTop: "1rem", paddingTop: "0.8rem", borderTop: "1px solid rgba(56, 189, 248, 0.2)" }}>
+            <button
+              type="button"
+              onClick={onSignInAuthority || onSignIn}
+              style={{
+                width: "100%",
+                padding: "0.55rem 0.8rem",
+                background: "rgba(56, 189, 248, 0.12)",
+                border: "1px solid rgba(56, 189, 248, 0.4)",
+                borderRadius: "8px",
+                color: "#7dd3fc",
+                fontFamily: "var(--mono)",
+                fontSize: "11.5px",
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.45rem",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(56, 189, 248, 0.22)";
+                e.currentTarget.style.borderColor = "rgba(56, 189, 248, 0.6)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(56, 189, 248, 0.12)";
+                e.currentTarget.style.borderColor = "rgba(56, 189, 248, 0.4)";
+              }}
+            >
+              <ShieldCheck size={14} />
+              <span>Authority? Sign in / register &rarr;</span>
+            </button>
+          </div>
         </div>
       </div>
 

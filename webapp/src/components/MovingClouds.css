@@ -253,3 +253,27 @@
   animation-duration: 52s;
   animation-delay: -12s;
 }
+
+/* ── Light Theme Adaptations ────────────────────────────────────────── */
+[data-theme="light"] .stars,
+html.light .stars {
+  opacity: 0.15;
+}
+
+[data-theme="light"] .bigCloud,
+html.light .bigCloud {
+  filter: drop-shadow(0 6px 14px rgba(100, 116, 139, 0.25));
+}
+
+[data-theme="light"] #circ1shadow,
+[data-theme="light"] #circ2shadow,
+[data-theme="light"] #circ3shadow,
+[data-theme="light"] #circ5shadow,
+[data-theme="light"] #circ6shadow,
+html.light #circ1shadow,
+html.light #circ2shadow,
+html.light #circ3shadow,
+html.light #circ5shadow,
+html.light #circ6shadow {
+  background-color: #cbd5e1 !important;
+}

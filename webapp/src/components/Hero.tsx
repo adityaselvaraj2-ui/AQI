@@ -8,9 +8,11 @@ import {
   RefreshCw,
   Share2,
   Check,
+  MapPin,
 } from "lucide-react";
 import type { Panel } from "@/hooks/useForecastData";
 import { int } from "@/lib/format";
+import { pollutantSubIndex } from "@/lib/aqi";
 import type {
   CityAggregateResponse,
   ConsensusResponse,
@@ -21,6 +23,7 @@ import type { PageType } from "@/components/Rail";
 import delhiSkyline from "@/assets/delhi_skyline.png";
 import boyCharacter from "@/assets/boy_character.png";
 import { MovingClouds } from "@/components/MovingClouds";
+import { useTheme } from "@/context/ThemeContext";
 
 export interface HeroProps {
   forecast: Panel<ForecastResponse | any>;
@@ -61,6 +64,9 @@ export interface HeroProps {
   ready?: boolean;
   currentPage?: PageType;
   onPageChange?: (page: PageType) => void;
+  /** ONE app-wide station selection — when set, the live panel shows THAT station */
+  selectedStation?: { uid: string; name: string; aqi: number; category: string; dominant_pollutant: string; pollutants?: Partial<Record<string, number>>; weather?: { temperature?: number; humidity?: number; wind_speed?: number; wind_direction?: number } } | null;
+  stationsLoading?: boolean;
 }
 
 interface ScaleBand {
@@ -96,15 +102,42 @@ export function Hero({
   cityAggregate,
   realtime,
   weatherapi,
+  selectedStation,
 }: HeroProps) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
   const [scaleMode, setScaleMode] = useState<"cpcb" | "epa">("cpcb");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const isLiveNow = cursor === 0;
 
-  // Derive current AQI value
+  // Station-first live values: when the user picked a station (header picker),
+  // the panel shows THAT station's sensor reading; otherwise the city aggregate.
+  // Raw sensor concentrations (µg/m³) are kept alongside so the US-EPA toggle
+  // can RECOMPUTE the AQI with EPA breakpoints instead of just relabeling.
+  const stationConcs = selectedStation?.pollutants ?? null;
+
   const displayAqi = useMemo(() => {
+    // US-EPA mode: recompute from the raw concentrations with EPA breakpoints
+    if (scaleMode === "epa") {
+      const subs: number[] = [];
+      if (stationConcs) {
+        for (const [p, c] of Object.entries(stationConcs)) {
+          if (typeof c === "number" && c > 0 && p !== "CO") {
+            subs.push(pollutantSubIndex(p, c, "epa"));
+          }
+        }
+      }
+      if (subs.length > 0) return Math.max(...subs);
+      // no raw concentrations available (city aggregate): convert PM2.5 via EPA
+      const pm25 = realtime?.pm25 ?? cityAggregate?.sub_indices?.["PM2.5"]?.conc;
+      if (pm25 != null) return pollutantSubIndex("PM2.5", pm25, "epa");
+      // last resort: show the CPCB number rather than a wrong EPA number
+    }
+    if (isLiveNow && selectedStation?.aqi != null) {
+      return selectedStation.aqi;
+    }
     if (isLiveNow && realtime?.aqi !== undefined && realtime.aqi !== null) {
       return realtime.aqi;
     }
@@ -112,7 +145,7 @@ export function Hero({
     if (hour?.aqi) return hour.aqi;
     if (consensus?.metrics?.aqi) return Math.round(consensus.metrics.aqi);
     return 145;
-  }, [isLiveNow, realtime, cityAggregate, hour, consensus]);
+  }, [scaleMode, stationConcs, isLiveNow, selectedStation, realtime, cityAggregate, hour, consensus]);
 
   // Derive active category & accent color based on active scale mode
   const currentBandInfo = useMemo(() => {
@@ -127,12 +160,18 @@ export function Hero({
   const categoryAccent = currentBandInfo.color;
   const categoryName = currentBandInfo.category;
 
-  // Dominant pollutant & concentration
+  // Dominant pollutant & concentration — station-first, then city aggregate
   const dominantPollutant = useMemo(() => {
-    return cityAggregate?.dominant_pollutant ?? hour?.dominant_pollutant ?? "PM2.5";
-  }, [cityAggregate, hour]);
+    return (selectedStation?.dominant_pollutant as string | undefined)
+      ?? cityAggregate?.dominant_pollutant
+      ?? hour?.dominant_pollutant
+      ?? "PM2.5";
+  }, [selectedStation, cityAggregate, hour]);
 
   const dominantConcentration = useMemo(() => {
+    const stDominant = selectedStation?.dominant_pollutant as string | undefined;
+    const stConc = stDominant ? selectedStation?.pollutants?.[stDominant] : undefined;
+    if (stConc != null) return Math.round(stConc);
     if (realtime?.pm25 !== null && realtime?.pm25 !== undefined) {
       return Math.round(realtime.pm25);
     }
@@ -144,10 +183,12 @@ export function Hero({
       return Math.round(pmSub.concentration);
     }
     return 148;
-  }, [realtime, cityAggregate, hour]);
+  }, [selectedStation, realtime, cityAggregate, hour]);
 
-  // Weather metrics
+  // Weather metrics — station's own sensor weather first, then city feeds
   const temperature = useMemo(() => {
+    const stTemp = selectedStation?.weather?.temperature;
+    if (stTemp != null) return Math.round(stTemp);
     if (weatherapi?.temp !== null && weatherapi?.temp !== undefined) {
       return Math.round(weatherapi.temp);
     }
@@ -158,7 +199,7 @@ export function Hero({
       return Math.round(hour.temperature_2m_c);
     }
     return 31;
-  }, [weatherapi, realtime, hour]);
+  }, [selectedStation, weatherapi, realtime, hour]);
 
   const conditionLabel = useMemo(() => {
     if (weatherapi?.condition) return weatherapi.condition;
@@ -169,6 +210,8 @@ export function Hero({
   }, [weatherapi, displayAqi]);
 
   const humidity = useMemo(() => {
+    const stHum = selectedStation?.weather?.humidity;
+    if (stHum != null) return Math.round(stHum);
     if (weatherapi?.humidity !== null && weatherapi?.humidity !== undefined) {
       return Math.round(weatherapi.humidity);
     }
@@ -179,7 +222,7 @@ export function Hero({
       return Math.round(hour.relative_humidity_pct);
     }
     return 68;
-  }, [weatherapi, realtime, hour]);
+  }, [selectedStation, weatherapi, realtime, hour]);
 
   const windSpeed = useMemo(() => {
     if (weatherapi?.wind_kph !== null && weatherapi?.wind_kph !== undefined) {
@@ -242,7 +285,7 @@ export function Hero({
   const activeBands = scaleMode === "cpcb" ? CPCB_BANDS : EPA_BANDS;
 
   return (
-    <div className="relative w-full min-h-[calc(100vh-5rem)] flex flex-col justify-center items-center py-12 md:py-16 px-3 sm:px-6 md:px-10 lg:px-12 bg-[#08090c]">
+    <div className="relative w-full flex flex-col items-center pt-[66px] sm:pt-[72px] pb-3 px-3 sm:px-6 md:px-10 lg:px-12 bg-transparent">
       {/* ── AMBIENT DARK BACKDROP RADIAL GLOW ── */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -252,35 +295,57 @@ export function Hero({
       />
 
       {/* ── WRAPPER ENCOMPASSING HEADER + CARD ── */}
-      <div className="relative w-full max-w-[1340px] flex flex-col gap-3 z-10">
+      <div className="relative w-full max-w-[1240px] flex flex-col gap-2 z-10">
         {/* ── 1. HEADER ROW (NOW OUTSIDE/ABOVE THE BOX AT THE PRECISE CUT LINE) ── */}
         <div className="flex flex-wrap items-center justify-between gap-4 px-2 py-1">
           {/* Left: City Title & Subtitle */}
           <div>
-            <h2 className="text-[1.35rem] md:text-[1.55rem] font-bold text-[#f2f4f8] tracking-tight flex items-center gap-2.5">
+            <h2 className={`text-[1.35rem] md:text-[1.55rem] font-bold tracking-tight flex items-center gap-2.5 ${isLight ? "text-slate-900" : "text-[#f2f4f8]"}`}>
               <span>Delhi NCR</span>
               {isLiveNow && (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono tracking-wider font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono tracking-wider font-semibold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   LIVE
                 </span>
               )}
             </h2>
-            <p className="text-[#9aa3b2] text-xs md:text-sm mt-0.5 font-medium">
+            <p className={`text-xs md:text-sm mt-0.5 font-medium ${isLight ? "text-slate-600" : "text-[#9aa3b2]"}`}>
               Last updated: {updatedTimestamp} (Local Time)
+              {selectedStation && (
+                <span className={`ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono ${isLight ? "bg-sky-500/10 text-sky-700 border border-sky-500/25" : "bg-sky-500/10 text-sky-400 border border-sky-500/30"}`}>
+                  <MapPin size={9} />
+                  {selectedStation.name} · station sensor
+                </span>
+              )}
+              {!selectedStation && (
+                <span className={`ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-mono ${isLight ? "bg-slate-500/10 text-slate-600 border border-slate-500/25" : "bg-white/5 text-[#9aa3b2] border border-white/15"}`}>
+                  city aggregate · pick a station in the header
+                </span>
+              )}
             </p>
           </div>
 
           {/* Right: Segmented Toggle & Action Buttons */}
           <div className="flex items-center gap-2.5">
             {/* Segmented scale toggle */}
-            <div className="inline-flex p-1 rounded-xl bg-black/50 border border-white/[0.08] backdrop-blur-md">
+            <div
+              className="inline-flex p-1 rounded-xl backdrop-blur-md transition-colors"
+              style={{
+                background: isLight ? "rgba(255, 255, 255, 0.9)" : "rgba(0, 0, 0, 0.5)",
+                border: `1px solid ${isLight ? "rgba(15, 23, 42, 0.12)" : "rgba(255, 255, 255, 0.08)"}`,
+                boxShadow: isLight ? "0 2px 8px rgba(15, 23, 42, 0.05)" : "none",
+              }}
+            >
               <button
                 type="button"
                 onClick={() => setScaleMode("cpcb")}
                 className={`px-3.5 py-1.5 text-xs md:text-sm font-semibold rounded-lg transition-all ${
                   scaleMode === "cpcb"
-                    ? "bg-white/15 text-[#f2f4f8] shadow-sm"
+                    ? isLight
+                      ? "bg-slate-900 text-white shadow-sm"
+                      : "bg-white/15 text-[#f2f4f8] shadow-sm"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900"
                     : "text-[#9aa3b2] hover:text-[#f2f4f8]"
                 }`}
               >
@@ -291,7 +356,11 @@ export function Hero({
                 onClick={() => setScaleMode("epa")}
                 className={`px-3.5 py-1.5 text-xs md:text-sm font-semibold rounded-lg transition-all ${
                   scaleMode === "epa"
-                    ? "bg-white/15 text-[#f2f4f8] shadow-sm"
+                    ? isLight
+                      ? "bg-slate-900 text-white shadow-sm"
+                      : "bg-white/15 text-[#f2f4f8] shadow-sm"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900"
                     : "text-[#9aa3b2] hover:text-[#f2f4f8]"
                 }`}
               >
@@ -304,9 +373,13 @@ export function Hero({
               type="button"
               onClick={handleRefresh}
               title="Refresh live data"
-              className="w-9 h-9 rounded-full flex items-center justify-center bg-black/40 border border-white/[0.08] text-[#9aa3b2] hover:text-[#f2f4f8] hover:bg-white/10 transition-colors"
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+                isLight
+                  ? "bg-white/90 border border-slate-200 text-slate-700 hover:text-slate-950 hover:bg-white shadow-sm"
+                  : "bg-black/40 border border-white/[0.08] text-[#9aa3b2] hover:text-[#f2f4f8] hover:bg-white/10"
+              }`}
             >
-              <RefreshCw size={15} className={isRefreshing ? "animate-spin text-white" : ""} />
+              <RefreshCw size={15} className={isRefreshing ? "animate-spin" : ""} />
             </button>
 
             {/* Share circular button */}
@@ -314,9 +387,13 @@ export function Hero({
               type="button"
               onClick={handleShare}
               title="Share air quality report"
-              className="w-9 h-9 rounded-full flex items-center justify-center bg-black/40 border border-white/[0.08] text-[#9aa3b2] hover:text-[#f2f4f8] hover:bg-white/10 transition-colors relative"
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all relative ${
+                isLight
+                  ? "bg-white/90 border border-slate-200 text-slate-700 hover:text-slate-950 hover:bg-white shadow-sm"
+                  : "bg-black/40 border border-white/[0.08] text-[#9aa3b2] hover:text-[#f2f4f8] hover:bg-white/10"
+              }`}
             >
-              {copied ? <Check size={15} className="text-emerald-400" /> : <Share2 size={15} />}
+              {copied ? <Check size={15} className="text-emerald-500" /> : <Share2 size={15} />}
             </button>
           </div>
         </div>
@@ -327,11 +404,15 @@ export function Hero({
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full rounded-[20px] overflow-hidden shadow-2xl p-6 sm:p-8 md:p-9 lg:p-10 transition-all duration-700 min-h-[350px] flex flex-col justify-between"
+          className="relative w-full rounded-[18px] overflow-hidden shadow-2xl p-4 sm:p-5 md:p-6 pb-3 sm:pb-3.5 md:pb-3.5 transition-all duration-700 flex flex-col justify-between"
           style={{
-            background: `linear-gradient(180deg, #0a0b0d 0%, color-mix(in srgb, ${categoryAccent} 16%, #111318) 55%, ${categoryAccent} 130%)`,
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            boxShadow: `0 24px 60px -15px rgba(0, 0, 0, 0.85), 0 0 45px -12px color-mix(in srgb, ${categoryAccent} 22%, transparent)`,
+            background: isLight
+              ? `linear-gradient(180deg, #FFFFFF 0%, color-mix(in srgb, ${categoryAccent} 10%, #F8FAFC) 55%, color-mix(in srgb, ${categoryAccent} 22%, #E2E8F0) 100%)`
+              : `linear-gradient(180deg, #0a0b0d 0%, color-mix(in srgb, ${categoryAccent} 16%, #111318) 55%, ${categoryAccent} 130%)`,
+            border: `1px solid ${isLight ? "rgba(15, 23, 42, 0.1)" : "rgba(255, 255, 255, 0.08)"}`,
+            boxShadow: isLight
+              ? `0 20px 50px -15px rgba(15, 23, 42, 0.09), 0 0 35px -10px color-mix(in srgb, ${categoryAccent} 25%, transparent)`
+              : `0 24px 60px -15px rgba(0, 0, 0, 0.85), 0 0 45px -12px color-mix(in srgb, ${categoryAccent} 22%, transparent)`,
           }}
         >
           {/* ── REALISTIC DRIFTING CLOUDS (ACROSS UPPER SKY BAND) ── */}
@@ -339,7 +420,7 @@ export function Hero({
 
           {/* ── DELHI MONUMENTS SKYLINE SILHOUETTE ── */}
           <div
-            className="absolute bottom-0 left-0 right-0 h-[115px] sm:h-[135px] md:h-[155px] opacity-45 pointer-events-none z-[1] overflow-hidden select-none"
+            className={`absolute bottom-0 left-0 right-0 h-[75px] sm:h-[90px] md:h-[105px] pointer-events-none z-[1] overflow-hidden select-none transition-opacity ${isLight ? "opacity-20" : "opacity-45"}`}
             aria-hidden="true"
           >
             <img
@@ -357,27 +438,33 @@ export function Hero({
             className="absolute z-[15] pointer-events-none transition-all duration-500 flex flex-col items-center"
             style={{
               left: "47%",
-              bottom: "74px",
+              bottom: "44px",
               transform: "translateX(-50%)",
             }}
             aria-hidden="true"
           >
             {/* Contact drop shadow on scale bar */}
-            <div className="w-20 h-2.5 rounded-[100%] bg-black/60 blur-[3.5px] absolute -bottom-0.5 left-1/2 -translate-x-1/2" />
+            <div className="w-16 h-2 rounded-[100%] bg-black/60 blur-[3px] absolute -bottom-0.5 left-1/2 -translate-x-1/2" />
 
             <img
               src={boyCharacter}
               alt="AQI Guide Character"
-              className="h-[170px] sm:h-[190px] md:h-[210px] w-auto object-contain drop-shadow-[0_14px_28px_rgba(0,0,0,0.65)]"
+              className="h-[130px] sm:h-[145px] md:h-[165px] w-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.65)]"
             />
           </motion.div>
 
           {/* ── HERO BODY ROW: AQI METRIC STACK + WEATHER CARD ── */}
-          <div className="relative z-20 flex flex-wrap items-center justify-between gap-6 my-2">
+          <div className="relative z-20 flex flex-wrap items-center justify-between gap-4 my-0.5">
             {/* Left: AQI Metric Stack */}
             <div className="flex flex-col gap-2">
               {/* Live AQI status indicator pill */}
-              <div className="inline-flex items-center gap-2 w-fit px-3 py-0.5 rounded-full text-xs font-mono font-medium tracking-wide uppercase bg-black/30 border border-white/[0.08] text-[#9aa3b2]">
+              <div
+                className={`inline-flex items-center gap-2 w-fit px-3 py-0.5 rounded-full text-xs font-mono font-medium tracking-wide uppercase ${
+                  isLight
+                    ? "bg-white/80 border border-slate-200 text-slate-700 shadow-sm"
+                    : "bg-black/30 border border-white/[0.08] text-[#9aa3b2]"
+                }`}
+              >
                 <span
                   className="w-2 h-2 rounded-full"
                   style={{
@@ -385,32 +472,34 @@ export function Hero({
                     boxShadow: `0 0 10px ${categoryAccent}`,
                   }}
                 />
-                <span className="text-[#f2f4f8] font-semibold">Live AQI</span>
+                <span className={`font-semibold ${isLight ? "text-slate-900" : "text-[#f2f4f8]"}`}>Live AQI</span>
                 <span className="opacity-40">·</span>
                 <span>{isLiveNow ? "Continuous Monitor" : `Forecast +${cursor}h`}</span>
               </div>
 
               {/* Large Numerical Display */}
-              <div className="flex items-baseline gap-4 mt-0.5">
+              <div className="flex items-baseline gap-3 mt-0.5">
                 <span
-                  className="text-[3.8rem] sm:text-[4.4rem] md:text-[4.8rem] font-[800] font-mono tracking-[-0.03em] leading-none"
+                  className="text-[3.1rem] sm:text-[3.6rem] md:text-[4rem] font-[800] font-mono tracking-[-0.03em] leading-none"
                   style={{
                     color: categoryAccent,
-                    textShadow: `0 0 45px ${categoryAccent}70, 0 3px 12px rgba(0,0,0,0.8)`,
+                    textShadow: isLight
+                      ? `0 0 25px ${categoryAccent}30, 0 2px 8px rgba(0,0,0,0.08)`
+                      : `0 0 35px ${categoryAccent}70, 0 3px 12px rgba(0,0,0,0.8)`,
                   }}
                 >
                   {int(displayAqi)}
                 </span>
-                <span className="text-[#9aa3b2] text-sm md:text-base font-semibold font-mono uppercase tracking-wider">
+                <span className={`text-xs md:text-sm font-semibold font-mono uppercase tracking-wider ${isLight ? "text-slate-600" : "text-[#9aa3b2]"}`}>
                   {scaleMode === "cpcb" ? "AQI (CPCB)" : "AQI (US EPA)"}
                 </span>
               </div>
 
               {/* Verdict line */}
-              <div className="flex items-center gap-2.5 text-base md:text-lg font-medium text-[#f2f4f8] mt-0.5">
+              <div className={`flex items-center gap-2 text-sm md:text-base font-medium mt-0.5 ${isLight ? "text-slate-900" : "text-[#f2f4f8]"}`}>
                 <span>Air quality is</span>
                 <span
-                  className="px-3.5 py-0.5 rounded-full text-xs md:text-sm font-semibold tracking-wide border transition-all"
+                  className="px-3 py-0.5 rounded-full text-xs font-semibold tracking-wide border transition-all"
                   style={{
                     borderColor: categoryAccent,
                     color: categoryAccent,
@@ -423,54 +512,54 @@ export function Hero({
               </div>
 
               {/* Dominant Pollutant Caption */}
-              <p className="text-[#9aa3b2] text-xs md:text-sm font-mono mt-0.5">
-                Dominant: <strong className="text-[#f2f4f8] font-bold">{dominantPollutant}</strong> ·{" "}
+              <p className={`text-xs font-mono mt-0.5 ${isLight ? "text-slate-600" : "text-[#9aa3b2]"}`}>
+                Dominant: <strong className={`font-bold ${isLight ? "text-slate-900" : "text-[#f2f4f8]"}`}>{dominantPollutant}</strong> ·{" "}
                 <span>{dominantConcentration} µg/m³</span>
               </p>
             </div>
 
             {/* Right: Glass Weather Card */}
             <div
-              className="rounded-[16px] p-4 sm:p-5 md:p-6 min-w-[250px] md:min-w-[280px] flex flex-col justify-between gap-3 backdrop-blur-md transition-transform hover:scale-[1.02]"
+              className="rounded-[14px] p-3 sm:p-3.5 md:p-4 min-w-[215px] md:min-w-[240px] flex flex-col justify-between gap-2 backdrop-blur-md transition-transform hover:scale-[1.02]"
               style={{
-                background: "rgba(10, 11, 13, 0.42)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
-                boxShadow: "0 12px 32px rgba(0, 0, 0, 0.35)",
+                background: isLight ? "rgba(255, 255, 255, 0.85)" : "rgba(10, 11, 13, 0.42)",
+                border: `1px solid ${isLight ? "rgba(15, 23, 42, 0.1)" : "rgba(255, 255, 255, 0.08)"}`,
+                boxShadow: isLight ? "0 8px 22px rgba(15, 23, 42, 0.06)" : "0 10px 28px rgba(0, 0, 0, 0.35)",
               }}
             >
               {/* Top row: Thermometer icon + large temperature */}
               <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-2.5 text-2xl md:text-3xl font-bold text-[#f2f4f8] font-mono">
-                  <Thermometer size={24} className="text-amber-400" />
+                <span className={`inline-flex items-center gap-2 text-xl md:text-2xl font-bold font-mono ${isLight ? "text-slate-900" : "text-[#f2f4f8]"}`}>
+                  <Thermometer size={20} className="text-amber-500" />
                   {temperature} °C
                 </span>
-                <span className="text-xs font-mono text-[#9aa3b2] uppercase tracking-wider font-semibold">
+                <span className={`text-[11px] font-mono uppercase tracking-wider font-semibold ${isLight ? "text-slate-500" : "text-[#9aa3b2]"}`}>
                   Weather
                 </span>
               </div>
 
               {/* Middle: Condition label */}
-              <div className="text-sm md:text-base font-semibold text-[#f2f4f8] tracking-wide">
+              <div className={`text-xs md:text-sm font-semibold tracking-wide ${isLight ? "text-slate-900" : "text-[#f2f4f8]"}`}>
                 {conditionLabel}
               </div>
 
               {/* Bottom row: Inline stat row with Lucide icons */}
-              <div className="flex items-center justify-between gap-4 text-xs font-mono text-[#9aa3b2] pt-2 border-t border-white/[0.08]">
+              <div className={`flex items-center justify-between gap-3 text-[11px] font-mono pt-1.5 border-t ${isLight ? "border-slate-200 text-slate-600" : "border-white/[0.08] text-[#9aa3b2]"}`}>
                 {/* Humidity */}
-                <div className="flex items-center gap-1.5" title="Relative Humidity">
-                  <Droplets size={14} className="text-sky-400" />
+                <div className="flex items-center gap-1" title="Relative Humidity">
+                  <Droplets size={13} className="text-sky-500" />
                   <span>{humidity}%</span>
                 </div>
 
                 {/* Wind Speed */}
-                <div className="flex items-center gap-1.5" title="Wind Speed">
-                  <Wind size={14} className="text-teal-400" />
+                <div className="flex items-center gap-1" title="Wind Speed">
+                  <Wind size={13} className="text-teal-500" />
                   <span>{windSpeed} km/h</span>
                 </div>
 
                 {/* Precipitation */}
-                <div className="flex items-center gap-1.5" title="Precipitation">
-                  <CloudRain size={14} className="text-indigo-400" />
+                <div className="flex items-center gap-1" title="Precipitation">
+                  <CloudRain size={13} className="text-indigo-500" />
                   <span>{precip}</span>
                 </div>
               </div>
@@ -478,9 +567,9 @@ export function Hero({
           </div>
 
           {/* ── BOTTOM: AQI SEVERITY SCALE BAR ── */}
-          <div className="relative z-20 mt-6 pt-2">
+          <div className="relative z-20 mt-2.5 sm:mt-3 pt-0.5">
             {/* Labels row: Proportional category labels */}
-            <div className="flex w-full text-xs md:text-sm font-mono font-medium text-[#9aa3b2] mb-2.5 px-1">
+            <div className={`flex w-full text-[11px] md:text-xs font-mono font-medium mb-1.5 px-0.5 ${isLight ? "text-slate-600" : "text-[#9aa3b2]"}`}>
               {activeBands.map((band) => {
                 const isCurrent = band.name.toLowerCase() === categoryName.toLowerCase();
                 return (
@@ -489,7 +578,11 @@ export function Hero({
                     style={{ width: `${band.pctWidth}%` }}
                     className={`text-center px-1 transition-all ${
                       isCurrent
-                        ? "font-bold text-white scale-105"
+                        ? isLight
+                          ? "font-bold text-slate-900 scale-105"
+                          : "font-bold text-white scale-105"
+                        : isLight
+                        ? "text-slate-600"
                         : "text-[#9aa3b2]"
                     }`}
                   >
@@ -500,7 +593,7 @@ export function Hero({
             </div>
 
             {/* Ramp bar: 8px tall track with 6 colored segments */}
-            <div className="relative w-full h-[9px] rounded-full flex overflow-visible shadow-inner bg-black/60">
+            <div className={`relative w-full h-[8px] rounded-full flex overflow-visible shadow-inner ${isLight ? "bg-slate-200/80" : "bg-black/60"}`}>
               {activeBands.map((band, idx) => (
                 <div
                   key={band.name}
@@ -531,13 +624,13 @@ export function Hero({
                 className="flex flex-col items-center"
               >
                 {/* Floating dark pill with exact numeric score */}
-                <div className="mb-2.5 px-2.5 py-0.5 rounded-md bg-[#0a0b0d]/95 border border-white/20 text-[#f2f4f8] text-xs font-mono font-extrabold shadow-xl whitespace-nowrap">
+                <div className="mb-2 px-2 py-0.5 rounded-md bg-[#0a0b0d]/95 border border-white/20 text-[#f2f4f8] text-[11px] font-mono font-extrabold shadow-xl whitespace-nowrap">
                   {int(displayAqi)}
                 </div>
 
-                {/* 14px Indicator dot with double ring shadow */}
+                {/* 13px Indicator dot with double ring shadow */}
                 <div
-                  className="w-[14px] h-[14px] rounded-full bg-white border-2 border-[#0a0b0d]"
+                  className="w-[13px] h-[13px] rounded-full bg-white border-2 border-[#0a0b0d]"
                   style={{
                     boxShadow:
                       "0 0 0 2px rgba(255, 255, 255, 0.45), 0 2px 8px rgba(0, 0, 0, 0.85)",
@@ -547,7 +640,7 @@ export function Hero({
             </div>
 
             {/* Ticks row: Numeric cutoff labels */}
-            <div className="relative w-full text-[11px] md:text-xs font-mono text-[#9aa3b2] mt-2.5 h-5">
+            <div className="relative w-full text-[10px] md:text-[10.5px] font-mono text-[#9aa3b2] mt-1.5 h-4">
               <span className="absolute left-0 -translate-x-0">0</span>
               <span className="absolute left-[10%] -translate-x-1/2">50</span>
               <span className="absolute left-[20%] -translate-x-1/2">100</span>

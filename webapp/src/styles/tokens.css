@@ -24,6 +24,12 @@
   --mist-dim: #5C7183;
   --mist-faint: #3E4E5C;
 
+  /* ── shadcn & component token bridge ────────────────────────────────── */
+  --background:       #0A1119;
+  --foreground:       #E9F0F6;
+  --muted:            rgba(255, 255, 255, 0.12);
+  --muted-foreground: #8CA3B6;
+
   /* ── CPCB National AQI (2014) ramp from reference image ─────────── */
   --aqi-1: #8ceb8c;   /* 0–50    Good          */
   --aqi-2: #ffff00;   /* 51–100  Satisfactory  */
@@ -44,6 +50,40 @@
   --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --sans: "Inter", "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --cond: "IBM Plex Sans Condensed", "IBM Plex Sans", system-ui, sans-serif;
+}
+
+/* ── Light Theme Design Tokens ────────────────────────────────────────── */
+:root[data-theme="light"],
+html.light {
+  /* ── canvas ─────────────────────────────────────────────────────────── */
+  --abyss:      #F8FAFC;
+  --deep:       #FFFFFF;
+  --slab:       #F1F5F9;
+  --slab-hi:    #E2E8F0;
+  --hairline:   rgba(15, 23, 42, 0.09);
+  --hairline-2: rgba(15, 23, 42, 0.18);
+
+  /* ── ink ────────────────────────────────────────────────────────────── */
+  --bone:       #0F172A;
+  --mist:       #334155;
+  --mist-dim:   #64748B;
+  --mist-faint: #94A3B8;
+
+  /* ── component token bridge ─────────────────────────────────────────── */
+  --background:       #F8FAFC;
+  --foreground:       #0F172A;
+  --muted:            rgba(15, 23, 42, 0.06);
+  --muted-foreground: #64748B;
+
+  /* ── High-Legibility CPCB AQI Ramp for Light Surfaces ─────────────────── */
+  --aqi-1: #15803d;   /* 0–50    Good          */
+  --aqi-2: #ca8a04;   /* 51–100  Satisfactory  */
+  --aqi-3: #ea580c;   /* 101–200 Moderate      */
+  --aqi-4: #dc2626;   /* 201–300 Poor          */
+  --aqi-5: #9333ea;   /* 301–400 Very Poor     */
+  --aqi-6: #7f1d1d;   /* 401–500 Hazardous     */
+
+  --cyan:  #0284c7;
 }
 
 /* ── Multilingual Typography System ── */

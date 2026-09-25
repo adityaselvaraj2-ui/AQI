@@ -34,6 +34,7 @@ import type {
   Historical7dResponse,
   StationForecastResponse,
   StationRegistryResponse,
+  ChronosStatusResponse,
   AqiCategory,
 } from "./types";
 
@@ -210,10 +211,29 @@ export function getStationRegistry(signal?: AbortSignal): Promise<StationRegistr
 }
 
 export function getStationForecast(stationId: number, signal?: AbortSignal): Promise<StationForecastResponse> {
+  return getStationForecastWithModel(stationId, "lightgbm", signal);
+}
+
+/** model=chronos2 returns the CPCB-trained comparison model (LOST the head-to-head;
+ *  every response is labeled with the model that produced it). */
+export function getStationForecastWithModel(
+  stationId: number,
+  model: "lightgbm" | "chronos2",
+  signal?: AbortSignal,
+): Promise<StationForecastResponse> {
   return fetchJson<StationForecastResponse>(
-    `${API}/forecast/station-168hr?station_id=${encodeURIComponent(String(stationId))}`,
+    `${API}/forecast/station-168hr?station_id=${encodeURIComponent(String(stationId))}` +
+      `&model=${model}`,
     { timeoutMs: TIMEOUTS.chronos, signal },
   );
+}
+
+/** Availability + honest head-to-head verdict for the Chronos-2 comparison model. */
+export function getChronosStatus(signal?: AbortSignal): Promise<ChronosStatusResponse> {
+  return fetchJson<ChronosStatusResponse>(`${API}/forecast/chronos-status`, {
+    timeoutMs: TIMEOUTS.realtime,
+    signal,
+  });
 }
 
 export function calculateExposure(req: ExposureRequest, signal?: AbortSignal): Promise<ExposureResponse> {

@@ -358,6 +358,27 @@ export interface StationForecastResponse {
   band_modes?: Record<string, Record<string, string>>;
   band_coverage?: Record<string, Record<string, number>>;
   forecast_hours: StationForecastHour[];
+  /** which model produced this response (transparency contract) */
+  model?: "lightgbm" | "chronos2";
+  /** human-readable model label, stated plainly (honesty contract) */
+  model_label?: string;
+}
+
+/** GET /api/v1/forecast/chronos-status — availability + honest head-to-head verdict */
+export interface ChronosStatusResponse {
+  chronos2: {
+    available: boolean;
+    device: string;
+    head_to_head?: {
+      comparisons: number;
+      chronos_wins: number;
+      lightgbm_wins: number;
+      verdict: "lightgbm" | "chronos";
+    };
+    verdict_doc?: string;
+  };
+  primary_model: string;
+  note: string;
 }
 
 export interface StationRegistryEntry {
