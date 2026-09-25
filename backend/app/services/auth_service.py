@@ -19,6 +19,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import logging
 import secrets
 import sqlite3
 import threading
@@ -32,6 +33,8 @@ _PBKDF2_ITERATIONS = 600_000
 # Reentrant: keeps account rows and advisory writes serialized; invite-code
 # operations go to Supabase (invite_store) and never hold this lock.
 _lock = threading.RLock()
+
+logger = logging.getLogger(__name__)
 
 # Strict-enough email shape: one @, a domain with a dot, no spaces/controls.
 import re as _re
@@ -261,17 +264,39 @@ def get_user_by_id(user_id: str) -> dict[str, Any] | None:
     return {"id": row["id"], "email": row["email"], "full_name": row["full_name"], "role": row["role"]}
 
 
-def get_or_create_google_user(provider_sub: str, email: str, full_name: str) -> dict[str, Any]:
+def get_or_create_google_user(
+    provider_sub: str, email: str, full_name: str, invite_code: str | None = None
+) -> dict[str, Any]:
     """Map a verified Supabase/Google identity to a local account.
 
-    Google accounts always land as citizens: role elevation requires an
-    invite code through the ordinary registration path, so a compromised
-    Google account can never self-promote to authority. The identity is keyed
-    by the Supabase user id (provider sub), stored in google_user_map.
+    Google accounts always land as citizens unless a single-use operator
+    invite code accompanies the exchange (authority-via-Google): the code is
+    redeemed INSIDE this call, so the response's role and the database row
+    can never disagree. Without a code a compromised Google account could
+    otherwise self-promote; with one, the code itself is the proof.
+    The identity is keyed by the Supabase user id (provider sub), stored in
+    google_user_map.
     """
     email = (email or "").strip().lower()
     if not provider_sub:
         raise AuthError("Supabase identity missing a user id.", 401)
+
+    # Validate + consume the invite code BEFORE touching local state, with the
+    # authority-role outcome decided atomically afterwards (redeem first,
+    # role second — same order as elevate_to_authority).
+    code: str | None = None
+    if invite_code:
+        from app.services import invite_store  # lazy: avoids import cycle
+
+        code = invite_store.normalize(invite_code)
+        shape_problem = invite_store.validate_format(code)
+        if shape_problem:
+            raise AuthError(shape_problem, 403)
+        status = invite_store.get_status(code)
+        if not status["exists"]:
+            raise AuthError("This invite code is not recognised.", 403)
+        if status["used"]:
+            raise AuthError("This invite code has already been used.", 403)
 
     with _lock, _db() as conn:
         existing = conn.execute(
@@ -287,8 +312,16 @@ def get_or_create_google_user(provider_sub: str, email: str, full_name: str) -> 
                     conn.execute(
                         "UPDATE users SET full_name = ? WHERE id = ?", (full_name[:120], row["id"])
                     )
-                    return {"id": row["id"], "email": row["email"], "full_name": full_name[:120], "role": row["role"]}
-                return {"id": row["id"], "email": row["email"], "full_name": row["full_name"], "role": row["role"]}
+                    row = {"id": row["id"], "email": row["email"], "full_name": full_name[:120], "role": row["role"]}
+                if code and row["role"] != "authority":
+                    # Returning user with a fresh invite code: redeem it and
+                    # promote here so the sign-in response is already authority.
+                    try:
+                        invite_store_redeem(code, row["id"], row["email"])
+                    except Exception as exc:
+                        raise AuthError(getattr(exc, "message", str(exc)), getattr(exc, "status_code", 403)) from exc
+                    row = {**row, "role": "authority"}
+                return row
 
         # New Google identity: refuse if a password account already owns this
         # email (account takeover via unverified-Google-email would be bad).
@@ -303,22 +336,36 @@ def get_or_create_google_user(provider_sub: str, email: str, full_name: str) -> 
             row = conn.execute(
                 "SELECT id, email, full_name, role FROM users WHERE id = ?", (clash["id"],)
             ).fetchone()
-            return {"id": row["id"], "email": row["email"], "full_name": row["full_name"], "role": row["role"]}
+            if code and row["role"] != "authority":
+                try:
+                    invite_store_redeem(code, row["id"], row["email"])
+                except Exception as exc:
+                    raise AuthError(getattr(exc, "message", str(exc)), getattr(exc, "status_code", 403)) from exc
+                row = {**row, "role": "authority"}
+            return row
 
         user_id = secrets.token_urlsafe(16)
         # No password for Google accounts: a random unusable salt/hash pair.
+        # With a validated invite code the account is born authority — the
+        # redeem-before-insert order means a lost race raises before any row
+        # is written, so a citizen row can never silently appear.
         salt = secrets.token_bytes(16)
         unusable_hash = _hash_password(secrets.token_urlsafe(32), salt)
+        if code:
+            try:
+                invite_store_redeem(code, user_id, email)
+            except Exception as exc:
+                raise AuthError(getattr(exc, "message", str(exc)), getattr(exc, "status_code", 403)) from exc
         conn.execute(
             "INSERT INTO users (id, email, full_name, role, password_salt, password_hash, created_at, auth_provider) "
-            "VALUES (?, ?, ?, 'citizen', ?, ?, ?, 'google')",
-            (user_id, email or f"google-{provider_sub[:8]}@users.noreply.ncr72", full_name[:120], salt, unusable_hash, time.time()),
+            "VALUES (?, ?, ?, ?, ?, ?, ?, 'google')",
+            (user_id, email or f"google-{provider_sub[:8]}@users.noreply.ncr72", full_name[:120], "authority" if code else "citizen", salt, unusable_hash, time.time()),
         )
         conn.execute(
             "INSERT INTO google_user_map (provider_sub, user_id, linked_at) VALUES (?, ?, ?)",
             (provider_sub, user_id, time.time()),
         )
-        return {"id": user_id, "email": email, "full_name": full_name[:120], "role": "citizen"}
+        return {"id": user_id, "email": email, "full_name": full_name[:120], "role": "authority" if code else "citizen"}
 
 
 # ── Authority elevation ─────────────────────────────────────────────────────
@@ -328,6 +375,14 @@ def get_auth_provider(user_id: str) -> str | None:
     with _db() as conn:
         row = conn.execute("SELECT auth_provider FROM users WHERE id = ?", (user_id,)).fetchone()
     return row["auth_provider"] if row else None
+
+
+def invite_store_redeem(code: str, user_id: str, email: str) -> None:
+    """Thin alias over invite_store.redeem keeping the redeem-first order used
+    by every role-promotion path in one place."""
+    from app.services import invite_store  # lazy: avoids import cycle
+
+    invite_store.redeem(code, user_id, email)
 
 
 def elevate_to_authority(user_id: str, invite_code: str) -> dict[str, Any]:
@@ -440,6 +495,3 @@ def _advisory_to_dict(record: dict[str, Any]) -> dict[str, Any]:
     except (json.JSONDecodeError, TypeError):
         out["areas"] = []
     return out
-
-
-

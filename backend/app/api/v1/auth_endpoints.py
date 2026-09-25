@@ -107,7 +107,11 @@ class LoginRequest(BaseModel):
 class SupabaseLoginRequest(BaseModel):
     """Access token minted by Supabase Auth (Google OAuth) on the client."""
 
-    access_token: str = Field(min_length=20, max_length=4096)
+    access_token: str = Field(min_length=20, max_length=4096)    # Optional single-use invite code: when present, the account this Google
+    # identity maps to is created/elevated with the authority role in the SAME
+    # transaction as the sign-in. Server-side validation means a stolen or
+    # race-lost code can never silently produce a citizen.
+    invite_code: str | None = Field(default=None, min_length=6, max_length=32)
 
 
 class ElevateRequest(BaseModel):
@@ -199,6 +203,12 @@ class InviteStatusResponse(BaseModel):
     message: str
 
 
+class InviteValidateRequest(BaseModel):
+    """An invite code offered before starting Google authority sign-in."""
+
+    code: str = Field(min_length=6, max_length=32)
+
+
 def _token_response(user: dict[str, Any]) -> TokenResponse:
     token = create_token(user["id"], user["role"])
     return TokenResponse(access_token=token, user=UserOut(**user))
@@ -240,19 +250,50 @@ async def supabase_login(request: Request, payload: SupabaseLoginRequest) -> Tok
     """Exchange a Supabase Auth (Google OAuth) access token for a local JWT.
 
     The token is verified against Supabase itself; the mapped local account is
-    created on first sign-in (role=citizen, provider=google) and reused after.
+    created on first sign-in (provider=google) and reused after. When an
+    invite_code is supplied the code is validated and redeemed here, so the
+    response already carries the authority role — no second client round-trip
+    that could fail silently and strand the user as a citizen.
     """
     try:
         identity = await supabase_service.verify_supabase_access_token(payload.access_token)
     except SupabaseAuthError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
 
-    user = auth_service.get_or_create_google_user(
-        provider_sub=identity["sub"],
-        email=identity["email"] or "",
-        full_name=identity["full_name"],
-    )
+    try:
+        user = auth_service.get_or_create_google_user(
+            provider_sub=identity["sub"],
+            email=identity["email"] or "",
+            full_name=identity["full_name"],
+            invite_code=payload.invite_code,
+        )
+    except AuthError as exc:
+        raise _auth_error(exc) from exc
     return _token_response(user)
+
+
+@router.post("/invite/validate", response_model=InviteStatusResponse)
+@limiter.limit("20/minute")
+async def invite_validate(request: Request, payload: InviteValidateRequest) -> InviteStatusResponse:
+    """Pre-flight check for the Google authority sign-in gate.
+
+    Verifies format, existence and unused-status WITHOUT consuming the code —
+    redemption still happens only through /register or /elevate. This is
+    deliberately not operator-gated: it can only answer yes/no about a code
+    the caller already holds, exactly like the public /register rejection
+    message does, so it leaks nothing new while letting the UI stop a wrong
+    code BEFORE the OAuth redirect instead of after.
+    """
+    norm = invite_store.normalize(payload.code)
+    problem = invite_store.validate_format(norm)
+    if problem:
+        return InviteStatusResponse(code=norm, format_ok=False, exists=False, used=False, message=problem)
+    status = invite_store.get_status(norm)
+    if not status["exists"]:
+        return InviteStatusResponse(code=norm, format_ok=True, exists=False, used=False, message="This invite code is not recognised.")
+    if status["used"]:
+        return InviteStatusResponse(code=norm, format_ok=True, exists=True, used=True, message="This invite code has already been used.")
+    return InviteStatusResponse(code=norm, format_ok=True, exists=True, used=False, message="Valid — ready to unlock authority sign-in.")
 
 
 @router.post("/elevate", response_model=TokenResponse)

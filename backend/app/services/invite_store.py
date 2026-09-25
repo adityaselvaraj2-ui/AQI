@@ -160,6 +160,8 @@ def get_status(code: str) -> dict[str, Any]:
         "used": row.get("used_by") is not None,
         "label": row.get("label") or "",
         "created_at": row.get("created_at"),
+        "used_by": row.get("used_by"),
+        "used_by_email": row.get("used_by_email"),
     }
 
 

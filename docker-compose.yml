@@ -2,8 +2,8 @@ services:
   backend:
     # This image also builds and serves the React operator console at
     # http://localhost:8000/console (see Dockerfile.backend). The console is
-    # same-origin with the API, so it needs no CORS entry — ALLOWED_ORIGINS below
-    # is only for the separate Streamlit dashboard on :8501.
+    # same-origin with the API, so it needs no CORS entry — ALLOWED_ORIGINS
+    # below stays empty unless an external dashboard origin is added.
     build:
       context: .
       dockerfile: Dockerfile.backend
@@ -12,7 +12,8 @@ services:
     env_file:
       - .env
     environment:
-      - ALLOWED_ORIGINS=http://localhost:8501
+      # The Streamlit dashboard that used :8501 is retired; no extra origins.
+      - ALLOWED_ORIGINS=
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c",
@@ -23,33 +24,9 @@ services:
     networks:
       - aqi_net
 
-  frontend:
-    # No custom Dockerfile: Streamlit installs into the base python image at
-    # start-up. Slower first boot, but one less image to keep in sync.
-    image: python:3.11-slim
-    working_dir: /app
-    volumes:
-      - ./frontend:/app/frontend
-      - ./requirements.txt:/app/requirements.txt
-    command: >
-      sh -c "pip install --no-cache-dir -r requirements.txt -q &&
-             streamlit run frontend/app.py
-               --server.port 8501
-               --server.address 0.0.0.0
-               --server.headless true
-               --browser.gatherUsageStats false"
-    ports:
-      - "8501:8501"
-    env_file:
-      - .env
-    environment:
-      - BACKEND_URL=http://backend:8000
-    depends_on:
-      backend:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - aqi_net
+  # frontend service removed. The React dashboard (webapp/) deploys to Vercel
+  # (see vercel.json); the Streamlit prototype it replaced was retired, so
+  # there is nothing left to run on :8501.
 
   redis:
     # Removed. Nothing in the backend ever connected to it: caching is an
