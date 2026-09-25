@@ -1,5 +1,10 @@
-# Delhi NCR AQI Forecasting System
+# AirLens — Delhi NCR Coupled AQI Forecasting System
 
+> **AirLens** is the name of this coupled forecasting framework: a physics-informed
+> single-column meteorology–chemistry coupling engine (`backend/app/physics/`:
+> `box_model` + `inversion_engine` + `plume_advection`) plus its per-station
+> LightGBM fleet (`llm/model/`), served behind a real-time dashboard (`webapp/`).
+>
 > **72-hour coupled AQI forecast** for Delhi NCR: a prognostic two-reservoir column
 > model driven by live meteorology, with real aerosol→radiation→boundary-layer
 > feedback and NASA FIRMS stubble-plume transport, behind a live station dashboard.

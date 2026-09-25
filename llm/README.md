@@ -94,6 +94,35 @@ python llm/model/training/train_all.py
 python llm/model/training/report_metrics.py
 ```
 
+## Daily-mean head (`train_daily.py`) — hourly-vs-daily contract
+
+A second forecast head predicts the **daily-mean** CPCB pollutant (D+1/D+2/D+3,
+IST days) with the same leakage discipline: labels are real CPCB observations,
+CAMS enters only as a bounded multiplicative per-month-calibrated covariate
+(fitted on train days; ratio capped 0.25–4.0), fire lags are D-1..D-3 only, and
+the model also receives `pers_last` (last complete day) so it can fall back to
+persistence internally. A pre-registered selector picks model / persistence /
+climatology / 50-50 blend per (station, pollutant) on 3 season-diverse
+train-period validation thirds — the holdout is never used for decisions.
+
+**Measured noise floors** (daily-mean persistence "tomorrow = today", median
+across 45 stations, standard 120-day holdout): PM2.5 15.6, NO2 8.5, O3 8.3,
+SO2 3.5, **PM10 55.2** — the PM10 floor is why no leak-free PM10 model can
+reach RMSE < 20.
+
+**Locked daily contract** (`contract_daily_check.py`, pre-registered):
+PM2.5/NO2/O3/SO2 R² ≥ 0.7 & RMSE < 20; PM10 R² ≥ 0.5 & RMSE ≤ 45 (floor-limited).
+
+**Measured outcome (D+1, winter/stubble fold Oct–Nov 2025):** median R² across
+stations — PM2.5 0.41, NO2 0.46, PM10 0.37, SO2 0.04, O3 −0.03. Best pairs
+genuinely clear the bar (Anand Vihar NO2 0.87, Anand Vihar PM2.5 0.84, Sonia
+Vihar SO2 0.81), but medians fall short of 0.7: **the acceptance criterion was
+not met fleet-wide** — see `training/daily_contract_output.txt` for the full
+per-pair table. The monsoon holdout is far harder (PM2.5 median R² −0.29):
+low-variance monsoon days make R² structurally punishing, and the same model
+that scores 0.4–0.8 in winter can score ≤ 0 there. Both seasons are reported,
+never averaged.
+
 ## Honest-accuracy notes
 
 - Metrics are scored against **station observations**, but through the OpenAQ

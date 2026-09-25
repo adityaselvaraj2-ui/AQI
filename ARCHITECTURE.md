@@ -1,4 +1,9 @@
-# Architecture — Delhi NCR Coupled AQI Forecast
+# Architecture — AirLens, the Delhi NCR Coupled AQI Forecast Framework
+
+AirLens is the project name for the whole coupled system: the physics engine
+(`backend/app/physics/`), the per-station LightGBM fleet (`llm/model/`), and the
+dashboard (`webapp/`). The core module is sometimes cited as the
+**AirLens coupled column model**.
 
 ## What this is, and what it is not
 
