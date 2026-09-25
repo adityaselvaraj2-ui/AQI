@@ -30,12 +30,20 @@ import os
 import time
 from typing import Any
 
-from fastapi import APIRouter, Query, Request
+import pandas as pd
+
+from app.api.v1.auth_endpoints import require_authority
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.core.rate_limit import limiter
 from app.domain.species import Pollutant
 from app.services.aqi_service import _aqi_category, compute_sub_indices
-from llm.model.station_forecast_service import forecast_station_168hr
+from llm.model.station_forecast_service import (
+    fetch_covariates,
+    fetch_recent_history,
+    forecast_station_168hr,
+)
 
 router = APIRouter()
 
@@ -180,7 +188,9 @@ def _aqi_from_conc(conc_map: dict[str, float]) -> int | None:
 
 @router.get(
     "/forecast/station-168hr",
-    summary="168-hour (7-day) per-station pollutant forecast from the trained module",
+    summary=("168-hour (7-day) per-station pollutant forecast — model=lightgbm "
+             "(production, scored on real sensors) or model=chronos2 "
+             "(CPCB-trained comparison model, LOST the head-to-head)"),
     tags=["Forecast"],
 )
 @router.get(
@@ -194,41 +204,59 @@ async def forecast_station(
     request: Request,
     station_id: int = Query(..., description="OpenAQ archive station id"),
     use_anchor: bool = Query(True, description="Anchor T0 with the live consensus snapshot"),
+    model: str = Query(
+        "lightgbm", pattern="^(lightgbm|chronos2)$",
+        description=("lightgbm = production fleet (primary). chronos2 = CPCB-trained "
+                     "Chronos-2 comparison model kept for transparency, NOT the primary forecast."),
+    ),
 ) -> dict[str, Any]:
     registry = {st.get("openaq_id"): st for st in _load_registry()}
     st = registry.get(station_id)
     if st is None:
-        from fastapi import HTTPException
-
         raise HTTPException(status_code=404, detail=f"unknown station_id {station_id}")
 
     anchor = await _consensus_anchor() if use_anchor else None
     try:
-        result = await asyncio.wait_for(
-            asyncio.to_thread(
-                forecast_station_168hr,
-                int(st["openaq_id"]),
-                st.get("registry_name") or st.get("name") or str(station_id),
-                float(st["lat"]),
-                float(st["lon"]),
-                anchor,
-            ),
-            timeout=120,
-        )
-    except FileNotFoundError as e:
-        from fastapi import HTTPException
+        if model == "chronos2":
+            from llm.model.station_chronos2_service import (
+                chronos_available, chronos_station_forecast,
+            )
 
+            if not chronos_available():
+                raise HTTPException(status_code=503, detail="chronos-2 model stack not available")
+            result = await asyncio.wait_for(
+                asyncio.to_thread(
+                    chronos_station_forecast,
+                    int(st["openaq_id"]),
+                    st.get("registry_name") or st.get("name") or str(station_id),
+                    float(st["lat"]),
+                    float(st["lon"]),
+                    anchor,
+                ),
+                timeout=240,
+            )
+        else:
+            result = await asyncio.wait_for(
+                asyncio.to_thread(
+                    forecast_station_168hr,
+                    int(st["openaq_id"]),
+                    st.get("registry_name") or st.get("name") or str(station_id),
+                    float(st["lat"]),
+                    float(st["lon"]),
+                    anchor,
+                ),
+                timeout=120,
+            )
+    except HTTPException:
+        raise
+    except FileNotFoundError as e:
         raise HTTPException(
             status_code=503,
             detail=f"station model not trained yet: {e}",
         )
     except (RuntimeError, OSError, ValueError) as e:
-        from fastapi import HTTPException
-
         raise HTTPException(status_code=502, detail=f"forecast generation failed: {e}")
     except asyncio.TimeoutError:
-        from fastapi import HTTPException
-
         raise HTTPException(status_code=504, detail="forecast generation timed out")
 
     hours = [h for h in (_hourly_payload(x) for x in result["hours"]) if h]
@@ -240,6 +268,13 @@ async def forecast_station(
             "lat": st.get("lat"),
             "lon": st.get("lon"),
         },
+        # model transparency: every response says which model produced it
+        "model": model,
+        "model_label": (
+            "Chronos-2 (CPCB-trained comparison model — LOST the head-to-head "
+            "vs production LightGBM; shown for transparency)" if model == "chronos2"
+            else "LightGBM per-station fleet (production — scored on real CPCB sensors)"
+        ),
         "generated_at": result["generated_at"],
         "t0": result["t0"],
         "anchor_used": bool(anchor),
@@ -271,3 +306,150 @@ async def station_status(request: Request) -> dict[str, Any]:
         "registry_count": len(_load_registry()),
         "metrics_summary": summary,
     }
+
+
+@router.get(
+    "/forecast/chronos-status",
+    summary=("Chronos-2 (CPCB-trained comparison model) availability and honest "
+             "head-to-head verdict vs the production LightGBM fleet"),
+    tags=["Forecast"],
+)
+@limiter.limit("30/minute")
+async def chronos_status(request: Request) -> dict[str, Any]:
+    """Public availability + the head-to-head verdict, stated plainly."""
+    from llm.model.station_chronos2_service import chronos_available, chronos_headline
+
+    return {
+        "chronos2": chronos_headline(),
+        "primary_model": "lightgbm",
+        "note": (
+            "The production forecast is the per-station LightGBM fleet. The "
+            "CPCB-trained Chronos-2 candidate is served for comparison only; it "
+            "lost the head-to-head against LightGBM on real-sensor holdouts. "
+            "No CAMS-reanalysis-scored number is used anywhere on this site."
+        ),
+    }
+
+
+# ── model transparency (AUTHORITY-ONLY) ─────────────────────────────────────
+
+_TRANSPARENCY_TTL_S = 600
+_transparency_cache: dict[tuple, Any] = {}
+
+
+@router.get(
+    "/forecast/model-transparency",
+    summary=("Authority-only: real sensor reading vs our model forecast vs raw "
+             "CAMS, hour by hour, clearly labeled which is which"),
+    tags=["Forecast"],
+)
+@limiter.limit("10/minute")
+async def model_transparency(
+    request: Request,
+    station_id: int = Query(..., description="OpenAQ archive station id"),
+    authority: dict[str, Any] = Depends(require_authority),
+) -> dict[str, Any]:
+    """Side-by-side of the three 'truths' for the same station/hour.
+
+    Rows are PAST hours: what the sensor actually measured (ground truth),
+    what the model forecast for that hour (from the CURRENT live forecast run,
+    backfilled hours where the forecast horizon did not reach), and what the
+    raw CAMS regional cell said (the smooth ~40 km estimate the sensor is
+    compared against). The gap between columns is exactly what the holdout
+    metrics measure — this page makes it visible instead of documented.
+    """
+    registry = {st.get("openaq_id"): st for st in _load_registry()}
+    st = registry.get(station_id)
+    if st is None:
+        raise HTTPException(status_code=404, detail=f"unknown station {station_id}")
+
+    now = time.time()
+    ck = ("transparency", station_id, int(now // _TRANSPARENCY_TTL_S))
+    if ck in _transparency_cache:
+        return _transparency_cache[ck]
+
+    from app.services.aqi_service import compute_sub_indices as _csi
+
+    lat, lon = float(st["lat"]), float(st["lon"])
+
+    async def _rows() -> list[dict[str, Any]]:
+        # all three series on one UTC hourly index over the shared window
+        history = await asyncio.to_thread(fetch_recent_history, station_id, 5)
+        wx = await asyncio.to_thread(fetch_covariates, lat, lon)
+        try:
+            fc = await asyncio.wait_for(
+                asyncio.to_thread(forecast_station_168hr, station_id,
+                                  st.get("registry_name") or st.get("name"), lat, lon),
+                timeout=120)
+        except Exception:
+            fc = None
+        if history is None or history.empty or wx is None or wx.empty:
+            raise HTTPException(status_code=503, detail="sensor history or covariates unavailable")
+
+        idx = wx.index.floor("h")
+        lo = max(history.index.min(), wx.index.min())
+        hi = min(history.index.max(), wx.index.max())
+        hours: list[dict[str, Any]] = []
+        fc_by_ts = {}
+        if fc:
+            t0 = pd.Timestamp(fc["t0"])
+            for hr in fc.get("hours", []):
+                fc_by_ts[t0 + pd.Timedelta(hours=int(hr["horizon"]))] = hr
+        for ts in pd.date_range(lo.floor("h"), hi.floor("h"), freq="h"):
+            if ts not in history.index:
+                continue
+            k = ts.strftime("%Y-%m-%dT%H")
+            obs = history.loc[ts]
+            sensor = {c: (float(obs[c]) if c in obs and pd.notna(obs[c]) else None)
+                      for c in ("pm25", "pm10", "no2", "o3", "so2")}
+            cams = {c: (float(wx.at[ts, f"cams_{c}"])
+                        if f"cams_{c}" in wx.columns and pd.notna(wx.at[ts, f"cams_{c}"])
+                        else None) for c in ("pm25", "pm10", "no2", "o3", "so2")}
+            fh = fc_by_ts.get(ts)
+            model = fh["conc"] if fh else None
+            hours.append({
+                "timestamp": ts.isoformat(),
+                "sensor": sensor,               # REAL measured reality
+                "cams_cell": cams,             # smoothed regional estimate (~40 km)
+                "model_forecast": model,       # what our model said for this hour
+                "model_aq_source": fh["aq_source"] if fh else None,
+            })
+        return hours
+
+    try:
+        rows = await _rows()
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — surface precise reason, no fallback values
+        raise HTTPException(status_code=502, detail=f"transparency build failed: {type(e).__name__}: {e}")
+    payload = {
+        "station_id": station_id,
+        "station_name": st.get("registry_name") or st.get("name"),
+        "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "note": ("AUTHORITY ONLY. 'sensor' = real CPCB/OpenAQ measurement; "
+                 "'cams_cell' = raw CAMS regional reanalysis/forecast (~40 km cell, "
+                 "smoothed, not a station reading); 'model_forecast' = our trained "
+                 "model's forecast for that hour (live run, where horizon covers)."),
+        "rows": rows,
+    }
+    _transparency_cache[ck] = payload
+    return payload
+
+
+@router.get(
+    "/forecast/safar-reference",
+    summary=("IITM SAFAR operational daily forecast bulletin (government "
+             "WRF-Chem reference) — reference only, never a model input"),
+    tags=["Forecast"],
+)
+@limiter.limit("10/minute")
+async def safar_reference(request: Request) -> dict[str, Any]:
+    """Live per-station SAFAR daily forecast (category + AQI when published)."""
+    from app.services.safar_service import fetch_safar_forecast
+
+    try:
+        return await asyncio.wait_for(fetch_safar_forecast(), timeout=20)
+    except asyncio.TimeoutError:
+        raise HTTPException(status_code=504, detail="SAFAR bulletin timed out")
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e))

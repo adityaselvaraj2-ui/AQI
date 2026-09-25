@@ -182,7 +182,11 @@ def fetch_covariates(lat: float, lon: float) -> pd.DataFrame:
         return hit[1]
 
     today = pd.Timestamp.utcnow().tz_localize(None).strftime("%Y-%m-%d")
-    start = (pd.Timestamp.utcnow().tz_localize(None) - pd.Timedelta(days=3)).strftime("%Y-%m-%d")
+    # 7 past days: the OpenAQ S3 archive's newest file lags real time by hours
+    # to days; the model-transparency view needs CAMS rows overlapping the
+    # newest sensor rows, so the past window must reach further back than the
+    # archive's own lag (measured ~4 days worst case).
+    start = (pd.Timestamp.utcnow().tz_localize(None) - pd.Timedelta(days=7)).strftime("%Y-%m-%d")
     end = (pd.Timestamp.utcnow().tz_localize(None) + pd.Timedelta(days=4)).strftime("%Y-%m-%d")
     end7 = (pd.Timestamp.utcnow().tz_localize(None) + pd.Timedelta(days=7)).strftime("%Y-%m-%d")
     # CAMS: end_date +4d reaches its ~+96h data edge; requesting further
@@ -194,7 +198,7 @@ def fetch_covariates(lat: float, lon: float) -> pd.DataFrame:
     # HRES weather: 7 forecast days covers the full 168h horizon
     fcst = _http_json(
         f"{FCST_URL}?latitude={lat:.4f}&longitude={lon:.4f}&hourly={FCST_HOURLY}"
-        f"&forecast_days=7&past_days=3&timezone=UTC"
+        f"&forecast_days=7&past_days=7&timezone=UTC"
     )
     if "hourly" not in cams or "hourly" not in fcst:
         raise RuntimeError("covariate fetch failed")
@@ -254,15 +258,12 @@ def load_station_models(station_id: int) -> dict | None:
 # ── forecast assembly ────────────────────────────────────────────────────────
 
 
-def build_issue_frame(bundle: dict, history: pd.DataFrame, wx: pd.DataFrame,
-                      anchor: dict[str, float] | None) -> tuple[pd.DataFrame, pd.Timestamp]:
-    """Feature frame for the single live issue time T0 (= current UTC hour).
-
-    Timeline is extended to NOW: the archive's newest files can lag by hours-days,
-    so the gap is filled with CAMS values plus the station's last-known CAMS offset
-    (mean of the last 24 offset samples), then the live consensus anchor is placed
-    at T0.  Features remain issue-anchored, identical to training.
-    """
+def build_live_space(station_id: int, history: pd.DataFrame, wx: pd.DataFrame,
+                     anchor: dict[str, float] | None, has_fire: bool,
+                     clim_tables: dict | None = None) -> tuple[StationFeatureSpace, pd.Timestamp]:
+    """Shared live pipeline: extend observations to NOW, place the anchor at T0,
+    build the StationFeatureSpace.  Used by BOTH the LightGBM serving path and
+    the Chronos-2 serving path so the two models always see identical inputs."""
     # stations without an instrument for a pollutant (e.g. 7 stations with no
     # SO2 monitor) simply lack the column — tolerate its absence; only the
     # trained pollutants of that station are forecast anyway
@@ -296,15 +297,30 @@ def build_issue_frame(bundle: dict, history: pd.DataFrame, wx: pd.DataFrame,
                 station.loc[now_hour, k] = float(v)
 
     merged = prepare_merged(station, wx)
-    fire = fetch_fire_daily(bundle["station_id"]) if bundle.get("has_fire") else None
+    fire = fetch_fire_daily(station_id) if has_fire else None
     # pass the FROZEN climatology from meta.json so the >CAMS-cutoff pseudo-CAMS
     # is byte-identical between training and serving (a 12-day live history
     # could never rebuild these tables)
-    space = StationFeatureSpace(merged, fire,
-                                clim_tables=(bundle.get("meta") or {}).get("climatology"))
+    space = StationFeatureSpace(merged, fire, clim_tables=clim_tables)
     t0 = now_hour
     if t0 not in space.index:
         t0 = space.index[space.index.get_indexer([t0], method="nearest")[0]]
+    return space, t0
+
+
+def build_issue_frame(bundle: dict, history: pd.DataFrame, wx: pd.DataFrame,
+                      anchor: dict[str, float] | None) -> tuple[pd.DataFrame, pd.Timestamp]:
+    """Feature frame for the single live issue time T0 (= current UTC hour).
+
+    Timeline is extended to NOW: the archive's newest files can lag by hours-days,
+    so the gap is filled with CAMS values plus the station's last-known CAMS offset
+    (mean of the last 24 offset samples), then the live consensus anchor is placed
+    at T0.  Features remain issue-anchored, identical to training.
+    """
+    space, t0 = build_live_space(
+        bundle["station_id"], history, wx, anchor, bool(bundle.get("has_fire")),
+        (bundle.get("meta") or {}).get("climatology"),
+    )
     # serve exactly the hours this station's artifact was trained for (168h for
     # the new models; pre-extension artifacts serve 72h without extrapolation)
     max_h = int((bundle.get("meta") or {}).get("model_hours") or 72)
