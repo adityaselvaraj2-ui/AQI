@@ -7,6 +7,7 @@ pollutant value is invented locally.
 """
 
 from __future__ import annotations
+from app.services.http_client import shared_client_context
 
 import asyncio
 import math
@@ -217,7 +218,7 @@ async def _openaq_locations() -> list[dict[str, Any]]:
 
     headers = {"X-API-Key": api_key}
     results: list[dict[str, Any]] = []
-    async with httpx.AsyncClient(timeout=20.0) as client:
+    async with shared_client_context(timeout=20.0) as client:
         for page in range(1, 11):
             payload = await _get_json(
                 client,
@@ -247,7 +248,7 @@ async def _fetch_cpcb_resource() -> list[dict[str, Any]]:
     api_key = get_settings().cpcb_api_key
     if not api_key or api_key.startswith("your-"):
         return []
-    async with httpx.AsyncClient(timeout=20.0) as client:
+    async with shared_client_context(timeout=20.0) as client:
         payload = await _get_json(
             client,
             _CPCB_RESOURCE_URL,
@@ -482,7 +483,7 @@ async def _openaq_latest(location_id: int, mode: str = "epa") -> dict[str, float
     api_key = get_settings().openaq_api_key
     if not api_key or api_key.startswith("your-"):
         raise ValueError("OPENAQ_API_KEY environment variable is not configured")
-    async with httpx.AsyncClient(timeout=20.0) as client:
+    async with shared_client_context(timeout=20.0) as client:
         metadata = await _get_json(
             client,
             f"{_OPENAQ}/locations/{int(location_id)}",
@@ -508,7 +509,7 @@ async def fetch_sensor_history(sensor_id: int, hours: int = 72) -> list[dict[str
         raise ValueError("OPENAQ_API_KEY environment variable is not configured")
     now = datetime.now(timezone.utc)
     start = now - timedelta(hours=hours + 24)
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with shared_client_context(timeout=30.0) as client:
         payload = await _get_json(
             client,
             f"{_OPENAQ}/sensors/{int(sensor_id)}/hours",
@@ -565,7 +566,7 @@ async def _load_snapshot_bundle(
         # fast endpoint; verification mode intentionally trades latency for
         # complete station coverage.
         limits = httpx.Limits(max_connections=63, max_keepalive_connections=10)
-        async with httpx.AsyncClient(timeout=30.0, limits=limits) as client:
+        async with shared_client_context(timeout=30.0, limits=limits) as client:
             async def fetch(location: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
                 try:
                     return location, await _fetch_location_snapshot(client, location, mode)
@@ -695,7 +696,7 @@ async def _fetch_iqair_fallback(mode: str = "epa") -> list[dict[str, Any]]:
         return []
 
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with shared_client_context(timeout=10.0) as client:
             r = await client.get(
                 f"{_IQAIR_URL}/nearest_city",
                 params={"lat": 28.6139, "lon": 77.2090, "key": key},
@@ -1004,7 +1005,7 @@ async def fetch_iqair_realtime(mode: str = "epa") -> dict[str, Any]:
     # Try IQAir + WeatherAPI if configured
     if iqair_key and not iqair_key.startswith("your-"):
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
+            async with shared_client_context(timeout=15.0) as client:
                 r = await client.get(
                     f"{_IQAIR_URL}/nearest_city",
                     params={"lat": 28.6139, "lon": 77.2090, "key": iqair_key},
@@ -1030,7 +1031,7 @@ async def fetch_iqair_realtime(mode: str = "epa") -> dict[str, Any]:
                 readings = {}
                 if weatherapi_key and not weatherapi_key.startswith("your-"):
                     try:
-                        async with httpx.AsyncClient(timeout=10.0) as client:
+                        async with shared_client_context(timeout=10.0) as client:
                             r = await client.get(
                                 "https://api.weatherapi.com/v1/current.json",
                                 params={"key": weatherapi_key, "q": "28.6139,77.2090", "aqi": "yes"},
@@ -1083,7 +1084,7 @@ async def fetch_iqair_realtime(mode: str = "epa") -> dict[str, Any]:
                 return _LAST_SUCCESSFUL_IQAIR[mode]
 
     # Real Fallback: Open-Meteo Air Quality (no key required, real telemetry)
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    async with shared_client_context(timeout=10.0) as client:
         r = await client.get(
             "https://air-quality-api.open-meteo.com/v1/air-quality",
             params={
@@ -1160,7 +1161,7 @@ async def fetch_weatherapi_realtime() -> dict[str, Any]:
     key = settings.weatherapi_api_key
     if key and not key.startswith("your-"):
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with shared_client_context(timeout=10.0) as client:
                 r = await client.get(
                     "https://api.weatherapi.com/v1/current.json",
                     params={"key": key, "q": "28.6139,77.2090", "aqi": "yes"},
@@ -1209,7 +1210,7 @@ async def fetch_weatherapi_realtime() -> dict[str, Any]:
         "precipitation": 0.0,
     }
     a_cur = {}
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    async with shared_client_context(timeout=10.0) as client:
         try:
             rw = await client.get(
                 "https://api.open-meteo.com/v1/forecast",
@@ -1279,7 +1280,7 @@ async def _center_cross_checks() -> dict[str, Any]:
             checks[name] = {"status": "unavailable", "error": str(exc)}
 
     async def open_meteo() -> dict[str, Any]:
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with shared_client_context(timeout=15.0) as client:
             response = await client.get(
                 "https://air-quality-api.open-meteo.com/v1/air-quality",
                 params={
@@ -1295,7 +1296,7 @@ async def _center_cross_checks() -> dict[str, Any]:
     async def open_weather() -> dict[str, Any]:
         if not settings.openweather_api_key:
             return {"status": "not_configured"}
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with shared_client_context(timeout=15.0) as client:
             response = await client.get(
                 "https://api.openweathermap.org/data/2.5/air_pollution",
                 params={"lat": 28.6139, "lon": 77.2090, "appid": settings.openweather_api_key},
@@ -1307,7 +1308,7 @@ async def _center_cross_checks() -> dict[str, Any]:
     async def iqair() -> dict[str, Any]:
         if not settings.iqair_api_key:
             return {"status": "not_configured"}
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with shared_client_context(timeout=15.0) as client:
             response = await client.get(
                 "https://api.airvisual.com/v2/city",
                 params={

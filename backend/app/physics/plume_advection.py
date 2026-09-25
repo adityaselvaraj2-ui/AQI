@@ -80,6 +80,7 @@ Data sources
 """
 
 from __future__ import annotations
+from app.services.http_client import shared_client_context
 
 import asyncio
 import csv
@@ -367,7 +368,7 @@ async def _fetch_850hpa_wind_series() -> list[tuple[float, float]]:
         "timezone": "Asia/Kolkata",
     }
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with shared_client_context(timeout=10.0) as client:
             r = await client.get(_OPEN_METEO_URL, params=params)
             r.raise_for_status()
             data = r.json()["hourly"]
@@ -527,7 +528,7 @@ async def _fetch_firms_hotspots() -> list[dict]:
         f"{_SOURCE_BBOX}/{_FIRMS_DAY_RANGE}"
     )
     try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        async with shared_client_context(timeout=20.0) as client:
             r = await client.get(url)
             r.raise_for_status()
             return _parse_firms_csv(r.text)

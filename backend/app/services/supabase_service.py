@@ -24,6 +24,7 @@ import logging
 from typing import Any
 
 import httpx
+from app.services.http_client import shared_client_context
 
 from app.core.config import get_settings
 
@@ -66,7 +67,7 @@ async def create_auth_user(email: str, password: str, full_name: str, email_conf
         "user_metadata": {"full_name": full_name},
     }
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with shared_client_context(timeout=15.0) as client:
             resp = await client.post(url, json=payload, headers=headers)
     except httpx.HTTPError as exc:
         logger.warning("Supabase auth-user create for %s failed: %s", email, exc)
@@ -95,7 +96,7 @@ async def update_auth_user_role(local_user_id: str, email: str, role: str) -> No
     }
     auth_user_id: str | None = None
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with shared_client_context(timeout=15.0) as client:
             resp = await client.get(url, params={"email": email}, headers=headers)
             if resp.status_code == 200:
                 for u in resp.json().get("users", []):
@@ -107,7 +108,7 @@ async def update_auth_user_role(local_user_id: str, email: str, role: str) -> No
     if not auth_user_id:
         return
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with shared_client_context(timeout=15.0) as client:
         try:
             await client.put(
                 f"{url}/{auth_user_id}",
@@ -148,7 +149,7 @@ async def verify_supabase_access_token(access_token: str) -> dict[str, Any]:
         "Authorization": f"Bearer {access_token}",
     }
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with shared_client_context(timeout=10.0) as client:
             resp = await client.get(url, headers=headers)
     except httpx.HTTPError as exc:
         raise SupabaseAuthError(f"Could not reach Supabase to verify the token: {exc}") from exc
@@ -195,7 +196,7 @@ async def upsert_rows(table: str, rows: list[dict[str, Any]], on_conflict: str) 
         "Prefer": "resolution=merge-duplicates,return=minimal",
     }
     try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with shared_client_context(timeout=15.0) as client:
             resp = await client.post(url, json=rows, params=params, headers=headers)
             resp.raise_for_status()
             return len(rows)

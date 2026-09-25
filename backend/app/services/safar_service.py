@@ -31,6 +31,7 @@ import time
 from typing import Any
 
 import httpx
+from app.services.http_client import shared_client_context
 
 _SAFAR_FORECAST_URL = "https://safar.tropmet.res.in/delhi_ncr_forecast.php"
 _TIMEOUT_S = 10.0
@@ -106,8 +107,7 @@ async def fetch_safar_forecast(force: bool = False) -> dict[str, Any]:
         return _cache["stations"]
 
     try:
-        async with httpx.AsyncClient(timeout=_TIMEOUT_S, follow_redirects=True,
-                                     verify=_legacy_ssl_context()) as client:
+        async with shared_client_context(timeout=_TIMEOUT_S) as client:
             resp = await client.get(_SAFAR_FORECAST_URL, headers={
                 "User-Agent": "Mozilla/5.0 (aqi-forecast reference fetch)",
             })

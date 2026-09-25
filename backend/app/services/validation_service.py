@@ -6,6 +6,7 @@ requested start date gets its own archived meteorology and observed anchor.
 """
 
 from __future__ import annotations
+from app.services.http_client import shared_client_context
 
 import asyncio
 import math
@@ -260,7 +261,7 @@ async def validate_window(
     if not api_key or api_key.startswith("your-"):
         raise ValueError("OPENAQ_API_KEY is required for validation")
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
+    async with shared_client_context(timeout=60.0) as client:
         weather, observations = await asyncio.gather(
             _fetch_archived_weather(client, target, hours),
             _fetch_observations(client, sensor_id, start_local.astimezone(timezone.utc), end_local.astimezone(timezone.utc), api_key),

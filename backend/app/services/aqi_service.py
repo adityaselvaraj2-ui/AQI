@@ -83,6 +83,7 @@ from app.domain.aqi_scales import (
 )
 from app.domain.species import AQICategory, Pollutant
 from app.domain.units import CANONICAL_CONCENTRATION_LABEL
+from app.services.http_client import shared_client_context
 from app.services.ml_forecast_service import predict_pm25_series
 from app.services.weather_providers import fetch_forecast_weather
 
@@ -669,7 +670,7 @@ async def build_72h_forecast(
             "timezone": "Asia/Kolkata",
         }
         try:
-            async with _httpx.AsyncClient(timeout=10.0) as client:
+            async with shared_client_context(timeout=10.0) as client:
                 r = await client.get("https://air-quality-api.open-meteo.com/v1/air-quality", params=params)
                 r.raise_for_status()
                 return r.json()

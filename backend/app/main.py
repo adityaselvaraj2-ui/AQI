@@ -22,6 +22,7 @@ from contextlib import asynccontextmanager
 from app.api.v1.endpoints import limiter, router
 from app.core.config import get_settings
 from app.services.feedback_forecast_service import build_feedback_forecast
+from app.services.http_client import get_shared_client, aclose_shared_client
 from app.services.sync_service import start_sync_task, stop_sync_task
 from app.core.security import (
     CONSOLE_CSP,
@@ -39,7 +40,11 @@ async def lifespan(app: FastAPI):
     # The Supabase archive loop is best-effort and disabled unless both
     # SUPABASE_SERVICE_ROLE_KEY and a positive interval are configured.
     start_sync_task()
+    # Warm the process-wide outbound HTTP client once (SSL context built here,
+    # not on the first request) and close it cleanly at shutdown.
+    get_shared_client()
     yield
+    await aclose_shared_client()
     stop_sync_task()
 
 

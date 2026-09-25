@@ -6,6 +6,7 @@ Mutation (POST /ingest) requires X-API-Key header.
 """
 
 from datetime import datetime, timezone
+from app.services.http_client import shared_client_context
 
 from fastapi import APIRouter, Depends, Query, Request, HTTPException, Response
 from pydantic import BaseModel
@@ -370,7 +371,7 @@ async def historical_7d(request: Request) -> dict:
     Provides timestamps, PM2.5, PM10, NO2, O3, SO2, and US AQI without synthetic data.
     """
     try:
-        async with httpx.AsyncClient(timeout=12.0) as client:
+        async with shared_client_context(timeout=12.0) as client:
             r = await client.get(
                 "https://air-quality-api.open-meteo.com/v1/air-quality",
                 params={
@@ -607,7 +608,7 @@ async def health_chat_proxy(request: Request, payload: HealthChatPayload) -> dic
     server_key = get_settings().groq_api_key
     key_is_bad = False
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with shared_client_context(timeout=30.0) as client:
         for m in models:
             start = time.perf_counter()
             try:
@@ -659,7 +660,7 @@ async def health_chat_proxy(request: Request, payload: HealthChatPayload) -> dic
             "durationMs": 0,
         })
         headers["Authorization"] = f"Bearer {server_key}"
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with shared_client_context(timeout=30.0) as client:
             for m in models:
                 start = time.perf_counter()
                 try:
@@ -721,7 +722,7 @@ async def get_multilingual_tts(
         "Referer": "https://translate.google.com/",
     }
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    async with shared_client_context(timeout=10.0) as client:
         try:
             resp = await client.get(url, headers=headers)
             if resp.status_code == 200 and resp.content:

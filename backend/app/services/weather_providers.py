@@ -29,6 +29,7 @@ forecast as long as nothing claims it was measured.
 """
 
 from __future__ import annotations
+from app.services.http_client import shared_client_context
 
 import math
 from datetime import datetime, timedelta
@@ -400,7 +401,7 @@ async def fetch_forecast_weather(lat: float, lon: float) -> dict:
         if now - cached_time < _WEATHER_CACHE_TTL:
             return cached_payload
 
-    async with httpx.AsyncClient(timeout=20.0) as client:
+    async with shared_client_context(timeout=20.0) as client:
         try:
             payload = await _fetch_weatherapi(client, lat, lon)
             _WEATHER_CACHE[key] = (now, payload)

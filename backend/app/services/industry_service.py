@@ -8,6 +8,7 @@ Ensures ONLY records from Delhi (~534 records) are retrieved, completely excludi
 Tamil Nadu, or any other cities/states at the database query level.
 """
 from __future__ import annotations
+from app.services.http_client import shared_client_context
 
 import csv
 import logging
@@ -168,7 +169,7 @@ async def fetch_delhi_industries(
                 "Accept": "application/json",
             }
 
-            async with httpx.AsyncClient(timeout=8.0) as client:
+            async with shared_client_context(timeout=8.0) as client:
                 resp = await client.get(endpoint, params=params, headers=headers)
                 if resp.status_code == 200:
                     raw_data = resp.json()

@@ -1,5 +1,6 @@
 """API orchestration for the deterministic Delhi NCR two-way feedback forecast."""
 from __future__ import annotations
+from app.services.http_client import shared_client_context
 
 from datetime import datetime, timezone
 from typing import Any
@@ -35,7 +36,7 @@ def _fallback_met() -> list[FeedbackMetHour]:
 
 async def _fetch_met() -> list[FeedbackMetHour]:
     try:
-        async with httpx.AsyncClient(timeout=12.0) as client:
+        async with shared_client_context(timeout=12.0) as client:
             response = await client.get(OPEN_METEO_URL)
             response.raise_for_status()
             hourly = response.json().get("hourly", {})

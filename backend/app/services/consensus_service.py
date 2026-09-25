@@ -5,6 +5,7 @@ concurrently, malformed/rate-limited responses are discarded, and a realistic fa
 keeps the dashboard usable for demonstrations when no provider responds.
 """
 from __future__ import annotations
+from app.services.http_client import shared_client_context
 
 import asyncio
 import math
@@ -203,7 +204,7 @@ async def _open_meteo(client: httpx.AsyncClient) -> tuple[ProviderResult, dict[s
 
 async def collect_consensus() -> dict[str, Any]:
     settings = get_settings()
-    async with httpx.AsyncClient(timeout=12.0, follow_redirects=True) as client:
+    async with shared_client_context(timeout=12.0, follow_redirects=True) as client:
         async def openweather() -> ProviderResult:
             return await _get_json(client, "OpenWeather", f"https://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={settings.openweather_api_key}&units=metric")
         async def openmeteo() -> ProviderResult:
