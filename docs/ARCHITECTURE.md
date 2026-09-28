@@ -25,8 +25,7 @@ of CPCB Delhi monthly climatology. They have not been fitted to observations,
 and the model has not been scored against a withheld set. Any MAE, R², or
 "percent of variance captured" claim about this system would be fabricated
 unless it is produced by code in `backend/tests/` or `scripts/verify/` against
-data the model never saw. Previous revisions of this file did quote such numbers;
-they were invented and have been removed.
+data the model never saw.
 
 ---
 
@@ -251,9 +250,9 @@ path, replacing a subtraction that ignored mixing depth, entrainment history and
 ventilation. It is skipped entirely when there are no fires, so the common case
 costs nothing.
 
-**No synthetic fires.** `_synthetic_hotspots()` was deleted rather than repaired.
-Fabricated detections would put invented data on a map that users read as
-observations. When FIRMS is unavailable the hotspot list is empty and the
+**No synthetic fires.** Fabricated detections would put invented data on a map
+that users read as observations, so the code contains no synthetic hotspot
+generator. When FIRMS is unavailable the hotspot list is empty and the
 dashboard says so.
 
 ---

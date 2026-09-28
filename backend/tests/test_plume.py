@@ -1,25 +1,23 @@
-"""Stubble-plume transport: the four bugs that made it produce zeros.
+"""Stubble-plume transport: direction, magnitude, and FIRMS parsing.
 
-AUDIT.md §4.5. The previous plume module could not have worked, for four
-independent reasons, and every one of them failed *silently* -- the feature
-returned an empty plume list or a negligible concentration rather than an error,
-so nothing downstream could tell it was broken:
+The plume module has four load-bearing properties, each of which fails silently
+-- an empty plume list or a negligible concentration rather than an error -- if
+regressed:
 
-  1. The FIRMS bounding box string was ordered (lat_min,lat_max,lon_min,lon_max)
-     but the API expects west,south,east,north, so it requested a box over
-     Kazakhstan instead of Punjab.
-  2. The CSV was parsed by hard-coded column index; `cols[8]` is the literal
-     string "VIIRS", so `float()` raised, the bare except swallowed it, and the
-     parser returned [].
-  3. Q = frp_mw * 50 µg/s was about six orders of magnitude too small -- one
-     grain of dust per megawatt of fire.
-  4. Dispersion used straight-line fire->Delhi distance regardless of wind, so a
-     plume blowing due north away from the city delivered the same concentration
-     as one aimed straight at it.
+  1. The FIRMS bounding box is ordered west,south,east,north as the API expects,
+     so the requested box covers Punjab, not a region thousands of km away.
+  2. The CSV is parsed by header name, so both the VIIRS and MODIS column
+     layouts resolve without hard-coded indices.
+  3. Q = frp_mw × 3.13 g/s per MW follows the published FRP chain (Wooster 2005
+     dry-matter yield × Andreae & Merlet PM2.5 emission factor) -- roughly six
+     orders of magnitude larger than a placeholder constant would give.
+  4. Dispersion uses the advected trajectory's closest approach projected onto
+     each hourly segment, so a plume blowing away from Delhi delivers ~0 and
+     one aimed straight at it delivers a real dose.
 
-These tests pin the physical direction and magnitude of the fixes, and drive the
-FIRMS parser with synthetic CSV so the header-name resolution is exercised for
-both the VIIRS and MODIS layouts without a network call.
+These tests pin the physical direction and magnitude of each property, and drive
+the FIRMS parser with synthetic CSV so the header-name resolution is exercised
+for both the VIIRS and MODIS layouts without a network call.
 """
 import math
 import sys

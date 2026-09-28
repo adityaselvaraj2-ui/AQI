@@ -1,17 +1,13 @@
 """AQI sub-index and category regressions.
 
-The headline bug here (AUDIT.md §4.1) was that EPA breakpoint segments were
-transcribed as integer-bounded ranges, leaving numeric gaps between them --
-pm10 54 -> 55, pm25 12.0 -> 12.1, no2 53 -> 54. `_sub_index` fell through every
-segment and hit a bare `return 500`, so a PM10 reading of 54.5 µg/m³, which is
-clean air, was reported as maximum severity. Because AQI is the max over
-sub-indices and the citywide number averages stations, one station in a gap
-dragged the whole city dark red. It was live in the sidebar's "EPA NowCast" mode.
-
-The fix has two parts and both are tested: truncate to EPA reporting precision
-before lookup (which is what the EPA method actually requires, and what closes
-the gaps by construction), and clamp out-of-range values instead of defaulting
-to 500.
+The EPA breakpoint tables are transcribed as integer-bounded ranges, leaving
+numeric gaps between them -- pm10 54 -> 55, pm25 9.0 -> 9.1 under the 2024
+PM2.5 table. `_sub_index` therefore truncates each concentration to EPA
+reporting precision before lookup -- which is what the EPA method requires
+and what closes the gaps by construction -- and clamps out-of-range values
+instead of defaulting to 500. Both properties are pinned here: a reading such
+as PM10 54.5 µg/m³ must resolve into a segment and stay plausible, and 500 is
+returned only at the very top of the scale.
 """
 import sys
 from pathlib import Path
@@ -22,24 +18,21 @@ from app.domain.species import AQICategory, Pollutant
 from app.services import aqi_service as A
 
 # The scale math is imported from `domain`, not from `services.realtime_service`,
-# specifically so this file can run without httpx/cachetools installed. That
-# extraction was itself part of the fix: while the arithmetic lived inside the
-# HTTP service module, the single most demo-critical function in the project could
-# not be unit-tested at all. `realtime_service` re-exports these names, and
-# `test_realtime_reexports_the_same_functions` checks the re-export still works
-# whenever the web stack happens to be available.
+# so this file runs without httpx/cachetools installed. `realtime_service`
+# re-exports these names, and `test_realtime_reexports_the_same_functions`
+# checks the re-export still works whenever the web stack is available.
 from app.domain import aqi_scales as R
 
 
-# ── The §4.1 regression, case by case ────────────────────────────────────────
+# ── EPA gap values, case by case ─────────────────────────────────────
 
 def test_epa_gap_values_are_not_severe():
-    """Every concentration the audit found returning a false 500."""
+    """Gap values must resolve to a plausible sub-index, never 500."""
     cases = [
         ("pm10", 54.5),     # between segment 1 (0-54) and segment 2 (55-154)
         ("pm10", 154.5),
         ("pm10", 254.5),
-        ("pm25", 12.05),    # between 0-12.0 and 12.1-35.4
+        ("pm25", 12.05),    # between segment 1 (0-9.0) and segment 2 (9.1-35.4)
         ("pm25", 35.45),
         ("pm25", 55.45),
         ("no2", 53.5),      # between 0-53 and 54-100
@@ -59,14 +52,19 @@ def test_epa_gap_values_are_not_severe():
 def test_epa_gap_values_land_in_the_lower_segment():
     """
     Truncation is what closes the gaps: PM10 is reported to 0 decimals, so 54.5
-    truncates to 54 and lands in segment 1 (AQI <= 50), not segment 2.
+    truncates to 54 and lands in segment 1 (AQI <= 50), not segment 2. PM2.5 is
+    reported to 1 decimal, so 12.05 truncates to 12.0, which under the 2024
+    PM2.5 breakpoints (segment 1 ends at 9.0) sits just inside segment 2.
     """
     assert R._sub_index("pm10", 54.5, mode="nowcast") == 50
     assert R._sub_index("pm10", 54.9, mode="nowcast") == 50
     assert R._sub_index("pm10", 55.0, mode="nowcast") == 51
-    # PM2.5 is reported to 1 decimal, so 12.05 -> 12.0, top of segment 1.
-    assert R._sub_index("pm25", 12.05, mode="nowcast") == 50
-    assert R._sub_index("pm25", 12.1, mode="nowcast") == 51
+    # Segment boundary on the 2024 table: 9.05 -> 9.0 (top of segment 1).
+    assert R._sub_index("pm25", 9.05, mode="nowcast") == 50
+    assert R._sub_index("pm25", 9.1, mode="nowcast") == 51
+    # 12.0 and 12.05 both truncate into segment 2 and interpolate to 56.
+    assert R._sub_index("pm25", 12.05, mode="nowcast") == 56
+    assert R._sub_index("pm25", 12.1, mode="nowcast") == 57
 
 
 def test_500_is_reachable_only_at_the_top_of_the_scale():

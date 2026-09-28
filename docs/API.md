@@ -248,9 +248,7 @@ compressed the mixing layer is**, nothing more. It is *not* multiplied into the
 AQI. Concentrations come from the prognostic box model, which accumulates mass
 under a lid rather than scaling a steady-state value.
 
-Earlier revisions of this document tabulated a "typical AQI impact" of 1.5–4×
-against these bands. That mapping was invented, and it also described an
-architecture the code no longer uses. There is no fixed multiplier from ΔT to
+There is no fixed multiplier from ΔT to
 AQI: the same ΔT produces a very different AQI depending on how long the lid has
 held, what is stranded in the residual layer, and how well ventilated the city
 is. That path-dependence is the whole point of the model.
@@ -332,7 +330,7 @@ night-time impact and understate the morning peak.
 
 **An empty `hotspots` list is a real answer.** If `FIRMS_API_KEY` is unset or
 FIRMS is unreachable, the list is empty. The code contains no synthetic hotspot
-generator; one existed and was deleted, because fabricated detections on a map
+generator: fabricated detections on a map
 are indistinguishable from observations to anyone reading the dashboard.
 
 ---

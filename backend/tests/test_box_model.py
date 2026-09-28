@@ -1,15 +1,11 @@
 """Two-reservoir box model: mass budget, path dependence, ventilation.
 
-This module is the answer to the audit's central finding (AUDIT.md §4.3): before
-the rewrite, concentrations were a baseline AQI multiplied by an amplification
-factor derived from the PBL, which is not a model of anything -- it has no memory,
-so a lid that had been closed for six hours produced the same answer as one that
-just shut, and pollution "released" by a lifting lid simply ceased to exist.
-
-The replacement carries COLUMN MASS in µg/m² across two reservoirs (mixed layer
-and residual layer). That makes the state path-dependent, which is the property
-that lets an inversion actually trap. Everything worth testing here is a
-conservation or monotonicity statement about that budget:
+Concentrations come from a prognostic COLUMN MASS budget carried in µg/m²
+across two reservoirs (mixed layer and residual layer), not from a static
+multiplication of a baseline by an amplification factor. Carrying mass makes
+the state path-dependent, which is the property that lets an inversion actually
+trap. Everything worth testing here is a conservation or monotonicity
+statement about that budget:
 
   * a collapsing lid must MOVE mass aloft, not destroy it
   * a persistent lid must ACCUMULATE, hour over hour

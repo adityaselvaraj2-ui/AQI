@@ -1,15 +1,12 @@
 """The two-way coupling: does the feedback actually do anything?
 
-This file exists because of AUDIT.md §7.1, the central finding. The problem
-statement asks for a system where meteorology drives chemistry AND chemistry
-alters meteorology. The original code had the *shape* of that -- there was a
-function computing aerosol cooling, and a function suppressing the PBL -- but it
-was de-tuned into irrelevance by three compounding choices: an 800 m floor on the
-PBL, a separate damping factor, and a duplicate suppression already applied
-upstream. Switching the coupling off changed the 72-hour forecast by well under a
-percent, so nothing downstream could tell whether the feedback existed.
+The problem statement asks for a system where meteorology drives chemistry AND
+chemistry alters meteorology. The feedback chain here is: aerosol optical depth
+dims shortwave, shortwave loss cools the surface, surface cooling suppresses
+boundary-layer growth, and a shallower boundary layer raises surface
+concentrations.
 
-The fix was subtractive. So the tests here are mostly DIFFERENTIAL: run the same
+So the tests here are mostly DIFFERENTIAL: run the same
 hour with and without the aerosol pathway and assert the answers differ by a
 physically meaningful amount, in the right direction, at the right times of day.
 A coupling that is merely present is not enough -- it has to bite.

@@ -101,7 +101,7 @@ graph TD
 ---
 
 ### Stage 6: Mixed vs Residual Layer Fumigation (Box Model Coupling)
-* **Source Code**: `PLUME_DIRECT_FRACTION = 0.40` in [`backend/app/physics/box_model.py`](file:///c:/Users/aswin/Downloads/delhi_ncr_aqi_project%20%281%29/backend/app/physics/box_model.py)
+* **Source Code**: `PLUME_DIRECT_FRACTION = 0.40` in [`backend/app/physics/box_model.py`](../backend/app/physics/box_model.py)
 * **The Atmospheric Fumigation Mechanism**:
   1. **Nighttime Transport**: Arriving stubble smoke slides over Delhi inside the **Residual Layer ($H \sim 1200\,\text{m}$)** above the cold, shallow nocturnal boundary layer ($h \sim 150\text{--}200\,\text{m}$).
   2. **Direct Partitioning**: Only $40\%$ ($\text{PLUME\_DIRECT\_FRACTION}$) penetrates the nocturnal surface layer directly.

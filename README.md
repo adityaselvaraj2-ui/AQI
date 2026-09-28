@@ -57,9 +57,9 @@ degrades honestly rather than inventing data:
 - Without `OPENAQ_API_KEY`, every `/realtime/*` endpoint returns `502` — OpenAQ v3
   rejects unauthenticated requests, and only the retired v2 API was open.
 - Without `FIRMS_API_KEY`, `/plume/vectors` returns an **empty** hotspot list and the
-  dashboard says so. There is no synthetic fire generator; one existed and was
-  deleted, because fabricated detections on a map are indistinguishable from
-  observations to whoever is reading the screen.
+  dashboard says so. There is no synthetic fire generator, because fabricated
+  detections on a map are indistinguishable from observations to whoever is
+  reading the screen.
 
 ### 2. Launch
 

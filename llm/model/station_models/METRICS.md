@@ -469,4 +469,4 @@ Units: µg/m³. Bias = mean(pred − observed); 0 is perfect.
 | O3 | 15.18 | 11.03 | 0.340 | 3.25 | 45 |
 | SO2 | 5.70 | 3.99 | 0.052 | 0.93 | 38 |
 
--> D:\games and stuff\new_one\llm\model\station_models\METRICS.md
+-> llm/model/station_models/METRICS.md

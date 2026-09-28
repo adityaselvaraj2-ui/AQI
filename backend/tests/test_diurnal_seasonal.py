@@ -1,20 +1,17 @@
 """Diurnal and seasonal emission profiles.
 
-Two audit findings (AUDIT.md §4.4).
+The IST handling. Open-Meteo is queried with `timezone=Asia/Kolkata`, so its
+timestamps are ALREADY Indian Standard Time; the diurnal profile must be applied
+directly. Any double-offset slides the traffic cycle: morning rush at ~02:00 and
+the overnight minimum at midday. The tests catch both that and a subtler failure
+mode -- because a shifted curve still *looks* diurnal, the shape has to be pinned
+against expected rush-hour positions.
 
-The IST double-offset. Open-Meteo is queried with `timezone=Asia/Kolkata`, so its
-timestamps are ALREADY Indian Standard Time. The old code added a further +5:30 on
-top, sliding the entire traffic cycle five and a half hours: the morning rush
-landed at roughly 02:00 and the overnight minimum at midday. Every diurnal claim
-in the dashboard was inverted, and because the shape still *looked* like a diurnal
-cycle it was easy to miss.
-
-Species-blind diurnal scaling. A single traffic curve was applied to every
-pollutant, which made PM2.5 collapse overnight along with NO2. Real Delhi PM2.5
-does not: biomass and refuse burning peak in the evening and persist through the
-night, which is why the 04:00 concentration is often near the daily maximum. The
-fix splits the profile -- an aerosol curve for PM, a traffic curve for NO2/CO, and
-a flat industrial curve for SO2.
+Species-aware diurnal scaling. Pollutants get different curves because their
+sources differ: PM2.5 keeps an aerosol curve that persists overnight (biomass
+and refuse burning), NO2/CO follow traffic, SO2 is flat and industrial. This is
+why the 04:00 PM2.5 concentration can be near the daily maximum, as observed in
+Delhi.
 
 The tests below check the SHAPE of the curves against observed Delhi behaviour, so
 a reintroduced offset or a collapsed profile fails here rather than in a demo.

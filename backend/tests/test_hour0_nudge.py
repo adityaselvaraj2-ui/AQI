@@ -1,25 +1,17 @@
 """Hour-0 observational nudge: the correction must keep the response consistent.
 
-The bug this pins was found by a LIVE boot, not by this suite -- and that is the
-point. The nudge that bias-corrects hour 0 toward the live OpenAQ reading lived
-entirely inside `build_72h_forecast`, an async function that calls Open-Meteo, so
-no offline test ever exercised it. Worse, the nudge was a no-op (`scale = 1.0`)
-whenever no live anchor is supplied, which is exactly the regime every test and
-every `scripts/verify` harness runs in. So the defect was invisible until a real
-`base_aqi` was threaded through.
+The nudge bias-corrects hour 0 toward the live OpenAQ reading. The invariant
+under test: CPCB AQI is defined as `max(sub-indices)`, so the correction must
+apply in concentration space -- scale the accumulated column, then derive AQI,
+sub-indices and the dominant pollutant from the SAME corrected concentrations.
+Multiplying only the headline AQI would leave a nudged headline over un-nudged
+pollutant bars: a self-contradictory response. The photochemical O3 diagnostic
+is deliberately NOT scaled -- it is set from shortwave each hour, not
+accumulated as a load the station reading constrains.
 
-The defect: the nudge multiplied the *headline* AQI by the correction weight but
-left the concentrations and their sub-indices untouched. CPCB AQI is defined as
-`max(sub-indices)`, so a nudged headline over un-nudged pollutant bars is a
-self-contradictory response -- on the live run, hour 0 reported AQI 64 while its
-own PM2.5 sub-index sat at ~158 (a green gauge above orange bars).
-
-The fix moves the correction into concentration space: scale the accumulated
-column, then derive AQI, sub-indices and the dominant pollutant from the SAME
-corrected concentrations, so `aqi == max(sub-indices)` by construction. These
-tests exercise the now-pure helpers (`_scale_conc`, `_conc_scale_for_target_aqi`)
-and the invariant directly, closing the "untested because it was buried in an
-async network call" gap.
+The no-anchor path is identity by design (`scale = 1.0`), which is the regime
+every `scripts/verify` harness runs in. These tests exercise the pure helpers
+(`_scale_conc`, `_conc_scale_for_target_aqi`) and the invariant directly.
 """
 import math
 import sys

@@ -1,19 +1,17 @@
 """Inversion diagnostics and aerosol-feedback kernels.
 
-Two audit findings live here.
+Two properties live here.
 
-AUDIT.md §4.2 -- the de-tuning trap. `pbl_from_stability` used to be applied on
-top of a met-model PBL that had already been floored at 800 m and separately
-damped, so the aerosol feedback was cancelled by construction: turn the coupling
-on or off and the answer barely moved. The fixes were subtractive -- the floor,
-the damping, and the duplicate suppression were removed, not retuned -- which
-means the property to test is an IDENTITY: at zero forcing every kernel must be a
-no-op, so the only thing that can ever change a PBL is real physics.
+Zero-forcing identity. `pbl_from_stability` must be an identity at zero
+cooling: at zero forcing every kernel is a no-op, so the only thing that can
+ever change a PBL is real physics. That makes the feedback additive rather than
+entangled with unrelated damping terms, and it is what lets the coupling tests
+treat the feedback as the only difference between two runs.
 
-AUDIT.md §4.3 -- the amplification factor was the mechanism. Concentrations were
-produced by multiplying a baseline AQI by `amplification_factor(pbl)`. It is now a
-reported diagnostic only; the box model produces concentrations. It still has to
-be bounded, because it is rendered in the dashboard.
+Bounded amplification diagnostic. `amplification_factor(pbl)` is a reported
+diagnostic, not the concentration mechanism -- the box model produces
+concentrations. It still has to be bounded, because it is rendered in the
+dashboard.
 
 Sign conventions, which are load-bearing and easy to get backwards:
   * ΔT = T(925 hPa) - T(1000 hPa). POSITIVE means an inversion.
