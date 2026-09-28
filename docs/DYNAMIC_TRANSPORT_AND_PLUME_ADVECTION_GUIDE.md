@@ -37,7 +37,7 @@ graph TD
 ---
 
 ### Stage 1: Satellite Thermal Anomaly Detection (NASA FIRMS)
-* **Source Code**: `fetch_firms_hotspots()` in [`backend/app/physics/plume_advection.py`](file:///c:/Users/aswin/Downloads/delhi_ncr_aqi_project%20%281%29/backend/app/physics/plume_advection.py)
+* **Source Code**: `fetch_firms_hotspots()` in [`backend/app/physics/plume_advection.py`](../backend/app/physics/plume_advection.py)
 * **Instruments Used**:
   - **VIIRS** (Visible Infrared Imaging Radiometer Suite on Suomi-NPP / NOAA-20): $375\,\text{m}$ spatial resolution.
   - **MODIS** (Moderate Resolution Imaging Spectroradiometer on Terra / Aqua): $1\,\text{km}$ resolution.
@@ -49,7 +49,7 @@ graph TD
 ---
 
 ### Stage 2: Fire Radiative Power (FRP) to $\text{PM}_{2.5}$ Emission Rate ($Q$)
-* **Source Code**: `_PM25_UG_S_PER_MW` in [`backend/app/physics/plume_advection.py`](file:///c:/Users/aswin/Downloads/delhi_ncr_aqi_project%20%281%29/backend/app/physics/plume_advection.py)
+* **Source Code**: `_PM25_UG_S_PER_MW` in [`backend/app/physics/plume_advection.py`](../backend/app/physics/plume_advection.py)
 * **Physics & Governing Derivation**:
   1. **Dry Matter Combustion Rate ($C_{\text{rate}}$)** (*Wooster et al., 2005*):
      $$\text{Combustion Rate} = 0.368\,\frac{\text{kg dry biomass}}{\text{MJ of radiated energy}}$$
@@ -63,7 +63,7 @@ graph TD
 ---
 
 ### Stage 3: Why We Use the 850 hPa Steering Wind Layer
-* **Source Code**: `fetch_850hpa_wind()` in [`backend/app/physics/plume_advection.py`](file:///c:/Users/aswin/Downloads/delhi_ncr_aqi_project%20%281%29/backend/app/physics/plume_advection.py)
+* **Source Code**: `fetch_850hpa_wind()` in [`backend/app/physics/plume_advection.py`](../backend/app/physics/plume_advection.py)
 * **Atmospheric Altitude**: $850\,\text{hPa} \approx 1450\text{--}1550\,\text{m}$ Above Ground Level (AGL).
 * **Physical Justification**:
   1. **Thermal Plume Rise**: Afternoon stubble fires create buoyant updrafts that inject smoke to the top of the convective mixed layer ($1.2\text{--}2.0\,\text{km}$).
@@ -73,7 +73,7 @@ graph TD
 ---
 
 ### Stage 4: Lagrangian Forward Trajectory Advection
-* **Source Code**: `advect_plumes()` in [`backend/app/physics/plume_advection.py`](file:///c:/Users/aswin/Downloads/delhi_ncr_aqi_project%20%281%29/backend/app/physics/plume_advection.py)
+* **Source Code**: `advect_plumes()` in [`backend/app/physics/plume_advection.py`](../backend/app/physics/plume_advection.py)
 * **Integration Scheme**:
   For each detected fire $i$, the plume parcel position $(x_t, y_t)$ advances each hour:
   $$\Delta x = u_{850} \cdot \Delta t, \quad \Delta y = v_{850} \cdot \Delta t$$
@@ -86,7 +86,7 @@ graph TD
 ---
 
 ### Stage 5: Long-Range Trapped Gaussian Dispersion
-* **Source Code**: `plume_column_loading()` in [`backend/app/physics/plume_advection.py`](file:///c:/Users/aswin/Downloads/delhi_ncr_aqi_project%20%281%29/backend/app/physics/plume_advection.py)
+* **Source Code**: `plume_column_loading()` in [`backend/app/physics/plume_advection.py`](../backend/app/physics/plume_advection.py)
 * **Crosswind Horizontal Spread ($\sigma_y$)**:
   - Near-field ($<20\,\text{km}$): Pasquill-Gifford Class D power law.
   - Far-field ($20\text{--}300\,\text{km}$): **Heffter (1965) Long-Range Relation**:

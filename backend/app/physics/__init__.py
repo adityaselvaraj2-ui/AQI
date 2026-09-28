@@ -9,5 +9,5 @@ Modules:
 Integrated hour-by-hour by services/aqi_service.py, which closes the two-way
 met<->chemistry feedback loop (PM2.5 -> AOD -> shortwave loss -> cooling ->
 shallower PBL -> higher PM2.5) by Picard iteration. This package is the core
-of the AirLens framework; see ARCHITECTURE.md for the full scope statement.
+of the AirLens framework; see docs/ARCHITECTURE.md for the full scope statement.
 """

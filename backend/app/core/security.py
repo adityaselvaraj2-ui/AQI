@@ -61,7 +61,7 @@ SECURE_HEADERS: dict[str, str] = {
 
 # Swagger UI and ReDoc are served as thin HTML shells that pull their JS/CSS from
 # cdn.jsdelivr.net. Under the strict policy above, script-src 'self' blocked that
-# bundle and /docs rendered as a blank page -- while README.md and API.md both
+# bundle and /docs rendered as a blank page -- while README.md and docs/API.md both
 # tell the reader to open it. Rather than weakening the policy for the whole API,
 # the middleware swaps in this relaxed variant for the documentation routes only.
 DOCS_CSP = (

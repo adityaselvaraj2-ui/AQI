@@ -94,7 +94,7 @@ llm/model/training/data/hpo_pool.npz
 *.pem
 *.pfx
 *.p12
-package_project.bat
+package_project.*
 project_summary.txt
 
 # SIH submission documents (kept local-only, never pushed)

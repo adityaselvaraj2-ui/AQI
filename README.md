@@ -25,7 +25,7 @@ field, no gas-phase chemical mechanism, and no WRF-Chem. It is a single-column
 surrogate, chosen so the forecast returns in seconds against live data. No accuracy
 figure is quoted anywhere in this repository, because nothing in it has been
 validated against withheld observations yet. See
-[ARCHITECTURE.md](ARCHITECTURE.md) for the full scope statement.
+[ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full scope statement.
 
 ---
 
@@ -185,7 +185,7 @@ correct answer to "what is your MAE?" is "we haven't measured it."
 
 ## Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) — physics, coupling loop, data flow, scope limits
-- [API.md](API.md) — REST endpoint reference with cURL examples
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) — physics, coupling loop, data flow, scope limits
+- [API.md](docs/API.md) — REST endpoint reference with cURL examples
 - [SECURITY.md](SECURITY.md) — threat model and deployment hardening
-- [AUDIT.md](AUDIT.md) — the code audit that drove the current round of fixes, with a remediation log
+- [KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) — explicit scope limits of the current build

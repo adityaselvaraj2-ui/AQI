@@ -25,7 +25,7 @@ This self-reinforcing positive feedback mechanism is what turns moderate winter 
 
 ## 2. Step-by-Step Mathematical & Physical Formulation
 
-Our system simulates this coupling dynamically using physics kernels implemented in [`backend/app/physics/box_model.py`](file:///c:/Users/aswin/Downloads/delhi_ncr_aqi_project%20%281%29/backend/app/physics/box_model.py) and [`backend/app/physics/inversion_engine.py`](file:///c:/Users/aswin/Downloads/delhi_ncr_aqi_project%20%281%29/backend/app/physics/inversion_engine.py).
+Our system simulates this coupling dynamically using physics kernels implemented in [`backend/app/physics/box_model.py`](../backend/app/physics/box_model.py) and [`backend/app/physics/inversion_engine.py`](../backend/app/physics/inversion_engine.py).
 
 ```mermaid
 graph LR
