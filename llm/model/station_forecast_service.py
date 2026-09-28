@@ -31,10 +31,73 @@ from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import pandas as pd
+import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.abspath(os.path.join(HERE, "station_models"))
 TRAINING_DIR = os.path.abspath(os.path.join(HERE, "training"))
+
+
+# ── model source resolution (local tree or Hugging Face Hub) ────────────────
+
+
+def _model_source() -> str:
+    return (os.environ.get("MODEL_SOURCE", "local") or "local").strip().lower()
+
+
+def _hf_model_repo() -> str:
+    return (os.environ.get("HF_MODEL_REPO", "") or "").strip()
+
+
+def _hf_cache_dir() -> str:
+    return (os.environ.get("MODEL_CACHE_DIR", "") or "").strip() or \
+        os.path.join(tempfile.gettempdir(), "hf")
+
+
+def _snapshot_download(**kwargs):
+    """Indirection over huggingface_hub.snapshot_download so tests can
+    monkeypatch the Hub call and this module stays importable without it."""
+    from huggingface_hub import snapshot_download
+    return snapshot_download(**kwargs)
+
+
+_HF_STATION_DIRS: dict[int, str] = {}
+
+
+def resolve_station_dir(station_id: int) -> str | None:
+    """Directory holding one station's LightGBM artifacts for the active MODEL_SOURCE.
+
+    local (default, development): llm/model/station_models/<id>/ in the repo tree.
+    hf (deployment): on FIRST request for the station, snapshot_download only
+    station_models/<id>/ from $HF_MODEL_REPO into $MODEL_CACHE_DIR (or a temp
+    dir); nothing downloads at boot. The resolved path is cached in memory.
+
+    Raises FileNotFoundError with a clear message on any download failure —
+    the API layer maps that to a clean 503, never a stack trace.
+    """
+    if _model_source() != "hf":
+        sdir = os.path.join(MODELS_DIR, str(station_id))
+        return sdir if os.path.isdir(sdir) else None
+    if station_id in _HF_STATION_DIRS:
+        return _HF_STATION_DIRS[station_id]
+    repo = _hf_model_repo()
+    if not repo:
+        raise FileNotFoundError("MODEL_SOURCE=hf but HF_MODEL_REPO is not set")
+    try:
+        root = _snapshot_download(
+            repo_id=repo,
+            allow_patterns=[f"station_models/{station_id}/*"],
+            cache_dir=_hf_cache_dir(),
+        )
+    except Exception as e:  # noqa: BLE001 - surfaced as a clean 503
+        raise FileNotFoundError(
+            f"station model download from {repo} failed: {type(e).__name__}: {e}"
+        ) from e
+    sdir = os.path.join(root, "station_models", str(station_id))
+    if not os.path.isdir(sdir):
+        raise FileNotFoundError(f"{repo} has no artifacts for station {station_id}")
+    _HF_STATION_DIRS[station_id] = sdir
+    return sdir
 if TRAINING_DIR not in sys.path:
     sys.path.insert(0, TRAINING_DIR)
 
@@ -225,8 +288,8 @@ def fetch_covariates(lat: float, lon: float) -> pd.DataFrame:
 
 def load_station_models(station_id: int) -> dict | None:
     import lightgbm as lgb
-    sdir = os.path.join(MODELS_DIR, str(station_id))
-    if not os.path.isdir(sdir):
+    sdir = resolve_station_dir(station_id)
+    if sdir is None:
         return None
     meta_path = os.path.join(sdir, "meta.json")
     if not os.path.exists(meta_path):

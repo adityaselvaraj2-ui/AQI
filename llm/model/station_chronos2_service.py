@@ -51,10 +51,49 @@ _DEVICE = "cuda" if _torch_has_cuda() else "cpu"
 _PIPE_CACHE: dict[str, Any] = {"pipes": {}, "lock": threading.Lock()}
 
 
+def chronos_enabled() -> bool:
+    """Chronos-2 runs only when explicitly enabled via ENABLE_CHRONOS=1.
+
+    The free Hugging Face Space tier is CPU-only and the LoRA adapters add
+    hundreds of MB; the production LightGBM fleet is the default path, so the
+    comparison model is opt-in everywhere (default 0).
+    """
+    return (os.environ.get("ENABLE_CHRONOS", "0").strip().lower() == "1")
+
+
+def _chronos_adapter_root() -> str:
+    """Adapter directory for MODEL_SOURCE=local (default) or a lazy
+    snapshot_download from $HF_MODEL_REPO for MODEL_SOURCE=hf (whole
+    station_models_chronos2/ tree — used only when ENABLE_CHRONOS=1)."""
+    if (os.environ.get("MODEL_SOURCE", "local").strip().lower() != "hf"):
+        return CHRONOS_DIR
+    import tempfile
+
+    from llm.model.station_forecast_service import _hf_cache_dir, _hf_model_repo, _snapshot_download
+
+    repo = _hf_model_repo()
+    if not repo:
+        raise FileNotFoundError("MODEL_SOURCE=hf but HF_MODEL_REPO is not set")
+    root = _snapshot_download(
+        repo_id=repo,
+        allow_patterns=["station_models_chronos2/*"],
+        cache_dir=(os.environ.get("MODEL_CACHE_DIR", "").strip()
+                   or os.path.join(tempfile.gettempdir(), "hf")),
+    )
+    return os.path.join(root, "station_models_chronos2")
+
+
 def chronos_available() -> bool:
-    """True when at least one finetuned pollutant adapter exists on disk."""
+    """True when ENABLE_CHRONOS=1 and at least one finetuned pollutant adapter
+    is resolvable (on disk locally, or downloadable in hf mode)."""
+    if not chronos_enabled():
+        return False
+    try:
+        root = _chronos_adapter_root()
+    except Exception:  # noqa: BLE001 - a download failure just means unavailable
+        return False
     return any(
-        os.path.isdir(os.path.join(CHRONOS_DIR, f"global_{p}"))
+        os.path.isdir(os.path.join(root, f"global_{p}"))
         for p in ("pm25", "pm10", "no2", "o3", "so2")
     )
 
@@ -91,7 +130,7 @@ def _get_pipe(poll: str):
         import torch  # noqa: F401  (import guard: fail loudly if missing)
         from chronos.chronos2 import Chronos2Pipeline
 
-        ckpt = os.path.join(CHRONOS_DIR, f"global_{poll}")
+        ckpt = os.path.join(_chronos_adapter_root(), f"global_{poll}")
         if not os.path.isdir(ckpt):
             raise FileNotFoundError(f"no chronos-2 adapter for {poll} at {ckpt}")
         t0 = time.time()

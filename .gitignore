@@ -97,5 +97,12 @@ llm/model/training/data/hpo_pool.npz
 package_project.*
 project_summary.txt
 
+# Model weights live on the Hugging Face Hub, not in git (MODEL_SOURCE=hf;
+# fetch with scripts/deploy/download_models.py). Metrics/eval/docs at the top
+# level of these directories stay tracked.
+llm/model/station_models/*/
+llm/model/station_models_chronos2/global_*/
+llm/model/station_models_chronos2/preds_*/
+
 # SIH submission documents (kept local-only, never pushed)
 airlens_submission/

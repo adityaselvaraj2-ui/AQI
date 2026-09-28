@@ -62,6 +62,19 @@ def _load_registry() -> list[dict[str, Any]]:
 
 
 def _trained_station_ids() -> set[int]:
+    """Stations with trained LightGBM artifacts, for /forecast/stations.
+
+    local mode (default): scan the on-disk llm/model/station_models/<id>/ dirs.
+    hf mode: weights are not on disk — the committed metrics summary carries one
+    entry per trained station, so it is the registry of record.
+    """
+    if (os.environ.get("MODEL_SOURCE", "local").strip().lower() == "hf"):
+        summary = os.path.join(HERE, "station_models", "metrics_summary.json")
+        try:
+            with open(summary, encoding="utf-8") as f:
+                return {int(s["station_id"]) for s in json.load(f)}
+        except (OSError, ValueError, KeyError, TypeError):
+            return set()
     base = os.path.join(HERE, "station_models")
     out = set()
     try:
