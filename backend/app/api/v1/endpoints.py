@@ -584,6 +584,17 @@ async def health_chat_proxy(request: Request, payload: HealthChatPayload) -> dic
     Handles server-side execution with zero CORS or CSP preflight blocks.
     """
     key = (payload.api_key or "").strip() or get_settings().groq_api_key
+    if not key:
+        # Server-side GROQ_API_KEY is unset and the client supplied none:
+        # the Health Assistant chat feature is disabled rather than broken.
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Health Assistant chat is unavailable: no Groq API key configured. "
+                "Set GROQ_API_KEY in the server environment, or supply a key in "
+                "the assistant settings."
+            ),
+        )
 
     models = [
         {"id": "qwen/qwen3.8-27b", "name": "Qwen 3.8 27B"},
