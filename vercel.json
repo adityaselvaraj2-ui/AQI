@@ -1,46 +1,28 @@
 {
-  "version": 2,
-  "builds": [
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "cd webapp && npm ci && npm run build",
+  "outputDirectory": "webapp/dist",
+  "rewrites": [
     {
-      "src": "webapp/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
+      "source": "/api/v1/(.*)",
+      "destination": "https://REPLACE-ME-airlens-api.hf.space/api/v1/$1"
     },
     {
-      "src": "api/tts.js",
-      "use": "@vercel/node"
+      "source": "/api/docs",
+      "destination": "https://REPLACE-ME-airlens-api.hf.space/api/docs"
     },
     {
-      "src": "api/index.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/tts",
-      "dest": "api/tts.js"
+      "source": "/docs",
+      "destination": "https://REPLACE-ME-airlens-api.hf.space/docs"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "api/index.py"
+      "source": "/openapi.json",
+      "destination": "https://REPLACE-ME-airlens-api.hf.space/openapi.json"
     },
     {
-      "src": "/docs",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/openapi.json",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/webapp/assets/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/webapp/index.html"
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
     }
   ]
 }

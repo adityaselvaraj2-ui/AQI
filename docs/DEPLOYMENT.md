@@ -4,6 +4,22 @@
 > filled in during the deployment phase. This stub records the topology and the
 > Supabase security requirement.
 
+## Vercel preview verification
+
+Before promoting a production deploy, verify a **preview deployment** (every PR
+and CLI `vercel` invocation gets one):
+
+1. `GET https://<preview-url>/api/v1/health` → `200 {"status": "ok", ...}` —
+   proves the rewrite to the HF Space works and the Space is up.
+2. `GET https://<preview-url>/api/tts?text=hello&lang=en` → `200` with
+   `Content-Type: audio/mpeg` — proves the Vercel function still resolves before
+   the rewrites and proxies Google Translate TTS.
+3. `GET https://<preview-url>/api/v1/forecast/stations` → `200` with the station
+   list — proves an authenticated-space path passes through `/api/v1/*` intact.
+4. Open the preview URL in a browser and confirm the console renders and the
+   hero loads a forecast (SPA fallback serves `/index.html` for every non-API
+   path).
+
 ## Current deployment
 
 - **Frontend:** Vercel — React + TypeScript console from `webapp/`.

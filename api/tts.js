@@ -1,4 +1,10 @@
-export default async function handler(req, res) {
+// Vercel function: /api/tts -> Google Translate TTS.
+// NOTE: translate.google.com/translate_tts is an UNOFFICIAL endpoint (the
+// "client=tw-ob" parameter is the translate web app's own player). It works
+// without a key and is fine for a demo, but it is undocumented, rate-limited
+// per IP, and may break at any time. Swap for a real TTS provider before
+// relying on it in production.
+export default async function handler(req, res) {
   // Support CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");

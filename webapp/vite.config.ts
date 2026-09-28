@@ -1,14 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import path from 'path'
-
-// The console is served two ways, and must work under both without rebuilding
+import path from 'path'// The console is served two ways, and must work under both without rebuilding
 // asset URLs by hand:
 //   • dev  — Vite dev server at http://localhost:5173/console/ (API is proxied)
-//   • prod — FastAPI StaticFiles mounted at /console (same origin as /api/v1)
-// A non-root, absolute base makes every emitted asset URL /console/… so it
-// resolves under the mount, while /api/v1 stays absolute and hits the backend.
+//   • prod — FastAPI StaticFiles mounted at /console (same origin as /api/v1),
+//            or static hosting (Vercel) from webapp/dist
+// The root base keeps every emitted asset URL absolute (/assets/…): main.py
+// mounts the built dist's assets/ at /assets for same-origin serving, and
+// /api/v1 stays absolute and hits the backend.
 export default defineConfig({
   base: '/',
   assetsInclude: ['**/*.glb'],
